@@ -1,0 +1,115 @@
+/**
+ * Custom TinyMCE content styling for Clarity Suite
+ */
+
+/* Base typography */
+body {
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14pt;
+  line-height: 1.6;
+  margin: 20px;
+  color: #333;
+}
+
+a {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+/* Text formatting */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2em; }
+h2 { font-size: 1.75em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.25em; }
+h5 { font-size: 1em; }
+h6 { font-size: 0.875em; }
+
+p {
+  margin: 0 0 1em;
+}
+
+/* Blockquotes and code blocks */
+blockquote {
+  border-left: 3px solid #ccc;
+  margin-left: 1.5rem;
+  padding-left: 1rem;
+  color: #555;
+}
+
+pre {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: "Courier New", Courier, monospace;
+  overflow-x: auto;
+}
+
+code {
+  background-color: #f5f5f5;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 85%;
+}
+
+/* Lists */
+ul, ol {
+  padding-left: 2em;
+  margin-bottom: 1em;
+}
+
+li {
+  margin-bottom: 0.5em;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #f5f5f5;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Evidence link styling */
+.evidence-link-placeholder {
+  background-color: rgba(25, 118, 210, 0.1);
+  color: #1976d2;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.evidence-link-placeholder:hover {
+  background-color: rgba(25, 118, 210, 0.2);
+} 

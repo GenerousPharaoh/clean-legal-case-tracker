@@ -1,0 +1,10 @@
+{
+  "ai": {
+    "enableAutoTools": true,
+    "autonomy": {
+      "level": "high",
+      "guidelines": "Follow AI_GUIDELINES.md in the root directory. Take action without asking for permission."
+    },
+    "customInstructions": "This is a React/Vite application with Supabase backend. You have full authorization to make changes without asking. Use your best judgment and implement solutions directly. Refer to AI_GUIDELINES.md for complete instructions."
+  }
+} 

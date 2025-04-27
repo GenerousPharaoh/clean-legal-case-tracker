@@ -1,0 +1,206 @@
+/* TinyMCE content styling aligned with Material UI theme */
+body {
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  font-size: 0.9rem; /* Match MUI body1 */
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.87); /* Match MUI text.primary */
+  margin: 16px 20px; /* Use consistent spacing */
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography hierarchy to match MUI */
+h1 {
+  font-size: 2.125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+h2 {
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+h4 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+h5 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+h6 {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Links styling to match MUI primary color */
+a {
+  color: #1976d2; /* MUI primary.main */
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #0d47a1; /* MUI primary.dark */
+  text-decoration: underline;
+}
+
+/* Blockquote styling */
+blockquote {
+  border-left: 4px solid #1976d2; /* MUI primary.main */
+  margin-left: 0;
+  margin-right: 0;
+  padding: 8px 16px;
+  background-color: rgba(25, 118, 210, 0.05); /* MUI primary very light */
+  color: rgba(0, 0, 0, 0.67); /* Slightly lighter than primary text */
+  border-radius: 0 4px 4px 0;
+}
+
+/* Code and pre styling */
+pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  border-radius: 6px; /* Match MUI shape.borderRadius */
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.875em;
+}
+
+/* Evidence link styling - enhanced for accessibility and visibility */
+.evidence-link-placeholder {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f0f7ff; /* Light blue background */
+  border-radius: 4px;
+  padding: 0 4px;
+  margin: 0 2px;
+  font-weight: 500;
+  color: #2962ff; /* Brighter blue for better visibility */
+  cursor: pointer;
+  border: 1px solid #90caf9;
+  white-space: nowrap;
+  font-size: 0.9em;
+  line-height: 1.6;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.evidence-link-placeholder:hover {
+  background-color: #e3f2fd;
+  border-color: #64b5f6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.evidence-link-placeholder:focus {
+  outline: 2px solid #2196f3;
+  outline-offset: 1px;
+}
+
+/* Table styling that matches MUI tables */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  border: 1px solid rgba(224, 224, 224, 1); /* MUI divider color */
+}
+
+table th,
+table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(224, 224, 224, 1); /* MUI divider color */
+  font-size: 0.875rem;
+}
+
+table th {
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.02);
+  color: rgba(0, 0, 0, 0.87);
+}
+
+table tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+table tr:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Lists styling */
+ul, ol {
+  padding-left: 24px;
+  margin: 8px 0;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+/* Image styling */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Horizontal rule */
+hr {
+  border: 0;
+  height: 1px;
+  background-color: rgba(0, 0, 0, 0.12); /* MUI divider color */
+  margin: 16px 0;
+}
+
+/* Focus visible - for accessibility */
+*:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+} 
