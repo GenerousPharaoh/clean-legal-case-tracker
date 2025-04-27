@@ -1,0 +1,17 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Trigger Vercel Deploy Hook
+        run: |
+          curl -X POST https://api.vercel.com/v1/integrations/deploy/prj_2LPCW0AJrhW5bs2BStYwezA3tPbJ/laEbJc99Uv 
