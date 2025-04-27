@@ -7,7 +7,7 @@
     "dev": "vite",
     "dev8000": "vite --port 8000",
     "build": "tsc && vite build",
-    "vercel-build": "node patch.cjs && tsc && vite build",
+    "vercel-build": "node vercel-adapter.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "cleanup": "node scripts/cleanup.js"
