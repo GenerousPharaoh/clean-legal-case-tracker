@@ -1,4 +1,6 @@
 {
+  "buildCommand": "node patch.js && npm run build",
+  "installCommand": "npm i --omit=optional",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
@@ -27,7 +29,9 @@
     }
   ],
   "env": {
-    "NEXT_PUBLIC_APP_URL": "https://legal-case-tracker-one.vercel.app"
+    "NEXT_PUBLIC_APP_URL": "https://legal-case-tracker-one.vercel.app",
+    "ROLLUP_NATIVE_DISABLE": "true",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
   },
   "redirects": [
     {
