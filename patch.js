@@ -1,9 +1,14 @@
 // This script should be run before building on Vercel
 // Add this to a prebuild step if possible
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 console.log('Running build patch...');
+
+// Get current directory in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Path to the problematic file
 const nativeJsPath = path.join(process.cwd(), 'node_modules/rollup/dist/native.js');
@@ -32,7 +37,7 @@ if (fs.existsSync(nativeJsPath)) {
 const dummyNativePath = path.join(process.cwd(), 'node_modules/@rollup/rollup-linux-x64-gnu');
 if (!fs.existsSync(dummyNativePath)) {
   fs.mkdirSync(dummyNativePath, { recursive: true });
-  fs.writeFileSync(path.join(dummyNativePath, 'index.js'), 'module.exports = {};');
+  fs.writeFileSync(path.join(dummyNativePath, 'index.js'), 'export default {};');
   console.log('Created dummy native module.');
 }
 
