@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node patch.js && npm run build",
+  "buildCommand": "npm run vercel-build",
   "installCommand": "npm i",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }

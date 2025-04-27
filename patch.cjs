@@ -3,10 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// For ESM compatibility
-process.env.NODE_OPTIONS = process.env.NODE_OPTIONS || '';
-process.env.NODE_OPTIONS += ' --experimental-json-modules';
-
 // Patch Rollup native.js
 const rollupNativePath = path.join(process.cwd(), 'node_modules/rollup/dist/native.js');
 
