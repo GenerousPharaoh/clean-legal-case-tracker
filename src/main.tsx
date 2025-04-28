@@ -1,6 +1,15 @@
 // -- CRITICAL FIXES FIRST -- //
+// Global timeout fix - must be first!
+import './utils/globalTimeoutFix.js';
+
 // Direct fix for useTimeout
 import './utils/directFix.js';
+
+// Import the MUI-specific timeout fix (must be before other MUI imports)
+import './utils/muiTimeoutFix.js';
+
+// Specific patch for Material-UI's useIsFocusVisible
+import './utils/timeoutPatch.js';
 
 // Import the new comprehensive timeout fixes first
 import './utils/reactTimeoutFixes';
