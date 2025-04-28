@@ -1,8 +1,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Button, Typography, Container, Paper } from '@mui/material';
+import { Box, Typography, Button, Container, Paper } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -11,127 +13,138 @@ interface State {
   errorInfo: ErrorInfo | null;
 }
 
+/**
+ * GlobalErrorBoundary - Catches and displays React errors
+ * 
+ * This component catches errors in any child components and displays
+ * a user-friendly error message instead of crashing the whole app.
+ */
 class GlobalErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null
-    };
-  }
-
-  static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI
-    return {
-      hasError: true,
-      error,
-      errorInfo: null
-    };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Log the error to an error reporting service
-    console.error('Application error:', error, errorInfo);
-    
-    // You can send this to your error tracking service here
-    // e.g., Sentry, LogRocket, etc.
-    
-    this.setState({
-      error,
-      errorInfo
-    });
-  }
-
-  handleReset = (): void => {
-    // Clear the error state
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null
-    });
-    
-    // Attempt to reload the app
-    window.location.href = '/';
+  public state: State = {
+    hasError: false,
+    error: null,
+    errorInfo: null
   };
 
-  render(): ReactNode {
-    if (this.state.hasError) {
-      return (
-        <Container maxWidth="sm">
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '100vh',
-              py: 4
-            }}
-          >
-            <Paper 
-              elevation={3}
-              sx={{
-                p: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center'
-              }}
-            >
-              <Typography variant="h4" component="h1" gutterBottom>
-                Something went wrong
-              </Typography>
-              
-              <Typography variant="body1" color="text.secondary" paragraph>
-                The application has encountered an unexpected error.
-              </Typography>
-              
-              <Box sx={{ my: 2 }}>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  onClick={this.handleReset}
-                  sx={{ mr: 2 }}
-                >
-                  Return to Home
-                </Button>
-              </Box>
-              
-              {process.env.NODE_ENV === 'development' && (
-                <Box sx={{ mt: 4, width: '100%' }}>
-                  <Typography variant="subtitle2" align="left" gutterBottom>
-                    Error details (visible in development only):
-                  </Typography>
-                  
-                  <Paper 
-                    sx={{ 
-                      p: 2, 
-                      bgcolor: 'error.light', 
-                      color: 'error.contrastText',
-                      overflow: 'auto',
-                      maxHeight: '200px'
-                    }}
-                  >
-                    <Typography variant="body2" component="pre" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {this.state.error?.toString()}
-                    </Typography>
-                    
-                    {this.state.errorInfo && (
-                      <Typography variant="body2" component="pre" sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
-                        Component Stack: {this.state.errorInfo.componentStack}
-                      </Typography>
-                    )}
-                  </Paper>
-                </Box>
-              )}
-            </Paper>
-          </Box>
-        </Container>
-      );
+  // This lifecycle method is invoked after an error has been thrown
+  static getDerivedStateFromError(_: Error): State {
+    return { hasError: true, error: _, errorInfo: null };
+  }
+
+  // This lifecycle method catches errors and error info
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
+    
+    // Log the error to the console
+    console.error('Error caught by GlobalErrorBoundary:', error, errorInfo);
+    
+    // You can also send this to an error reporting service
+    if (window.__fixReactEvents) {
+      // Try to apply our emergency React event fix
+      try {
+        window.__fixReactEvents(document);
+        console.log('Applied emergency fix in error boundary');
+      } catch (err) {
+        console.error('Failed to apply emergency fix:', err);
+      }
+    }
+  }
+
+  // Reset the error state, which will attempt to re-render the children
+  handleReset = () => {
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null
+    });
+  };
+
+  render() {
+    // If there's no error, render the children normally
+    if (!this.state.hasError) {
+      return this.props.children;
     }
 
-    return this.props.children;
+    // If a custom fallback is provided, use it
+    if (this.props.fallback) {
+      return this.props.fallback;
+    }
+
+    // Otherwise, show the default error UI
+    return (
+      <Container maxWidth="md" sx={{ mt: 8 }}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            textAlign: 'center',
+            backgroundColor: 'background.paper'
+          }}
+        >
+          <Box sx={{ mb: 3 }}>
+            <ErrorOutlineIcon color="error" sx={{ fontSize: 60 }} />
+          </Box>
+
+          <Typography variant="h4" gutterBottom color="error">
+            Something went wrong
+          </Typography>
+
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            The application encountered an unexpected error. We've logged this issue and are working to fix it.
+          </Typography>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={this.handleReset}
+            sx={{ mr: 2 }}
+          >
+            Try Again
+          </Button>
+
+          <Button
+            variant="outlined"
+            onClick={() => window.location.reload()}
+          >
+            Reload Page
+          </Button>
+
+          {/* Show error details in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box sx={{ mt: 4, textAlign: 'left' }}>
+              <Typography variant="h6" gutterBottom>
+                Error Details (Development Only):
+              </Typography>
+              <Box
+                component="pre"
+                sx={{
+                  p: 2,
+                  bgcolor: 'grey.100',
+                  borderRadius: 1,
+                  overflow: 'auto',
+                  maxHeight: '200px',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {this.state.error && this.state.error.toString()}
+                {this.state.errorInfo && this.state.errorInfo.componentStack}
+              </Box>
+            </Box>
+          )}
+        </Paper>
+      </Container>
+    );
+  }
+}
+
+// Add a type definition to window for our fixReactEvents function
+declare global {
+  interface Window {
+    __fixReactEvents?: (element: any) => void;
   }
 }
 

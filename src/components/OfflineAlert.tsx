@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { Alert, Collapse, AlertTitle, Box, IconButton } from '@mui/material';
+import { Alert, AlertTitle, Box, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { Collapse } from './SafeTransitions';
 
 /**
  * OfflineAlert - A component that shows alerts for network status changes

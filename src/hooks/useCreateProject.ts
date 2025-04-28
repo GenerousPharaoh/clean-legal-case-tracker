@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuthStore, Project } from '../store/store';
+import { Project } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 
 interface CreateProjectOptions {
   onSuccess?: (project: Project) => void;
@@ -8,7 +9,7 @@ interface CreateProjectOptions {
 }
 
 export const useCreateProject = () => {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 

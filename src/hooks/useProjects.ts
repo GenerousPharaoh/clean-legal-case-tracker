@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 
 // Define an interface for the project structure based on schema.sql
 export interface Project {
@@ -12,7 +12,7 @@ export interface Project {
 }
 
 export const useProjects = () => {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  List, 
-  ListItemButton, 
-  Divider, 
-  TextField, 
-  Paper, 
-  IconButton, 
-  Collapse,
-  Fade,
-  Badge,
-  InputAdornment,
-  useTheme,
-  Tooltip
-} from '@mui/material';
+import { Box, Typography, Button, List, ListItemButton, Divider, TextField, Paper, IconButton, Badge, InputAdornment, useTheme, Tooltip } from '@mui/material';
+import { Collapse, Fade } from '../../components/SafeTransitions';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -25,8 +10,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import { useProjectStore, Project, File } from '../../store';
-import { useAuthStore } from '../../store';
+import { useProjectStore } from '../../store';
+import { Project, File, UserRole } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
 import { useProjects } from '../../hooks/useProjects';
 import { useFiles } from '../../hooks/useFiles';
 import { useAdvancedSearch, SearchFilters } from '../../hooks/useAdvancedSearch';
@@ -41,7 +27,6 @@ import EnhancedTooltip from '../../components/EnhancedTooltip';
 import AdvancedSearchFilters from '../../components/AdvancedSearchFilters';
 import { transitions, cssTransitions } from '../../utils/transitions';
 import { useLayoutStore } from '../../store/layoutStore';
-import { UserRole } from '../../types';
 import { supabase } from '../../supabaseClient';
 import PanelCollapseButton from '../../components/PanelCollapseButton';
 
@@ -53,7 +38,7 @@ const ACCEPTED_FILE_TYPES = 'image/*,video/*,audio/*,application/pdf,text/plain,
  */
 const LeftPanel: React.FC = () => {
     const { selectedProjectId, setSelectedProjectId } = useProjectStore();
-    const { user, setCurrentProjectRole, isProjectOwner, isClientUploader } = useAuthStore();
+    const { user, setCurrentProjectRole, isProjectOwner, isClientUploader } = useAuth();
     const { projects, loading: projectsLoading, error: projectsError } = useProjects();
     const { files: regularFiles, loading: regularFilesLoading, error: regularFilesError } = useFiles(selectedProjectId);
     const { 
@@ -164,11 +149,17 @@ const LeftPanel: React.FC = () => {
         const checkUserRole = async () => {
             try {
                 // Check if the user is the project owner
-                const { data: project } = await supabase
+                const { data: project, error: projectError } = await supabase!
                     .from('projects')
                     .select('owner_id')
                     .eq('id', selectedProjectId)
                     .single();
+
+                if (projectError) {
+                    console.error('Error checking project owner:', projectError);
+                    setCurrentProjectRole(null);
+                    return;
+                }
 
                 if (project && project.owner_id === user.id) {
                     setCurrentProjectRole(UserRole.OWNER);
@@ -176,13 +167,19 @@ const LeftPanel: React.FC = () => {
                 }
 
                 // Check if the user is a collaborator
-                const { data: collaborator } = await supabase
+                const { data: collaborator, error: collabError } = await supabase!
                     .from('project_collaborators')
                     .select('role, status')
                     .eq('project_id', selectedProjectId)
                     .eq('user_id', user.id)
                     .eq('status', 'accepted')
                     .single();
+
+                if (collabError) {
+                    console.error('Error checking collaborator role:', collabError);
+                    setCurrentProjectRole(null);
+                    return;
+                }
 
                 if (collaborator) {
                     setCurrentProjectRole(collaborator.role as UserRole);

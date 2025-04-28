@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Collapse, 
-  Paper, 
-  Chip, 
-  Button, 
-  IconButton, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
-  FormGroup, 
-  FormControlLabel, 
-  Checkbox, 
-  Autocomplete, 
-  TextField, 
-  Stack,
-  Divider,
-} from '@mui/material';
+import { Box, Typography, Paper, Chip, Button, IconButton, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Autocomplete, TextField, Stack, Divider,  } from '@mui/material';
+import { Collapse } from './SafeTransitions';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -29,6 +11,7 @@ import { format } from 'date-fns';
 import { supabase } from '../supabaseClient';
 import { SearchFilters, EntityFilter } from '../hooks/useAdvancedSearch';
 import { FileType } from '../store';
+import { Collapse as SafeCollapse } from './SafeTransitions';
 
 interface AdvancedSearchFiltersProps {
   projectId: string | null;
@@ -259,7 +242,7 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
       </Box>
       
       {/* Filter panel */}
-      <Collapse in={open} timeout="auto">
+      <SafeCollapse in={open} timeout="auto">
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Stack spacing={2}>
@@ -373,7 +356,7 @@ const AdvancedSearchFilters: React.FC<AdvancedSearchFiltersProps> = ({
             </Stack>
           </LocalizationProvider>
         </Paper>
-      </Collapse>
+      </SafeCollapse>
       
       {/* Active Filters Display */}
       {getActiveFilterCount() > 0 && (

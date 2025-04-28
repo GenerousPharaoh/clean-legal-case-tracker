@@ -1,10 +1,11 @@
 import React from 'react';
-import { IconButton, Tooltip, useTheme, Zoom } from '@mui/material';
+import { IconButton, Tooltip, useTheme } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import styled from '@emotion/styled';
 import { cssTransitions } from '../utils/transitions';
 import { getTransition, getShadow } from '../utils/themeUtils';
+import { Zoom } from './SafeTransitions';
 
 interface PanelCollapseButtonProps {
   isCollapsed: boolean;

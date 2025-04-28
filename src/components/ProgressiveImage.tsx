@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Skeleton, Fade } from '@mui/material';
+import { Box, Skeleton } from '@mui/material';
+import { Fade } from './SafeTransitions';
 import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 
 interface ProgressiveImageProps {

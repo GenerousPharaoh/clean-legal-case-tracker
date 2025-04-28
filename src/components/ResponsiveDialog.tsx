@@ -1,42 +1,43 @@
-import React, { ReactNode } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  IconButton,
-  Typography,
-  useMediaQuery,
-  useTheme,
-  Box,
-  Divider,
-  Slide,
-  Fade,
-  Button,
-  CircularProgress
-} from '@mui/material';
+import React, { ReactNode, useRef } from 'react';
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, IconButton, Typography, useMediaQuery, useTheme, Box, Divider, Button, CircularProgress } from '@mui/material';
+import { Slide, Fade } from './SafeTransitions';
 import { TransitionProps } from '@mui/material/transitions';
 import CloseIcon from '@mui/icons-material/Close';
 
-// Slide up transition for mobile view
+// Slide up transition for mobile view with proper nodeRef handling
 const SlideUpTransition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
   },
   ref: React.Ref<unknown>,
 ) {
-  return <Slide direction="up" ref={ref} {...props} />;
+  const nodeRef = useRef(null);
+  return (
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Slide direction="up" nodeRef={nodeRef} {...props}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {props.children}
+      </div>
+    </Slide>
+  );
 });
 
-// Fade transition for desktop view
+// Fade transition for desktop view with proper nodeRef handling
 const FadeTransition = React.forwardRef(function Transition(
   props: TransitionProps & {
     children: React.ReactElement;
   },
   ref: React.Ref<unknown>,
 ) {
-  return <Fade ref={ref} {...props} />;
+  const nodeRef = useRef(null);
+  return (
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Fade nodeRef={nodeRef} {...props}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {props.children}
+      </div>
+    </Fade>
+  );
 });
 
 interface ResponsiveDialogProps {

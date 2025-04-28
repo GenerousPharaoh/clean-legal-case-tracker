@@ -1,26 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  CircularProgress,
-  Alert,
-  Divider,
-  InputAdornment,
-  IconButton,
-  Tooltip,
-  List,
-  ListItem,
-  ListItemText,
-  Chip,
-  Collapse,
-  Paper
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, Typography, Box, CircularProgress, Alert, Divider, InputAdornment, IconButton, Tooltip, List, ListItem, ListItemText, Chip, Paper } from '@mui/material';
+import { Collapse } from './SafeTransitions';
 import { useCollaborators } from '../hooks/useCollaborators';
 import { ProjectCollaborator, UserRole } from '../types';
 import EmailIcon from '@mui/icons-material/Email';

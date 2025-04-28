@@ -7,8 +7,6 @@ import {
   Typography, 
   Paper, 
   CircularProgress,
-  Zoom,
-  Fade,
   IconButton
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -20,6 +18,7 @@ import { useFileUpload } from '../hooks/useFileUpload';
 import { useFileStore } from '../store';
 import FeedbackMessage from './FeedbackMessage';
 import { cssTransitions } from '../utils/transitions';
+import { Fade, Zoom } from './SafeTransitions';
 
 interface FileUploadProps {
   projectId: string | null;

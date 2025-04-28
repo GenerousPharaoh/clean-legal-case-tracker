@@ -1,23 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  ListItemSecondaryAction,
-  Typography, 
-  IconButton,
-  Menu,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-  TextField,
-  ListItemIcon as MuiListItemIcon,
-  Fade
-} from '@mui/material';
+import { ListItemButton, ListItemIcon, ListItemText, ListItemSecondaryAction, Typography, IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, TextField, ListItemIcon as MuiListItemIcon } from '@mui/material';
+import { Fade } from './SafeTransitions';
 import FileIcon from './FileIcon';
 import { File, useFileStore } from '../store';
 import MoreVertIcon from '@mui/icons-material/MoreVert';

@@ -4,7 +4,7 @@ import { useThemeContext } from './context/ThemeContext';
 import { pdfjs } from 'react-pdf';
 import { CircularProgress, Box, Typography, Button } from '@mui/material';
 import { supabase } from './supabaseClient';
-import { useAuthStore } from './store/store';
+import { useAuth } from './hooks/useAuth';
 import { ErrorBoundary } from 'react-error-boundary';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 import AuthErrorHandler from './components/AuthErrorHandler';
@@ -100,154 +100,20 @@ const AuthErrorMessage = ({ message, onRetry }: { message: string | null, onRetr
 // Protected routes are now handled in AppRoutes.tsx
 
 const App: React.FC = () => {
-  const { setUser, setSession, setLoading, clearUser, updateLastTokenRefresh } = useAuthStore();
+  // Use our enhanced useAuth hook which manages the auth store internally
+  const { loading } = useAuth();
   const [appInitialized, setAppInitialized] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   
   // Initialize theme with dark/light mode support
   const { mode, theme } = useThemeContext();
   
-  // Initialize auth listeners
+  // Set app as initialized once auth finishes loading
   useEffect(() => {
-    // Check active session on mount
-    const checkSession = async () => {
-      setLoading(true);
-      try {
-        console.log('[App] Checking authentication session');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('[App] Error checking session:', error);
-          setAuthError('Error verifying your authentication status. Please refresh the page.');
-          reportError('Error verifying your authentication status.', ErrorCategory.AUTH);
-          clearUser();
-        } else if (session) {
-          console.log('[App] Session found, user is authenticated:', session.user.email);
-          setSession(session);
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            // other user data can be fetched and set here
-          });
-          updateLastTokenRefresh();
-          
-          // Also verify the user's information and fetch additional profile data
-          const { data: userData, error: userError } = await supabase.auth.getUser();
-          if (userError) {
-            console.error('[App] Error getting user data:', userError);
-          } else if (userData.user) {
-            console.log('[App] User data fetched successfully');
-            
-            // Fetch additional user profile data if needed
-            try {
-              // First check if profile exists
-              const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('first_name, last_name, avatar_url, role')
-                .eq('id', userData.user.id)
-                .single();
-                
-              if (profileError) {
-                console.error('[App] Error fetching user profile:', profileError);
-                
-                // If profile doesn't exist (404), create one
-                if (profileError.code === 'PGRST116') {
-                  console.log('[App] Profile not found, creating default profile');
-                  
-                  // Create a default profile for the user
-                  const { data: newProfile, error: insertError } = await supabase
-                    .from('profiles')
-                    .insert([{ 
-                      id: userData.user.id, 
-                      first_name: userData.user.email?.split('@')[0] || 'User',
-                      created_at: new Date().toISOString()
-                    }])
-                    .select('first_name, last_name, avatar_url, role')
-                    .single();
-                  
-                  if (insertError) {
-                    console.error('[App] Error creating profile:', insertError);
-                  } else if (newProfile) {
-                    // Update user with the new profile info
-                    setUser({
-                      id: userData.user.id,
-                      email: userData.user.email || '',
-                      firstName: newProfile.first_name,
-                      lastName: newProfile.last_name,
-                      avatarUrl: newProfile.avatar_url,
-                      role: newProfile.role,
-                    });
-                  }
-                }
-              } else if (profile) {
-                // Update the user store with additional profile information
-                setUser({
-                  id: userData.user.id,
-                  email: userData.user.email || '',
-                  firstName: profile.first_name,
-                  lastName: profile.last_name,
-                  avatarUrl: profile.avatar_url,
-                  role: profile.role,
-                });
-              }
-            } catch (profileError) {
-              console.error('[App] Error in profile fetch:', profileError);
-            }
-          }
-        } else {
-          console.log('[App] No active session found');
-          clearUser();
-        }
-      } catch (e) {
-        console.error("[App] Authentication error:", e);
-        setAuthError('An unexpected authentication error occurred. Please refresh the page.');
-        reportError('An unexpected authentication error occurred.', ErrorCategory.AUTH);
-        clearUser();
-      } finally {
-        setLoading(false);
-        setAppInitialized(true);
-      }
-    };
-    
-    // Initial session check
-    checkSession();
-    
-    // Set up auth state change listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[App] Auth state changed:', event);
-      
-      if (event === 'SIGNED_IN' && session) {
-        console.log('[App] User signed in:', session.user.email);
-        setSession(session);
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          // other user data can be set here
-        });
-        updateLastTokenRefresh();
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        console.log('[App] User signed out or deleted');
-        clearUser();
-      } else if (event === 'TOKEN_REFRESHED' && session) {
-        console.log('[App] Token refreshed for user:', session.user.email);
-        setSession(session);
-        updateLastTokenRefresh();
-      } else if (event === 'USER_UPDATED' && session) {
-        console.log('[App] User updated:', session.user.email);
-        setSession(session);
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          // other user data can be updated here
-        });
-      }
-    });
-    
-    // Cleanup auth listener on unmount
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
+    if (!loading) {
+      setAppInitialized(true);
+    }
+  }, [loading]);
   
   // Handle auth retry
   const handleAuthRetry = () => {

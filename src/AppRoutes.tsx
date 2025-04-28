@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from './store/store';
+import { useAuth } from './hooks/useAuth';
 import { Backdrop, CircularProgress, Box, Typography } from '@mui/material';
 import { supabase } from './supabaseClient';
 import { handleSupabaseError, ErrorCategory, reportError } from './utils/authErrorHandler';
@@ -28,15 +28,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   allowedRoles = [] 
 }) => {
-  const { session, user, loading, error } = useAuthStore();
+  const { session, user, loading } = useAuth();
   const location = useLocation();
-
-  useEffect(() => {
-    // Handle auth errors
-    if (error) {
-      handleSupabaseError(error, 'Authentication error');
-    }
-  }, [error]);
 
   // Check for session expiry
   useEffect(() => {
@@ -68,9 +61,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Role-based access control
   const checkRoleAccess = () => {
     if (allowedRoles.length === 0) return true;
-    if (!user || !user.app_metadata || !user.app_metadata.role) return false;
+    if (!user || !user.role) return false;
     
-    return allowedRoles.includes(user.app_metadata.role);
+    return allowedRoles.includes(user.role);
   };
 
   // Show loading state while auth state is being determined

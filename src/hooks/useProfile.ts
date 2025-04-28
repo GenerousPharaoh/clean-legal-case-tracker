@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 
 /**
  * Custom hook to fetch and manage user profile data
  * Includes defensive handling for missing profiles and auto-creation
  */
 export const useProfile = () => {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

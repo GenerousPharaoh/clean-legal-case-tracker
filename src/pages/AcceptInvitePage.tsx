@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -32,7 +32,7 @@ import LockIcon from '@mui/icons-material/Lock';
 const AcceptInvitePage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   
   // State management
   const [inviteToken, setInviteToken] = useState<string>('');

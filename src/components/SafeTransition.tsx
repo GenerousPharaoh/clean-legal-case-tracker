@@ -12,17 +12,9 @@ import {
   CollapseProps
 } from '@mui/material';
 
-// Type for all transition components
-type TransitionComponentProps = 
-  | FadeProps 
-  | GrowProps 
-  | SlideProps 
-  | ZoomProps 
-  | CollapseProps;
-
 // Common props for all transition components
 interface CommonTransitionProps {
-  children: React.ReactElement; // Must be a single React element, not just any ReactNode
+  children: React.ReactElement;
   in?: boolean;
   appear?: boolean;
   timeout?: number | { appear?: number; enter?: number; exit?: number };
@@ -31,67 +23,96 @@ interface CommonTransitionProps {
 }
 
 /**
- * SafeFade - A safe wrapper around MUI Fade with a proper nodeRef
+ * SafeFade - A properly typed wrapper around MUI Fade with nodeRef
  */
-export const SafeFade: React.FC<FadeProps & CommonTransitionProps> = ({ children, ...props }) => {
+export const SafeFade: React.FC<Omit<FadeProps, 'children'> & { children: React.ReactElement }> = ({ 
+  children, 
+  ...props 
+}) => {
   const nodeRef = useRef(null);
   
-  // Clone the child element and attach the ref to it
   return (
-    <Fade nodeRef={nodeRef} {...props}>
-      {React.cloneElement(children, { ref: nodeRef })}
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Fade {...props} nodeRef={nodeRef}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </Fade>
   );
 };
 
 /**
- * SafeGrow - A safe wrapper around MUI Grow with a proper nodeRef
+ * SafeGrow - A properly typed wrapper around MUI Grow with nodeRef
  */
-export const SafeGrow: React.FC<GrowProps & CommonTransitionProps> = ({ children, ...props }) => {
+export const SafeGrow: React.FC<Omit<GrowProps, 'children'> & { children: React.ReactElement }> = ({ 
+  children, 
+  ...props 
+}) => {
   const nodeRef = useRef(null);
   
   return (
-    <Grow nodeRef={nodeRef} {...props}>
-      {React.cloneElement(children, { ref: nodeRef })}
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Grow {...props} nodeRef={nodeRef}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </Grow>
   );
 };
 
 /**
- * SafeSlide - A safe wrapper around MUI Slide with a proper nodeRef
+ * SafeSlide - A properly typed wrapper around MUI Slide with nodeRef
  */
-export const SafeSlide: React.FC<SlideProps & CommonTransitionProps> = ({ children, ...props }) => {
+export const SafeSlide: React.FC<Omit<SlideProps, 'children'> & { children: React.ReactElement }> = ({ 
+  children, 
+  ...props 
+}) => {
   const nodeRef = useRef(null);
   
   return (
-    <Slide nodeRef={nodeRef} {...props}>
-      {React.cloneElement(children, { ref: nodeRef })}
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Slide {...props} nodeRef={nodeRef}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </Slide>
   );
 };
 
 /**
- * SafeZoom - A safe wrapper around MUI Zoom with a proper nodeRef
+ * SafeZoom - A properly typed wrapper around MUI Zoom with nodeRef
  */
-export const SafeZoom: React.FC<ZoomProps & CommonTransitionProps> = ({ children, ...props }) => {
+export const SafeZoom: React.FC<Omit<ZoomProps, 'children'> & { children: React.ReactElement }> = ({ 
+  children, 
+  ...props 
+}) => {
   const nodeRef = useRef(null);
   
   return (
-    <Zoom nodeRef={nodeRef} {...props}>
-      {React.cloneElement(children, { ref: nodeRef })}
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Zoom {...props} nodeRef={nodeRef}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </Zoom>
   );
 };
 
 /**
- * SafeCollapse - A safe wrapper around MUI Collapse with a proper nodeRef
+ * SafeCollapse - A properly typed wrapper around MUI Collapse with nodeRef
  */
-export const SafeCollapse: React.FC<CollapseProps & CommonTransitionProps> = ({ children, ...props }) => {
+export const SafeCollapse: React.FC<Omit<CollapseProps, 'children'> & { children: React.ReactElement }> = ({ 
+  children, 
+  ...props 
+}) => {
   const nodeRef = useRef(null);
   
   return (
-    <Collapse nodeRef={nodeRef} {...props}>
-      {React.cloneElement(children, { ref: nodeRef })}
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Collapse {...props} nodeRef={nodeRef}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {children}
+      </div>
     </Collapse>
   );
 };

@@ -37,7 +37,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ErrorBoundary from './ErrorBoundary';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 
 // Define Case interface
 interface Case {
@@ -166,7 +166,7 @@ const CaseForm: React.FC<{
 // Main CaseLibrary component
 const CaseLibrary: React.FC = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuthStore();
+  const { user, loading: authLoading } = useAuth();
   
   // All state declarations need to be at the top level before any conditionals
   // States for case data and UI

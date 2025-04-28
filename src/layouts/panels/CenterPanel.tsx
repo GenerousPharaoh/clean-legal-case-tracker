@@ -18,7 +18,6 @@ import {
   ListItem,
   ListItemText,
   Divider,
-  Fade,
   Badge,
 } from '@mui/material';
 import { Editor } from '@tinymce/tinymce-react';
@@ -56,6 +55,7 @@ import SuggestionPanel from '../../components/SuggestionPanel';
 import CitationFinder from '../../components/CitationFinder';
 import { cssTransitions } from '../../utils/transitions';
 import { AIService, Suggestion } from '../../services/AIService';
+import { Fade } from '../../components/SafeTransitions';
 
 /**
  * CenterPanel - The main editing area for note synthesis

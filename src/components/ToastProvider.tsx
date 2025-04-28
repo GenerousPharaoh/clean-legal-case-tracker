@@ -1,15 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { 
-  Snackbar, 
-  Alert, 
-  AlertTitle, 
-  AlertProps, 
-  SnackbarProps,
-  Slide, 
-  Typography,
-  Box,
-  IconButton
-} from '@mui/material';
+import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import { Snackbar, Alert, AlertTitle, AlertProps, SnackbarProps, Typography, Box, IconButton } from '@mui/material';
+import { Slide } from './SafeTransitions';
 import { TransitionProps } from '@mui/material/transitions';
 import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -41,9 +32,17 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-// Custom slide transition
+// Custom slide transition with proper nodeRef handling
 const SlideTransition = (props: TransitionProps & { children: ReactNode }) => {
-  return <Slide {...props} direction="up" />;
+  const nodeRef = useRef(null);
+  return (
+    // @ts-ignore - nodeRef is valid but TypeScript doesn't recognize it
+    <Slide {...props} direction="up" nodeRef={nodeRef}>
+      <div ref={nodeRef} style={{ display: 'contents' }}>
+        {props.children}
+      </div>
+    </Slide>
+  );
 };
 
 export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

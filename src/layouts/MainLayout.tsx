@@ -22,7 +22,7 @@ import ViewQuiltIcon from '@mui/icons-material/ViewQuilt';
 import DragHandleIcon from '@mui/icons-material/DragHandle';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import LeftPanel from './panels/LeftPanel';
 import CenterPanel from './panels/CenterPanel';
@@ -51,7 +51,7 @@ const PANEL_UPDATE_DEBOUNCE = 10; // Minimal debounce in ms
  * Contains the header, footer, and the three-panel structure with resizable panels
  */
 const MainLayout: React.FC = () => {
-    const { user } = useAuthStore();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const theme = useTheme();
     const { 

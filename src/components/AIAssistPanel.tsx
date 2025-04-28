@@ -1,23 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  TextField,
-  CircularProgress,
-  Tabs,
-  Tab,
-  Paper,
-  Divider,
-  IconButton,
-  Alert,
-  Tooltip,
-  Skeleton,
-  Chip,
-  Fade,
-  Snackbar,
-  InputAdornment
-} from '@mui/material';
+import { Box, Typography, Button, TextField, CircularProgress, Tabs, Tab, Paper, Divider, IconButton, Alert, Tooltip, Skeleton, Chip, Snackbar, InputAdornment } from '@mui/material';
+import { Fade } from './SafeTransitions';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ClearIcon from '@mui/icons-material/Clear';
 import HistoryIcon from '@mui/icons-material/History';
@@ -25,6 +8,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import { AIService, AnalyzeResponse } from '../services/AIService';
 import { useFileStore } from '../store';
+import { Fade as SafeFade } from './SafeTransitions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -255,7 +239,7 @@ const AIAssistPanel: React.FC = () => {
         </Tooltip>
       </Box>
       
-      <Fade in={showHistory}>
+      <SafeFade in={showHistory}>
         {showHistory ? (
           <Paper 
             elevation={0} 
@@ -322,7 +306,7 @@ const AIAssistPanel: React.FC = () => {
             </Box>
           </Paper>
         ) : <Box />}
-      </Fade>
+      </SafeFade>
       
       <TabPanel value={tabValue} index={0}>
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>

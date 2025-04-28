@@ -138,112 +138,112 @@ const ToastNotification: React.FC<ToastProps> = ({
       {transitions((style, item) => (
         item && (
           <AnimatedSnackbar
-            open={open}
-            autoHideDuration={isImportant ? null : autoHideDuration} // Important toasts don't auto-hide
-            onClose={onClose}
-            anchorOrigin={{ 
-              vertical: position, 
-              horizontal: alignment 
-            }}
+          open={open}
+          autoHideDuration={isImportant ? null : autoHideDuration} // Important toasts don't auto-hide
+          onClose={onClose}
+          anchorOrigin={{ 
+            vertical: position, 
+            horizontal: alignment 
+          }}
             style={{
               opacity: style.opacity,
               transform: style.y.to(y => `translate3d(0,${y}px,0)`),
-              maxWidth: '100%',
-              width: 'auto',
+            maxWidth: '100%',
+            width: 'auto',
               ...theme.breakpoints.up('sm') && {
-                maxWidth: 'min(600px, calc(100% - 40px))'
-              }
-            }}
-          >
-            <SnackbarContent
-              message={
+              maxWidth: 'min(600px, calc(100% - 40px))'
+            }
+          }}
+        >
+          <SnackbarContent
+            message={
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: details ? 'flex-start' : 'center'
+                }}
+              >
                 <Box 
                   sx={{ 
-                    display: 'flex', 
-                    alignItems: details ? 'flex-start' : 'center'
+                    display: 'flex',
+                    flexShrink: 0,
+                    borderRadius: '50%',
+                    bgcolor: `${variantConfig.color}20`,
+                    color: variantConfig.color,
+                    p: 0.8,
+                    mr: 1.5,
+                    mt: details ? 0.5 : 0
                   }}
                 >
-                  <Box 
-                    sx={{ 
-                      display: 'flex',
-                      flexShrink: 0,
-                      borderRadius: '50%',
-                      bgcolor: `${variantConfig.color}20`,
-                      color: variantConfig.color,
-                      p: 0.8,
-                      mr: 1.5,
-                      mt: details ? 0.5 : 0
-                    }}
-                  >
-                    <SvgIcon 
-                      component={Icon} 
-                      fontSize="small" 
-                      sx={{ width: 20, height: 20 }}
-                    />
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {message}
-                    </Typography>
-                    {details && (
-                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, opacity: 0.8 }}>
-                        {details}
-                      </Typography>
-                    )}
-                  </Box>
+                  <SvgIcon 
+                    component={Icon} 
+                    fontSize="small" 
+                    sx={{ width: 20, height: 20 }}
+                  />
                 </Box>
-              }
-              action={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {action}
-                  {showCloseButton && (
-                    <IconButton
-                      size="small"
-                      aria-label="close"
-                      color="inherit"
-                      onClick={onClose}
-                      sx={{ 
-                        ml: action ? 1 : 0,
-                        color: 'text.secondary',
-                        opacity: 0.7,
-                        '&:hover': { opacity: 1 }
-                      }}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {message}
+                  </Typography>
+                  {details && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.5, opacity: 0.8 }}>
+                      {details}
+                    </Typography>
                   )}
                 </Box>
+              </Box>
+            }
+            action={
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {action}
+                {showCloseButton && (
+                  <IconButton
+                    size="small"
+                    aria-label="close"
+                    color="inherit"
+                    onClick={onClose}
+                    sx={{ 
+                      ml: action ? 1 : 0,
+                      color: 'text.secondary',
+                      opacity: 0.7,
+                      '&:hover': { opacity: 1 }
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+            }
+            sx={{
+              backgroundColor: theme.palette.background.paper,
+              backgroundImage: 'none',
+              color: theme.palette.text.primary,
+              boxShadow: theme.shadows[3],
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: variantConfig.borderColor,
+              borderLeftWidth: 4,
+              minWidth: '280px',
+              maxWidth: '100%',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': isImportant ? {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+                height: '2px',
+                backgroundColor: variantConfig.color,
+                animation: 'pulse 2s infinite'
+              } : {},
+              '@keyframes pulse': {
+                '0%': { opacity: 0.6 },
+                '50%': { opacity: 1 },
+                '100%': { opacity: 0.6 }
               }
-              sx={{
-                backgroundColor: theme.palette.background.paper,
-                backgroundImage: 'none',
-                color: theme.palette.text.primary,
-                boxShadow: theme.shadows[3],
-                borderRadius: 2,
-                border: '1px solid',
-                borderColor: variantConfig.borderColor,
-                borderLeftWidth: 4,
-                minWidth: '280px',
-                maxWidth: '100%',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': isImportant ? {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '2px',
-                  backgroundColor: variantConfig.color,
-                  animation: 'pulse 2s infinite'
-                } : {},
-                '@keyframes pulse': {
-                  '0%': { opacity: 0.6 },
-                  '50%': { opacity: 1 },
-                  '100%': { opacity: 0.6 }
-                }
-              }}
-            />
+            }}
+          />
           </AnimatedSnackbar>
         )
       ))}

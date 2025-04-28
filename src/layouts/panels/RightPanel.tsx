@@ -1,29 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  CircularProgress, 
-  IconButton, 
-  Fade, 
-  Divider,
-  Chip,
-  Tabs,
-  Tab,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  Tooltip,
-  Alert,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Skeleton,
-  List,
-  ListItem,
-  ListItemText
-} from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, IconButton, Divider, Chip, Tabs, Tab, TextField, Button, Card, CardContent, Tooltip, Alert, Accordion, AccordionSummary, AccordionDetails, Skeleton, List, ListItem, ListItemText } from '@mui/material';
+import { Fade } from '../../components/SafeTransitions';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';

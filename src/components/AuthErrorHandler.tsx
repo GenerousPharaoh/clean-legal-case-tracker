@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 import useSupabaseWithRetry from '../hooks/useSupabaseWithRetry';
 import { isSessionExpiredError, reportError, ErrorCategory } from '../utils/authErrorHandler';
 
@@ -11,7 +11,7 @@ import { isSessionExpiredError, reportError, ErrorCategory } from '../utils/auth
  */
 const AuthErrorHandler: React.FC = () => {
   const navigate = useNavigate();
-  const { clearUser, setUser } = useAuthStore();
+  const { clearUser, setUser } = useAuth();
   const { refreshSession, forceSignOut } = useSupabaseWithRetry();
   const [refreshAttempted, setRefreshAttempted] = useState(false);
   

@@ -1,10 +1,248 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2196f3;
+    }
+    .button {
+      display: inline-block;
+      background-color: #2196f3;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      margin-top: 20px;
+    }
+    .button:hover {
+      background-color: #1976d2;
+    }
+    .console {
+      background-color: #333;
+      color: #fff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      height: 300px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 <body>
-  <h1>Test Page Works!</h1>
-  <p>If you can see this, the server is running correctly.</p>
+  <div class="container">
+    <h1>Application Test Page</h1>
+    <p>This page loads without the React application to help diagnose issues.</p>
+    
+    <h2>Tests</h2>
+    <div>
+      <button class="button" id="testMap">Test Map.clear()</button>
+      <button class="button" id="testTimeout">Test Timeout</button>
+      <button class="button" id="testEvents">Test Events</button>
+      <button class="button" id="applyPatches">Apply All Patches</button>
+      <a href="/" class="button">Go to Main App</a>
+    </div>
+    
+    <h2>Console</h2>
+    <div class="console" id="console"></div>
+  </div>
+
+  <script>
+    // Console logging
+    const consoleOutput = document.getElementById('console');
+    const originalConsole = {
+      log: console.log,
+      error: console.error,
+      warn: console.warn
+    };
+    
+    // Override console methods to also display in our UI
+    ['log', 'error', 'warn'].forEach(method => {
+      console[method] = function(...args) {
+        // Call original method
+        originalConsole[method].apply(console, args);
+        
+        // Add to our console display
+        const text = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+        ).join(' ');
+        
+        const line = document.createElement('div');
+        line.textContent = `[${method}] ${text}`;
+        
+        if (method === 'error') {
+          line.style.color = '#ff5252';
+        } else if (method === 'warn') {
+          line.style.color = '#ffb74d';
+        }
+        
+        consoleOutput.appendChild(line);
+        consoleOutput.scrollTop = consoleOutput.scrollHeight;
+      };
+    });
+    
+    // Test buttons
+    document.getElementById('testMap').addEventListener('click', () => {
+      console.log('Testing Map.clear()...');
+      
+      try {
+        const map = new Map();
+        map.set('key1', 'value1');
+        map.set('key2', 'value2');
+        
+        console.log('Map before clear:', map);
+        map.clear();
+        console.log('Map after clear:', map);
+        console.log('Map.clear() test passed!');
+      } catch (err) {
+        console.error('Map.clear() test failed:', err);
+      }
+    });
+    
+    document.getElementById('testTimeout').addEventListener('click', () => {
+      console.log('Testing timeout clear...');
+      
+      try {
+        // Create a timeout object similar to React's
+        const timeout = {
+          id: setTimeout(() => {}, 1000),
+          get clear() {
+            return function() {
+              clearTimeout(this.id);
+              this.id = null;
+            };
+          }
+        };
+        
+        // Try to clear the timeout
+        console.log('Timeout before clear:', timeout);
+        timeout.clear();
+        console.log('Timeout after clear:', timeout);
+        console.log('Timeout test passed!');
+      } catch (err) {
+        console.error('Timeout test failed:', err);
+      }
+    });
+    
+    document.getElementById('testEvents').addEventListener('click', () => {
+      console.log('Testing event handlers...');
+      
+      try {
+        // Create a mock React events object
+        const events = {
+          click: new Map(),
+          change: new Map()
+        };
+        
+        // Add some events
+        events.click.set('handler1', () => {});
+        events.change.set('handler1', () => {});
+        
+        console.log('Events before clearing:', 
+          Object.keys(events).map(k => `${k}: ${events[k].size} handlers`).join(', ')
+        );
+        
+        // Try to clear events
+        Object.values(events).forEach(eventMap => {
+          try {
+            eventMap.clear();
+          } catch (e) {
+            console.error('Error clearing event map:', e);
+          }
+        });
+        
+        console.log('Events after clearing:', 
+          Object.keys(events).map(k => `${k}: ${events[k].size} handlers`).join(', ')
+        );
+        
+        console.log('Events test completed');
+      } catch (err) {
+        console.error('Events test failed:', err);
+      }
+    });
+    
+    document.getElementById('applyPatches').addEventListener('click', () => {
+      console.log('Applying manual patches...');
+      
+      try {
+        // Apply Map.clear polyfill
+        if (typeof Map !== 'undefined' && !Map.prototype.clear) {
+          Map.prototype.clear = function() {
+            this.forEach((_, key) => {
+              this.delete(key);
+            });
+            return this;
+          };
+          console.log('Applied Map.clear polyfill');
+        } else {
+          console.log('Map.clear already exists');
+        }
+        
+        // Apply a global patch function for timeouts
+        window.__fixTimeouts = function() {
+          console.log('Fixing all timeouts...');
+          
+          // Find all objects with a clear method and patch them
+          document.querySelectorAll('*').forEach(el => {
+            if (!el) return;
+            
+            // Walk properties looking for timeouts
+            Object.keys(el).forEach(key => {
+              try {
+                const obj = el[key];
+                if (obj && typeof obj === 'object') {
+                  // Check if it looks like a timeout
+                  if (obj.id && typeof obj.clear === 'function') {
+                    const originalClear = obj.clear;
+                    obj._safeClear = function() {
+                      try {
+                        originalClear.call(this);
+                      } catch (e) {
+                        // Fallback implementation
+                        clearTimeout(this.id);
+                        this.id = null;
+                      }
+                    };
+                  }
+                }
+              } catch (e) {
+                // Skip properties we can't access
+              }
+            });
+          });
+          console.log('Timeout fixing complete');
+        };
+        
+        window.__fixTimeouts();
+        console.log('All patches applied successfully');
+      } catch (err) {
+        console.error('Error applying patches:', err);
+      }
+    });
+    
+    // Log page loaded
+    console.log('Test page loaded successfully');
+  </script>
 </body>
 </html>

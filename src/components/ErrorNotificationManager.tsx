@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  Snackbar, 
   Alert, 
   AlertTitle, 
   IconButton, 
@@ -20,6 +19,7 @@ import {
   ErrorContext,
   DefaultErrorContext
 } from '../utils/authErrorHandler';
+import SafeSnackbar from './SafeSnackbar';
 
 // Assign color and severity based on error category
 const getCategoryProps = (category: ErrorCategory) => {
@@ -147,7 +147,7 @@ const ErrorNotificationManager: React.FC = () => {
           const { color, severity, icon } = getCategoryProps(error.category);
           
           return (
-            <Snackbar
+            <SafeSnackbar
               key={error.id}
               open={!error.dismissed}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
@@ -179,7 +179,7 @@ const ErrorNotificationManager: React.FC = () => {
                   </Box>
                 )}
               </Alert>
-            </Snackbar>
+            </SafeSnackbar>
           );
         })}
         

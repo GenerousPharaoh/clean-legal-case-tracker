@@ -19,7 +19,7 @@ import {
   Grid
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../supabaseClient';
 import FileIcon from '../components/FileIcon';
 import FileUpload from '../components/FileUpload';
@@ -43,7 +43,7 @@ const ACCEPTED_FILE_TYPES = 'image/*,video/*,audio/*,application/pdf,text/plain,
  */
 const ClientPortalPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const theme = useTheme();
   const navigate = useNavigate();
   

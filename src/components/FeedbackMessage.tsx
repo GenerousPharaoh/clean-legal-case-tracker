@@ -2,17 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { 
   Snackbar, 
   Alert, 
-  Fade, 
   AlertColor, 
   LinearProgress,
   Box,
   Typography,
   useTheme,
-  AlertTitle
+  AlertTitle,
+  Paper,
+  IconButton
 } from '@mui/material';
 
 // Import animation styles for consistency
 import { animations } from '../styles/visualRefactor';
+
+// Import safe transition component
+import { Fade } from './SafeTransitions';
 
 // Define message types
 export type MessageType = 'success' | 'error' | 'info' | 'warning';

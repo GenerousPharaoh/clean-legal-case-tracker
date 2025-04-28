@@ -9,7 +9,6 @@ import {
   ListItemText, 
   Divider, 
   IconButton, 
-  Collapse, 
   CircularProgress, 
   Alert, 
   Chip
@@ -25,6 +24,9 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+
+// Update imports to use our safe transition component
+import { Collapse } from './SafeTransitions';
 
 interface SuggestionPanelProps {
   suggestions: Suggestion[];

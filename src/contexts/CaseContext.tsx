@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuthStore } from '../store/store';
+import { useAuth } from '../hooks/useAuth';
 
 // Define Case interface
 interface Case {
@@ -43,7 +43,7 @@ export const useCase = () => {
 
 // Provider component
 export const CaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const [currentCase, setCurrentCase] = useState<Case | null>(null);
   const [caseId, setCaseId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
