@@ -1,0 +1,10 @@
+# Ignore native modules to avoid Rollup issues
+node_modules/@rollup/rollup-*
+
+# Large folders that aren't needed
+node_modules/.cache
+node_modules/.vite
+
+# Logs and debug files
+*.log
+npm-debug.log* 

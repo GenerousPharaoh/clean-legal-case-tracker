@@ -1,12 +1,16 @@
 {
   "framework": "vite",
-  "buildCommand": "node scripts/fix-rollup-vercel.cjs && node scripts/rollup-fix-builder.cjs",
+  "buildCommand": "ROLLUP_NATIVE_DISABLE=1 NODE_OPTIONS=\"--no-warnings\" node scripts/fix-rollup-vercel.cjs && node scripts/rollup-fix-builder.cjs",
   "outputDirectory": "dist",
+  "installCommand": "npm install --legacy-peer-deps",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {
     "ROLLUP_NATIVE_DISABLE": "1",
-    "NODE_OPTIONS": "--max-old-space-size=4096"
+    "NODE_OPTIONS": "--max-old-space-size=4096 --no-warnings"
+  },
+  "github": {
+    "silent": true
   }
 }
