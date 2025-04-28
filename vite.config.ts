@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   root: process.cwd(), // Explicitly set root to current working directory
   plugins: [
@@ -20,7 +20,9 @@ export default defineConfig({
     sourcemap: true,
     // Ensure Rollup has the correct configuration
     rollupOptions: {
-      input: './index.html',
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
       output: {
         // Improved chunking strategy
         manualChunks: (id) => {
@@ -58,5 +60,18 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  // Explicitly optimizing critical dependencies
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@mui/material',
+      '@emotion/react',
+      '@emotion/styled',
+      'framer-motion',
+      'date-fns'
+    ]
   }
-}) 
+})

@@ -1,4 +1,3 @@
-import "./utils/mapPolyfill.js";
 // Import the Map.clear polyfill before anything else
 import './utils/mapPolyfill.js';
 

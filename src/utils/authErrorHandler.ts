@@ -1,5 +1,18 @@
 import { createContext, useContext } from 'react';
-import { AuthError, PostgrestError, StorageError } from '@supabase/supabase-js';
+import { AuthError } from '@supabase/supabase-js';
+
+// Define custom error interfaces since they're not exported directly anymore
+interface PostgrestError {
+  code: string;
+  message: string;
+  details?: string;
+}
+
+interface StorageError {
+  message: string;
+  statusCode: number;
+  error?: string;
+}
 
 /**
  * Common Supabase authentication error codes
@@ -278,46 +291,34 @@ export const isAuthError = (error: any): boolean => {
     return true;
   }
   
-  // Check for Supabase PostgrestError with auth-related messages
-  if (error instanceof PostgrestError) {
-    const errorMessage = error.message.toLowerCase();
-    return (
-      errorMessage.includes('auth') || 
-      errorMessage.includes('permission') || 
-      errorMessage.includes('jwt') ||
-      errorMessage.includes('token') ||
-      errorMessage.includes('role') ||
-      errorMessage.includes('access') || 
-      error.code === '42501' || // insufficient privilege
-      error.code === '3D000'  // insufficient permission
-    );
-  }
-  
-  // Check for common error codes
-  if (error.code) {
-    const errorCode = typeof error.code === 'string' ? error.code : String(error.code);
-    return (
-      errorCode === '401' ||
-      errorCode === '403' ||
-      errorCode.startsWith('PGRST') || // PostgREST errors
-      errorCode === 'UNAUTHENTICATED' ||
-      errorCode === 'UNAUTHORIZED'
-    );
-  }
-  
-  // Check for error message string patterns
-  if (error.message && typeof error.message === 'string') {
-    const errorMessage = error.message.toLowerCase();
-    return (
-      errorMessage.includes('auth') ||
-      errorMessage.includes('login') ||
-      errorMessage.includes('permission') ||
-      errorMessage.includes('unauthorized') ||
-      errorMessage.includes('unauthenticated') ||
-      errorMessage.includes('jwt') ||
-      errorMessage.includes('token') ||
-      errorMessage.includes('session')
-    );
+  // Check for error properties that likely indicate an auth error
+  if (error && typeof error === 'object') {
+    // Check for common error codes
+    if (error.code) {
+      const errorCode = typeof error.code === 'string' ? error.code : String(error.code);
+      return (
+        errorCode === '401' ||
+        errorCode === '403' ||
+        errorCode.startsWith('PGRST') || // PostgREST errors
+        errorCode === 'UNAUTHENTICATED' ||
+        errorCode === 'UNAUTHORIZED'
+      );
+    }
+    
+    // Check for error message string patterns
+    if (error.message && typeof error.message === 'string') {
+      const errorMessage = error.message.toLowerCase();
+      return (
+        errorMessage.includes('auth') ||
+        errorMessage.includes('login') ||
+        errorMessage.includes('permission') ||
+        errorMessage.includes('unauthorized') ||
+        errorMessage.includes('unauthenticated') ||
+        errorMessage.includes('jwt') ||
+        errorMessage.includes('token') ||
+        errorMessage.includes('session')
+      );
+    }
   }
   
   return false;
@@ -333,7 +334,7 @@ export const parseErrorDetails = (error: any): string => {
     return `${error.name}: ${error.message}`;
   }
   
-  if (error instanceof PostgrestError) {
+  if (isPostgrestError(error)) {
     return `Database error ${error.code}: ${error.message} ${error.details || ''}`;
   }
   
@@ -394,4 +395,4 @@ export default {
   reportError,
   handleSupabaseError,
   ErrorCategory
-}; 
+};

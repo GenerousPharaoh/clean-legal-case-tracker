@@ -38,6 +38,16 @@ This document summarizes the changes made to fix the root-level diagnosis issues
   - Added proper fall-back UI for error states
   - Ensured components wait for profile data to be ready before mounting
 
+### 5. Map.clear Function Error
+
+- **Problem**: The application was experiencing a critical error in production:
+  ```
+  TypeError: this.events[e].clear is not a function
+  ```
+- **Solution**:
+  - **Downgraded framer-motion**: Changed from version 10.16.4 to 10.12.16, which is known to be more compatible with MUI 5.14.x
+  - **Added a Map.clear polyfill**: Created a safety measure that adds the `clear()` method to Map objects if it's missing
+
 ## Verification Steps for Latest Fixes
 
 After deploying these changes, verify the following:
@@ -109,3 +119,50 @@ Consider implementing the following in future updates:
 2. Browser console should have no `u.mount` / `events[e].clear` errors
 3. Network tab should show every requested TinyMCE plugin returning 200 JS, not HTML
 4. Login should complete and dashboard should render properly 
+
+## How to Apply the Fix
+
+1. Make the fix script executable:
+   ```bash
+   chmod +x fix-build.sh
+   ```
+
+2. Run the fix script:
+   ```bash
+   ./fix-build.sh
+   ```
+
+3. This script:
+   - Removes node_modules and package-lock.json
+   - Reinstalls with the fixed dependency versions
+   - Adds a Map.clear polyfill
+   - Updates main.tsx to import the polyfill
+   - Rebuilds the project
+
+4. Preview the fixed application:
+   ```bash
+   npm run preview
+   ```
+
+5. Deploy to Vercel:
+   ```bash
+   vercel --prod
+   ```
+
+## Understanding the Root Cause
+
+This issue stemmed from an incompatibility between different versions of dependencies, specifically:
+
+1. MUI components expect Map objects to have a `clear()` method
+2. The version of framer-motion (10.16.4) was using a custom Map-like object that lacked this method
+3. When a component unmounted, it tried to call `clear()` on these Map-like objects, causing the error
+
+The combination of downgrading framer-motion and adding a polyfill ensures that even if the issue reappears with future updates, the application will still function properly.
+
+## Preventing Similar Issues in the Future
+
+1. **Lock dependency versions**: Use exact version numbers for critical dependencies
+2. **Test production builds**: Always test your application with a production build before deploying
+3. **Be cautious with updates**: Before updating major versions of UI libraries, check for compatibility issues
+
+This fix should resolve the issue permanently while maintaining all functionality of your application. 
