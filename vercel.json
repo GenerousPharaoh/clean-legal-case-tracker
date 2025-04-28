@@ -3,8 +3,40 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "headers": [
+    {
+      "source": "/tinymce/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
+    { "src": "/tinymce/(.*)", "dest": "/tinymce/$1", "headers": { "cache-control": "public, max-age=31536000, immutable" } },
+    { "src": "/auth/(.*)", "dest": "/index.html" },
+    { "src": "/dashboard/(.*)", "dest": "/index.html" },
+    { "src": "/project/(.*)", "dest": "/index.html" },
+    { "src": "/profile/(.*)", "dest": "/index.html" },
+    { "src": "/settings/(.*)", "dest": "/index.html" },
+    { "src": "/login", "dest": "/index.html" },
+    { "src": "/signup", "dest": "/index.html" },
+    { "src": "/forgot-password", "dest": "/index.html" },
+    { "src": "/reset-password", "dest": "/index.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "github": {
     "silent": true
