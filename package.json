@@ -25,6 +25,7 @@
     "chart.js": "4.4.0",
     "date-fns": "2.30.0",
     "focus-visible": "5.2.0",
+    "framer-motion": "10.12.16",
     "lodash": "4.17.21",
     "marked": "9.0.3",
     "monaco-editor": "0.43.0",
@@ -53,7 +54,7 @@
     "react-pdf": "7.3.3",
     "react-resize-detector": "9.1.0",
     "react-router-dom": "6.16.0",
-    "react-spring": "^9.7.5",
+    "react-spring": "9.7.3",
     "react-virtualized": "9.22.5",
     "react-window": "1.8.9",
     "react-zoom-pan-pinch": "3.1.0",
@@ -78,5 +79,26 @@
     "terser": "5.20.0",
     "typescript": "5.2.2",
     "vite": "4.4.9"
+  },
+  "overrides": {
+    "framer-motion": "10.12.16",
+    "@mui/material": {
+      "framer-motion": "10.12.16"
+    },
+    "@mui/system": {
+      "framer-motion": "10.12.16"
+    },
+    "react-awesome-reveal": {
+      "framer-motion": "10.12.16"
+    },
+    "@emotion/react": {
+      "framer-motion": "10.12.16"
+    },
+    "@emotion/styled": {
+      "framer-motion": "10.12.16"
+    }
+  },
+  "resolutions": {
+    "framer-motion": "10.12.16"
   }
 }
