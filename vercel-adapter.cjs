@@ -69,12 +69,23 @@ try {
   // Run TypeScript first
   execSync('tsc', { stdio: 'inherit' });
   
+  // Make sure the public directory exists
+  const publicDir = path.join(process.cwd(), 'public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+    console.log('✅ Created public directory');
+  }
+  
   // Run Vite build for the application (this will handle everything except HTML)
   try {
     execSync('vite build', { stdio: 'inherit' });
   } catch (error) {
     console.warn('⚠️ Vite build had some issues but continuing with manual HTML handling:', error.message);
   }
+  
+  // Verify the public directory has content
+  const files = fs.readdirSync(publicDir);
+  console.log(`✅ Public directory contains ${files.length} files/directories: ${files.join(', ')}`);
   
   console.log('✅ Build completed successfully');
 } catch (error) {

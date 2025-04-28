@@ -38,7 +38,7 @@ export default defineConfig({
       }
     },
     // Ensure proper output
-    outDir: 'dist',
+    outDir: 'public',
     assetsDir: 'assets',
     // Add rollup options for better control
     rollupOptions: {
