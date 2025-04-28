@@ -16,17 +16,19 @@ This document summarizes the changes made to fix the root-level diagnosis issues
 
 - **Problem**: Plugin files were requested from incorrect paths causing Vercel to rewrite to index.html, resulting in syntax errors.
 - **Fix**:
-  - Created `TinyMCEScriptLoader` component that properly loads TinyMCE either from CDN or self-hosted
-  - Updated TinyMCE configuration with correct paths for plugins
-  - Added proper error handling for TinyMCE loading failures
+  - **Updated Solution (2023-04-28)**: Switched to TinyMCE Cloud CDN approach instead of self-hosted
+  - Removed all self-hosted TinyMCE imports and configuration
+  - Configured Editor component to use TinyMCE CDN with no API key
+  - Reconfigured the custom cite button to work without a custom plugin
 
 ### 3. Framer-motion Version Mismatch 
 
 - **Problem**: The app contained mixed versions of framer-motion (v7 and v11), causing "u.mount is not a function" errors.
 - **Fix**:
-  - Locked framer-motion to version 11.5.2 in package.json
-  - Added override and resolution configuration to ensure all dependent packages use the same version
-  - Fixed imports to use the standardized version
+  - **Updated Solution (2023-04-28)**: Created a comprehensive approach to version conflicts
+  - Added specific override entries for all packages that use framer-motion as a dependency
+  - Added explicit overrides for @mui/material, @mui/system, and react-awesome-reveal
+  - Created a utility script (scripts/fix-framer-motion.js) to ensure consistent versions
 
 ### 4. Improved Error Handling
 
@@ -36,14 +38,32 @@ This document summarizes the changes made to fix the root-level diagnosis issues
   - Added proper fall-back UI for error states
   - Ensured components wait for profile data to be ready before mounting
 
-## Deployment Verification Checklist
+## Verification Steps for Latest Fixes
 
 After deploying these changes, verify the following:
 
-1. ✅ `/profiles?...` API requests return 200 with JSON instead of 404
-2. ✅ Network tab shows tinymce.min.js loading with 200 status (not HTML)
-3. ✅ No "u.mount" errors in the console
-4. ✅ Source maps are enabled in production build
+1. `npm ls framer-motion` should show exactly one version
+2. Browser console should have no `u.mount` / `events[e].clear` errors
+3. Network tab should show TinyMCE loading from CDN successfully (no 404s)
+4. Login should complete and dashboard should render properly
+
+## Running the Framer-motion Fix Script
+
+To ensure all framer-motion dependencies are properly fixed, run:
+
+```bash
+# Clean up framer-motion version inconsistencies
+node scripts/fix-framer-motion.js
+
+# Rebuild the application
+npm run build
+```
+
+This script will:
+1. Clean up any duplicate framer-motion packages
+2. Update package.json with the correct overrides
+3. Reinstall dependencies
+4. Verify that only one version is being used
 
 ## Additional Hardening
 

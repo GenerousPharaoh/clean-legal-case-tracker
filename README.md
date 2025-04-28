@@ -30,25 +30,21 @@ To deploy:
 npm run build
 ``` 
 
-# Recent Fixes - Production Issues
+# Recent Fixes - Production Issues (Updated April 28, 2025)
 
 We've fixed critical issues that were affecting the production deployment:
 
-1. **Framer-motion version clash**: Fixed conflicting versions between direct and indirect dependencies.
-2. **TinyMCE plugin loading errors**: Corrected the path configuration for TinyMCE plugins.
+1. **Framer-motion version clash**: Fixed conflicting versions between direct and indirect dependencies with enhanced overrides for all affected packages.
+2. **TinyMCE plugin loading errors**: Switched to TinyMCE Cloud CDN to avoid self-hosting issues.
 3. **DevTools extension warnings**: Documented harmless console errors from React DevTools.
 
-## Rebuilding After Fixes
+## Rebuilding After Fixes (Updated)
 
 To ensure the fixes are properly applied, please follow these steps:
 
 ```bash
-# Clean install to ensure dependency resolution
-rm -rf node_modules package-lock.json
-npm install
-
-# Verify framer-motion is correctly resolved to a single version
-npm ls framer-motion  # Should show exactly ONE entry
+# Run the framer-motion fix script
+node scripts/fix-framer-motion.js
 
 # Build the application
 npm run build
@@ -62,7 +58,7 @@ npm run preview
 After deploying, check the following:
 
 1. Browser console should have no `u.mount` or `events[e].clear` errors
-2. All TinyMCE plugins should load correctly (no 404s or "Unexpected token '<'" errors)
+2. TinyMCE should load correctly from CDN (no 404s or "Unexpected token '<'" errors)
 3. Login should complete and dashboard should render properly
 
 See [FIXED_ISSUES.md](./FIXED_ISSUES.md) for more detailed documentation of the fixes. 

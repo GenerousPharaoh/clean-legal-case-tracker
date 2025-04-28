@@ -23,22 +23,6 @@ import {
 } from '@mui/material';
 import { Editor } from '@tinymce/tinymce-react';
 
-// Import TinyMCE dependencies
-// Core TinyMCE script
-import 'tinymce/tinymce';
-// Theme and icons
-import 'tinymce/models/dom';
-import 'tinymce/icons/default';
-import 'tinymce/themes/silver';
-// TinyMCE skins
-import 'tinymce/skins/ui/oxide/skin.min.css';
-import 'tinymce/skins/ui/oxide/content.min.css';
-import 'tinymce/skins/content/default/content.min.css';
-
-// Do not import plugins individually - let TinyMCE load them from base_url
-// Only initialize the tinymce core
-import 'tinymce';
-
 // Import custom TinyMCE content CSS
 import '../../styles/tinymce-content.css';
 import { getEnhancedEditorConfig } from '../../utils/tinymce-init';
@@ -793,13 +777,7 @@ const CenterPanel: React.FC = () => {
               }}
               value={content}
               onEditorChange={handleEditorChange}
-              init={{
-                ...editorConfig,
-                // Explicitly set these paths to ensure correct loading in production
-                base_url: '/tinymce',
-                suffix: '.min',
-                tinymceScriptSrc: '/tinymce/tinymce.min.js',
-              }}
+              init={editorConfig}
               disabled={!selectedProjectId}
             />
             

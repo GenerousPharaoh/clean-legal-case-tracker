@@ -15,9 +15,21 @@
     "rollup": {
       "fsevents": "2.3.3"
     },
-    "framer-motion": "11.5.2"
+    "framer-motion": "11.5.2",
+    "@mui/material": {
+      "framer-motion": "11.5.2"
+    },
+    "@mui/system": {
+      "framer-motion": "11.5.2"
+    },
+    "react-awesome-reveal": {
+      "framer-motion": "11.5.2"
+    }
   },
   "resolutions": {
+    "framer-motion": "11.5.2"
+  },
+  "peerDependencyOverrides": {
     "framer-motion": "11.5.2"
   },
   "dependencies": {
