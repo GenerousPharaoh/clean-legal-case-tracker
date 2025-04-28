@@ -70,10 +70,10 @@ try {
   execSync('tsc', { stdio: 'inherit' });
   
   // Make sure the public directory exists
-  const publicDir = path.join(process.cwd(), 'public');
+  const publicDir = path.join(process.cwd(), 'dist/public');
   if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir, { recursive: true });
-    console.log('✅ Created public directory');
+    console.log('✅ Created dist/public directory');
   }
   
   // Run Vite build for the application (this will handle everything except HTML)
