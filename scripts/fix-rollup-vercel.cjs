@@ -41,6 +41,45 @@ require.resolve = function (request, options) {
 
 console.log('[fix-rollup] Rollup native module patch installed');
 
+// Create actual mock directories for problematic native modules
+function createMockNativeModule(moduleName) {
+  const moduleDir = path.join(process.cwd(), 'node_modules', moduleName);
+  
+  try {
+    // Create directories if they don't exist
+    if (!fs.existsSync(moduleDir)) {
+      fs.mkdirSync(moduleDir, { recursive: true });
+    }
+    
+    // Create a mock index.js file
+    const indexPath = path.join(moduleDir, 'index.js');
+    fs.writeFileSync(indexPath, `
+// Mock ${moduleName} module created by fix-rollup-vercel.cjs
+module.exports = require('rollup/dist/rollup.js');
+    `);
+    
+    // Create a package.json file
+    const packagePath = path.join(moduleDir, 'package.json');
+    fs.writeFileSync(packagePath, JSON.stringify({
+      name: moduleName,
+      version: '4.40.0',
+      description: 'Mock native module for Vercel deployment',
+      main: 'index.js'
+    }, null, 2));
+    
+    console.log(`[fix-rollup] Created mock module for ${moduleName}`);
+    return true;
+  } catch (err) {
+    console.error(`[fix-rollup] Failed to create mock for ${moduleName}:`, err.message);
+    return false;
+  }
+}
+
+// Create mock modules for all problematic modules
+for (const moduleName of MODULES_TO_MOCK) {
+  createMockNativeModule(moduleName);
+}
+
 // Fix for Rollup native modules issue in Vercel
 console.log('Applying Rollup fix for Vercel deployment...');
 
@@ -74,8 +113,41 @@ try {
   } else {
     console.log('ROLLUP_NATIVE_DISABLE already set in .env.local');
   }
+  
+  // Create a .npmrc file with essential settings
+  const npmrcPath = path.join(process.cwd(), '.npmrc');
+  const npmrcContent = `
+# NPM configuration to fix Rollup issues
+ROLLUP_NATIVE_DISABLE=1
+legacy-peer-deps=true
+fund=false
+`;
+  
+  fs.writeFileSync(npmrcPath, npmrcContent);
+  console.log('Created/updated .npmrc with proper settings');
+  
 } catch (err) {
-  console.error('Error updating .env.local:', err);
+  console.error('Error updating environment files:', err);
+}
+
+// Monkey patch Node.js modules directly
+try {
+  const rollupPath = path.join(process.cwd(), 'node_modules', 'rollup', 'dist', 'native.js');
+  
+  if (fs.existsSync(rollupPath)) {
+    console.log('Directly patching Rollup native.js...');
+    
+    const rollupContent = fs.readFileSync(rollupPath, 'utf8');
+    const patchedContent = rollupContent.replace(
+      /try\s*{\s*binPath\s*=\s*require\.resolve\s*\([^)]*\)/g,
+      'try { console.log("[fix-rollup] Skipping native module"); throw new Error("Skipped intentionally")'
+    );
+    
+    fs.writeFileSync(rollupPath, patchedContent);
+    console.log('Successfully patched Rollup native.js');
+  }
+} catch (err) {
+  console.error('Failed to patch Rollup directly:', err);
 }
 
 console.log('Rollup fix applied successfully!');

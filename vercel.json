@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "buildCommand": "node scripts/fix-rollup-vercel.cjs && node scripts/verify-dependencies.cjs && node scripts/emergency-build.cjs || node scripts/esbuild-fallback.cjs",
+  "buildCommand": "node scripts/fix-rollup-vercel.cjs && node scripts/rollup-fix-builder.cjs",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
