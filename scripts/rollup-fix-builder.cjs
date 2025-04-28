@@ -249,9 +249,9 @@ export default defineConfig({
     console.log('Created specialized Vite config with ESM fixes');
     
     // Run the build command - we need to use --force to ignore ESM errors
-    console.log('Running Vite build with --force flag (errors will be caught)...');
+    console.log('Running Vite build with simple configuration...');
     try {
-      execSync('npx vite build --config vite.rollup-fixed.config.js --force', {
+      execSync('npx vite build --config vite.rollup-fixed.config.js', {
         env: {
           ...process.env,
           ROLLUP_NATIVE_DISABLE: '1',
