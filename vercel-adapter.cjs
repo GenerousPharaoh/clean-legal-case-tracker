@@ -20,21 +20,37 @@ export function getUniqueID() {
 
 // Add missing exports that parseAst.js needs
 export function parse(code, options = {}) {
-  // Simple mock implementation that returns a minimal AST
+  // Create a more robust mock implementation that returns a valid AST
+  // This handles both JavaScript and HTML content
+  const isHTML = code && typeof code === 'string' && code.trim().startsWith('<');
+
+  if (isHTML) {
+    // For HTML content, return a minimal valid AST structure
+    return {
+      type: 'Program',
+      start: 0,
+      end: code.length,
+      body: [],
+      sourceType: 'module',
+      // Add HTML-specific properties that prevent parsing errors
+      html: true,
+      children: []
+    };
+  }
+
+  // For JS content (default)
   return {
     type: 'Program',
+    start: 0,
+    end: code.length,
     body: [],
     sourceType: 'module'
   };
 }
 
 export function parseAsync(code, options = {}) {
-  // Return a Promise that resolves to the same minimal AST
-  return Promise.resolve({
-    type: 'Program',
-    body: [],
-    sourceType: 'module'
-  });
+  // Return a Promise that resolves to the same AST structure
+  return Promise.resolve(parse(code, options));
 }
 
 // Add xxHash functions that are now required
