@@ -6,11 +6,24 @@
   "scripts": {
     "dev": "vite",
     "dev8000": "vite --port 8000",
-    "build": "tsc && vite build",
-    "vercel-build": "node vercel-adapter.cjs",
+    "build": "npm run syncenv && vite build",
+    "vercel-build": "node scripts/fix-rollup-vercel.cjs && node vercel-adapter.cjs && vite build",
+    "simple-build": "node scripts/simple-build.js",
+    "direct-build": "node scripts/direct-build.cjs",
+    "robust-build": "node scripts/fix-rollup-vercel.cjs && node scripts/direct-build.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "cleanup": "node scripts/cleanup.js"
+    "cleanup": "node scripts/cleanup.js",
+    "install-rollup-linux": "npm install @rollup/rollup-linux-x64-gnu || echo 'Skipping native module installation'",
+    "syncenv": "node scripts/syncenv.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "overrides": {
+    "rollup": {
+      "fsevents": "2.3.3"
+    }
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -19,6 +32,7 @@
     "@monaco-editor/react": "^4.6.0",
     "@mui/icons-material": "^5.14.18",
     "@mui/material": "^5.14.18",
+    "@mui/system": "^7.0.2",
     "@mui/x-date-pickers": "^8.1.0",
     "@supabase/supabase-js": "^2.38.4",
     "@tinymce/tinymce-react": "^6.1.0",

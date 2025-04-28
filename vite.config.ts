@@ -4,6 +4,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  root: process.cwd(), // Explicitly set root to current working directory
   plugins: [
     react()
   ],
@@ -16,7 +17,11 @@ export default defineConfig({
     // Increase the warning limit to suppress warnings for slightly larger chunks
     chunkSizeWarningLimit: 600,
     // Enable source maps for debugging
-    sourcemap: true
+    sourcemap: true,
+    // Ensure Rollup has the correct configuration
+    rollupOptions: {
+      input: './index.html'
+    }
   },
   // Resolve aliases for cleaner imports
   resolve: {
