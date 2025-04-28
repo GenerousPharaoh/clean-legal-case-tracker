@@ -30,7 +30,8 @@
     },
     "@emotion/styled": {
       "framer-motion": "11.5.2"
-    }
+    },
+    "react-transition-group": "4.4.5"
   },
   "resolutions": {
     "framer-motion": "11.5.2"

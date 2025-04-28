@@ -11,6 +11,9 @@ import { initializeErrorHandlers } from './utils/errorHandler';
 // import { AuthProvider } from './context/AuthContext'
 import AuthErrorHandler from './components/AuthErrorHandler'
 
+// Disable PropType warnings in production
+import './utils/disablePropTypeWarnings';
+
 // Initialize global error handlers
 initializeErrorHandlers();
 
