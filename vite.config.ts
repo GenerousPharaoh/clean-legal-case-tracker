@@ -14,13 +14,43 @@ export default defineConfig({
     host: true, // Listen on all addresses
   },
   build: {
-    // Increase the warning limit to suppress warnings for slightly larger chunks
-    chunkSizeWarningLimit: 600,
+    // Increase the warning limit to suppress warnings for larger chunks
+    chunkSizeWarningLimit: 3500,
     // Enable source maps for debugging
     sourcemap: true,
     // Ensure Rollup has the correct configuration
     rollupOptions: {
-      input: './index.html'
+      input: './index.html',
+      output: {
+        // Improved chunking strategy
+        manualChunks: (id) => {
+          // React and related packages
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/react-router')) {
+            return 'vendor-react';
+          }
+          
+          // UI Libraries
+          if (id.includes('node_modules/@mui') ||
+              id.includes('node_modules/@emotion')) {
+            return 'vendor-ui';
+          }
+          
+          // Editors
+          if (id.includes('node_modules/tinymce') ||
+              id.includes('node_modules/@tinymce') ||
+              id.includes('node_modules/monaco-editor') ||
+              id.includes('node_modules/@monaco-editor')) {
+            return 'vendor-editors';
+          }
+          
+          // Other libraries
+          if (id.includes('node_modules/')) {
+            return 'vendor-others';
+          }
+        }
+      }
     }
   },
   // Resolve aliases for cleaner imports
