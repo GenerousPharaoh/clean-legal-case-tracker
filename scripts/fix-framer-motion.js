@@ -5,9 +5,14 @@
  * Run with: node scripts/fix-framer-motion.js
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log('Fixing framer-motion version conflicts...');
 
@@ -58,6 +63,10 @@ packageJson.overrides['@mui/material'] = { 'framer-motion': TARGET_VERSION };
 packageJson.overrides['@mui/system'] = { 'framer-motion': TARGET_VERSION };
 packageJson.overrides['react-awesome-reveal'] = { 'framer-motion': TARGET_VERSION };
 
+// Add more overrides for any package that might pull in framer-motion
+packageJson.overrides['@emotion/react'] = { 'framer-motion': TARGET_VERSION };
+packageJson.overrides['@emotion/styled'] = { 'framer-motion': TARGET_VERSION };
+
 // Add resolutions for yarn
 if (!packageJson.resolutions) {
   packageJson.resolutions = {};
@@ -77,6 +86,7 @@ console.log('package.json updated successfully.');
 // Reinstall everything
 console.log('\nReinstalling dependencies...');
 try {
+  execSync('rm -rf node_modules package-lock.json', { stdio: 'inherit' });
   execSync('npm install', { stdio: 'inherit' });
 } catch (error) {
   console.error('Error reinstalling dependencies:', error.message);

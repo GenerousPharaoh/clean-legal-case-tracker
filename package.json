@@ -24,6 +24,12 @@
     },
     "react-awesome-reveal": {
       "framer-motion": "11.5.2"
+    },
+    "@emotion/react": {
+      "framer-motion": "11.5.2"
+    },
+    "@emotion/styled": {
+      "framer-motion": "11.5.2"
     }
   },
   "resolutions": {
