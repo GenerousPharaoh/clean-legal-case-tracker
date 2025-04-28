@@ -29,3 +29,40 @@ To deploy:
 ```bash
 npm run build
 ``` 
+
+# Recent Fixes - Production Issues
+
+We've fixed critical issues that were affecting the production deployment:
+
+1. **Framer-motion version clash**: Fixed conflicting versions between direct and indirect dependencies.
+2. **TinyMCE plugin loading errors**: Corrected the path configuration for TinyMCE plugins.
+3. **DevTools extension warnings**: Documented harmless console errors from React DevTools.
+
+## Rebuilding After Fixes
+
+To ensure the fixes are properly applied, please follow these steps:
+
+```bash
+# Clean install to ensure dependency resolution
+rm -rf node_modules package-lock.json
+npm install
+
+# Verify framer-motion is correctly resolved to a single version
+npm ls framer-motion  # Should show exactly ONE entry
+
+# Build the application
+npm run build
+
+# Preview the build locally to verify fixes
+npm run preview
+```
+
+## Verification Steps
+
+After deploying, check the following:
+
+1. Browser console should have no `u.mount` or `events[e].clear` errors
+2. All TinyMCE plugins should load correctly (no 404s or "Unexpected token '<'" errors)
+3. Login should complete and dashboard should render properly
+
+See [FIXED_ISSUES.md](./FIXED_ISSUES.md) for more detailed documentation of the fixes. 

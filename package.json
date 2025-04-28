@@ -15,9 +15,6 @@
     "rollup": {
       "fsevents": "2.3.3"
     },
-    "react-awesome-reveal": {
-      "framer-motion": "^11.5.2"
-    },
     "framer-motion": "11.5.2"
   },
   "resolutions": {
@@ -32,7 +29,7 @@
     "@mui/material": "^5.14.18",
     "@mui/system": "^7.0.2",
     "@mui/x-date-pickers": "^8.1.0",
-    "@supabase/supabase-js": "^2.38.4",
+    "@supabase/supabase-js": "^2.49.4",
     "@tinymce/tinymce-react": "^6.1.0",
     "chart.js": "^4.4.9",
     "date-fns": "^4.1.0",
@@ -41,10 +38,12 @@
     "lodash": "^4.17.21",
     "marked": "^15.0.10",
     "monaco-editor": "^0.44.0",
+    "node-fetch": "^3.3.2",
     "notistack": "^3.0.2",
     "nprogress": "^0.2.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "5.1.91",
+    "pg": "^8.15.6",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-awesome-reveal": "^4.3.1",

@@ -23,18 +23,20 @@ import {
 } from '@mui/material';
 import { Editor } from '@tinymce/tinymce-react';
 
-// Import TinyMCE core
+// Import TinyMCE dependencies
+// Core TinyMCE script
 import 'tinymce/tinymce';
 // Theme and icons
 import 'tinymce/models/dom';
 import 'tinymce/icons/default';
 import 'tinymce/themes/silver';
-// TinyMCE skins (these need to be imported but not directly used)
+// TinyMCE skins
 import 'tinymce/skins/ui/oxide/skin.min.css';
 import 'tinymce/skins/ui/oxide/content.min.css';
 import 'tinymce/skins/content/default/content.min.css';
 
-// Import the default tinymce plugins (this is simpler than importing them individually)
+// Do not import plugins individually - let TinyMCE load them from base_url
+// Only initialize the tinymce core
 import 'tinymce';
 
 // Import custom TinyMCE content CSS
@@ -784,16 +786,22 @@ const CenterPanel: React.FC = () => {
           >
             {/* Editor */}
             <Editor
-            onInit={(evt, editor) => {
-              const cleanup = handleEditorInit(evt, editor);
-              // Store the cleanup function
-              editorCleanupRef.current = cleanup;
-            }}
+              onInit={(evt, editor) => {
+                const cleanup = handleEditorInit(evt, editor);
+                // Store the cleanup function
+                editorCleanupRef.current = cleanup;
+              }}
               value={content}
-                onEditorChange={handleEditorChange}
-                init={editorConfig}
-                disabled={!selectedProjectId}
-              />
+              onEditorChange={handleEditorChange}
+              init={{
+                ...editorConfig,
+                // Explicitly set these paths to ensure correct loading in production
+                base_url: '/tinymce',
+                suffix: '.min',
+                tinymceScriptSrc: '/tinymce/tinymce.min.js',
+              }}
+              disabled={!selectedProjectId}
+            />
             
             {/* Empty state when no project is selected */}
             {!selectedProjectId && (

@@ -59,4 +59,33 @@ Consider implementing the following in future updates:
 
 1. Use framer-motion's LazyMotion with feature bundles to keep the main chunk under 1 MB.
 2. Add more granular error boundaries around specific functional areas of the application.
-3. Improve the profile creation flow to include more user information. 
+3. Improve the profile creation flow to include more user information.
+
+## 1. Framer-motion version clash
+**Issue:** The application had two different framer-motion versions (v7 implicitly used by MUI, and v11 as a direct dependency), causing runtime errors like `u.mount` and `events[e].clear` not found.
+
+**Fix:**
+- Updated package.json to enforce a single version (11.5.2) everywhere
+- Removed specific override for react-awesome-reveal
+- Kept the general override to ensure all dependencies use the same version
+
+## 2. TinyMCE plugins returning "Unexpected token '<'"
+**Issue:** TinyMCE plugin paths (e.g., `/tinymce/plugins/paste/plugin.min.js`) were missing, causing 404s that Vercel rewrote to index.html, resulting in unexpected token errors.
+
+**Fix:**
+- Added early TinyMCE base path initialization in index.html
+- Updated CenterPanel.tsx to explicitly set base_url, suffix, and tinymceScriptSrc
+- Modified TinyMCE initialization logic to ensure path is set before plugins load
+- Removed individual plugin imports and let TinyMCE load them from the correct base_url
+- Added DOMContentLoaded event listener to guarantee base_url is set even with dynamic loading
+
+## 3. DevTools extension noise
+**Issue:** Console errors related to React DevTools extension (`renderer.setTraceUpdatesEnabled`, `getNearestMountedDOMNode`)
+
+**Note:** These are harmless in production and originate from React DevTools extension 4.31.x when it misdetects React 18. They can be ignored or addressed by disabling the extension while testing.
+
+## Verification Steps
+1. `npm ls framer-motion` should show exactly one version
+2. Browser console should have no `u.mount` / `events[e].clear` errors
+3. Network tab should show every requested TinyMCE plugin returning 200 JS, not HTML
+4. Login should complete and dashboard should render properly 

@@ -43,6 +43,20 @@ if (typeof window !== 'undefined') {
   // Try to call the setup function immediately
   try {
     tinymceInit?.setupTinyMCE?.();
+    
+    // Also set up a script loaded event handler to ensure the baseURL is set
+    // when TinyMCE loads dynamically
+    if (document) {
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          if (window.tinymce && !window.tinymce.baseURL) {
+            window.tinymce.baseURL = '/tinymce';
+            window.tinymce.suffix = '.min';
+            console?.log?.('TinyMCE baseURL set on DOM ready');
+          }
+        }, 0);
+      });
+    }
   } catch (e) {
     console?.error?.('Error initializing TinyMCE:', e);
   }
