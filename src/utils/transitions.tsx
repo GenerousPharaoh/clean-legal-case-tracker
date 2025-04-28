@@ -1,15 +1,6 @@
 import React, { ReactNode } from 'react';
-import { 
-  Fade, 
-  Grow, 
-  Slide, 
-  Zoom, 
-  Collapse, 
-  SxProps, 
-  Theme, 
-  Fade as MuiFade,
-  TransitionProps
-} from '@mui/material';
+import { SxProps, Theme, TransitionProps } from '@mui/material';
+import DirectTransitions from '../components/DirectTransition';
 
 // Standard durations for consistency
 export const durations = {
@@ -22,7 +13,7 @@ export const durations = {
   leavingScreen: 195,
 };
 
-// Easing functions for consistency
+// Standard easing functions
 export const easings = {
   easeInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
   easeOut: 'cubic-bezier(0.0, 0, 0.2, 1)',
@@ -97,7 +88,7 @@ const defaultProps = {
 // Transition components with standardized durations
 export const transitions = {
   Fade: ({ children, ...props }: TransitionProps & { children: ReactNode }) => (
-    <MuiFade
+    <DirectTransitions.Fade
       timeout={{
         enter: durations.standard,
         exit: durations.shorter,
@@ -106,11 +97,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </MuiFade>
+    </DirectTransitions.Fade>
   ),
   
   Grow: ({ children, ...props }: TransitionProps & { children: ReactNode }) => (
-    <Grow
+    <DirectTransitions.Grow
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -119,11 +110,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </Grow>
+    </DirectTransitions.Grow>
   ),
   
   Slide: ({ children, ...props }: TransitionProps & { children: ReactNode, direction?: "down" | "left" | "right" | "up" }) => (
-    <Slide
+    <DirectTransitions.Slide
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -133,11 +124,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </Slide>
+    </DirectTransitions.Slide>
   ),
   
   Zoom: ({ children, ...props }: TransitionProps & { children: ReactNode }) => (
-    <Zoom
+    <DirectTransitions.Zoom
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -146,11 +137,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </Zoom>
+    </DirectTransitions.Zoom>
   ),
   
   Collapse: ({ children, ...props }: TransitionProps & { children: ReactNode, orientation?: "vertical" | "horizontal" }) => (
-    <Collapse
+    <DirectTransitions.Collapse
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -159,7 +150,7 @@ export const transitions = {
       {...props}
     >
       {children}
-    </Collapse>
+    </DirectTransitions.Collapse>
   ),
 };
 
