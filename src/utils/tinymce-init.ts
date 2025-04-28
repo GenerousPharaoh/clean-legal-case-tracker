@@ -173,7 +173,6 @@ export const getEnhancedEditorConfig = (onCiteButtonClick: (editor: any) => void
       'codesample', 'hr', 'nonbreaking', 'autoresize', 'noneditable',
       'citeevidence' // Add our custom plugin
     ],
-    // Toolbar configuration with our custom citeevidence button
     toolbar: `
       undo redo | styles | fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | 
       alignleft aligncenter alignright alignjustify | bullist numlist outdent indent |
@@ -219,12 +218,18 @@ export const getEnhancedEditorConfig = (onCiteButtonClick: (editor: any) => void
     elementpath: false, // Disable element path in status bar for cleaner UI
     branding: false,
     
-    // Self-hosted configuration
+    // Self-hosted configuration - FIXED PATHS
     skin: 'oxide',
     content_css: 'custom',
-    // Paths for self-hosted assets
+    
+    // Ensure correct path for TinyMCE assets (FIXED)
+    // Use absolute paths to avoid Vercel rewriting to index.html
     base_url: '/tinymce',
     suffix: '.min',
+    
+    // Path for TinyMCE script source
+    tinymceScriptSrc: '/tinymce/tinymce.min.js',
+    
     // Disable promotion banner
     promotion: false,
     

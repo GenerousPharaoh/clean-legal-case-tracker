@@ -14,7 +14,14 @@
   "overrides": {
     "rollup": {
       "fsevents": "2.3.3"
-    }
+    },
+    "react-awesome-reveal": {
+      "framer-motion": "^11.5.2"
+    },
+    "framer-motion": "11.5.2"
+  },
+  "resolutions": {
+    "framer-motion": "11.5.2"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -30,7 +37,7 @@
     "chart.js": "^4.4.9",
     "date-fns": "^4.1.0",
     "focus-visible": "^5.2.1",
-    "framer-motion": "^12.9.1",
+    "framer-motion": "11.5.2",
     "lodash": "^4.17.21",
     "marked": "^15.0.10",
     "monaco-editor": "^0.44.0",

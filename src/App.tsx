@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { CssBaseline } from '@mui/material';
 import { useThemeContext } from './context/ThemeContext';
 import { pdfjs } from 'react-pdf';
 import { CircularProgress, Box, Typography, Button } from '@mui/material';
 import { supabase } from './supabaseClient';
 import { useAuthStore } from './store/store';
-import TinyMCEInit from './utils/TinyMCEInit';
+import { ErrorBoundary } from 'react-error-boundary';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 import AuthErrorHandler from './components/AuthErrorHandler';
 import ErrorNotificationManager from './components/ErrorNotificationManager';
 import { reportError, ErrorCategory } from './utils/authErrorHandler';
 import AppRoutes from './AppRoutes';
+import TinyMCEScriptLoader from './components/TinyMCEScriptLoader';
 
 // We're using AppRoutes.tsx now which handles lazy loading
 // const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -35,6 +36,35 @@ const LoadingFallback = () => (
     <Typography variant="h6" color="textSecondary">
       Loading application...
     </Typography>
+  </Box>
+);
+
+// Simple error page component
+const ErrorPage = () => (
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      p: 3,
+      textAlign: 'center'
+    }}
+  >
+    <Typography variant="h5" color="error" gutterBottom>
+      Something went wrong
+    </Typography>
+    <Typography paragraph sx={{ maxWidth: 600, mb: 3 }}>
+      We encountered an unexpected error. The technical team has been notified.
+    </Typography>
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={() => window.location.reload()}
+    >
+      Refresh Page
+    </Button>
   </Box>
 );
 
@@ -110,6 +140,7 @@ const App: React.FC = () => {
             
             // Fetch additional user profile data if needed
             try {
+              // First check if profile exists
               const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('first_name, last_name, avatar_url, role')
@@ -118,6 +149,36 @@ const App: React.FC = () => {
                 
               if (profileError) {
                 console.error('[App] Error fetching user profile:', profileError);
+                
+                // If profile doesn't exist (404), create one
+                if (profileError.code === 'PGRST116') {
+                  console.log('[App] Profile not found, creating default profile');
+                  
+                  // Create a default profile for the user
+                  const { data: newProfile, error: insertError } = await supabase
+                    .from('profiles')
+                    .insert([{ 
+                      id: userData.user.id, 
+                      first_name: userData.user.email?.split('@')[0] || 'User',
+                      created_at: new Date().toISOString()
+                    }])
+                    .select('first_name, last_name, avatar_url, role')
+                    .single();
+                  
+                  if (insertError) {
+                    console.error('[App] Error creating profile:', insertError);
+                  } else if (newProfile) {
+                    // Update user with the new profile info
+                    setUser({
+                      id: userData.user.id,
+                      email: userData.user.email || '',
+                      firstName: newProfile.first_name,
+                      lastName: newProfile.last_name,
+                      avatarUrl: newProfile.avatar_url,
+                      role: newProfile.role,
+                    });
+                  }
+                }
               } else if (profile) {
                 // Update the user store with additional profile information
                 setUser({
@@ -206,14 +267,21 @@ const App: React.FC = () => {
   
   return (
     <>
-      {/* Initialize TinyMCE for self-hosted mode */}
-      <TinyMCEInit />
+      {/* Load TinyMCE correctly - either CDN or self-hosted */}
+      <TinyMCEScriptLoader useCDN={false} />
       
       <CssBaseline />
+      
+      {/* Implementing hardened error boundary as suggested */}
       <GlobalErrorBoundary>
         <AuthErrorHandler />
         <ErrorNotificationManager />
-        <AppRoutes />
+        
+        <ErrorBoundary FallbackComponent={ErrorPage}>
+          <Suspense fallback={<LoadingFallback />}>
+            <AppRoutes />
+          </Suspense>
+        </ErrorBoundary>
       </GlobalErrorBoundary>
     </>
   );
