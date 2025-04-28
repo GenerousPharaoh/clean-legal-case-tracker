@@ -1,12 +1,6 @@
 import React, { ReactNode } from 'react';
 import { SxProps, Theme, TransitionProps } from '@mui/material';
-import { 
-  SafeFade, 
-  SafeGrow, 
-  SafeSlide, 
-  SafeZoom, 
-  SafeCollapse 
-} from '../components/SafeTransition';
+import DirectTransitions from '../components/DirectTransition';
 
 // Standard durations for consistency
 export const durations = {
@@ -94,7 +88,7 @@ const defaultProps = {
 // Transition components with standardized durations
 export const transitions = {
   Fade: ({ children, ...props }: TransitionProps & { children: ReactNode }) => (
-    <SafeFade
+    <DirectTransitions.Fade
       timeout={{
         enter: durations.standard,
         exit: durations.shorter,
@@ -103,11 +97,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </SafeFade>
+    </DirectTransitions.Fade>
   ),
   
   Grow: ({ children, ...props }: TransitionProps & { children: ReactNode }) => (
-    <SafeGrow
+    <DirectTransitions.Grow
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -116,11 +110,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </SafeGrow>
+    </DirectTransitions.Grow>
   ),
   
   Slide: ({ children, ...props }: TransitionProps & { children: ReactNode, direction?: "down" | "left" | "right" | "up" }) => (
-    <SafeSlide
+    <DirectTransitions.Slide
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -130,11 +124,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </SafeSlide>
+    </DirectTransitions.Slide>
   ),
   
   Zoom: ({ children, ...props }: TransitionProps & { children: ReactNode }) => (
-    <SafeZoom
+    <DirectTransitions.Zoom
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -143,11 +137,11 @@ export const transitions = {
       {...props}
     >
       {children}
-    </SafeZoom>
+    </DirectTransitions.Zoom>
   ),
   
   Collapse: ({ children, ...props }: TransitionProps & { children: ReactNode, orientation?: "vertical" | "horizontal" }) => (
-    <SafeCollapse
+    <DirectTransitions.Collapse
       timeout={{
         enter: durations.enteringScreen,
         exit: durations.leavingScreen,
@@ -156,7 +150,7 @@ export const transitions = {
       {...props}
     >
       {children}
-    </SafeCollapse>
+    </DirectTransitions.Collapse>
   ),
 };
 

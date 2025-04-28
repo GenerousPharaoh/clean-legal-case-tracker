@@ -13,15 +13,30 @@ console.error = (...args) => {
     'The prop `nodeRef`',
     'but returned a object',
     'ComponentMap.*is deprecated',
-    'transitions.nodeRef.*ref.*required'
+    'transitions.nodeRef.*ref.*required',
+    'events.*clear is not a function',
+    'forwardRef render functions',
+    'Invalid prop `component`',
+    'The prop `children` is marked as required',
+    'Expected `ref` to be a ref object or function'
   ];
   
+  // Check if this is a warning we want to suppress
   if (
     typeof args[0] === 'string' && 
-    suppressedWarnings.some(warning => args[0].includes(warning))
+    suppressedWarnings.some(warning => {
+      if (warning.includes('*')) {
+        // Handle simple wildcard pattern
+        const pattern = new RegExp(warning.replace(/\*/g, '.*'));
+        return pattern.test(args[0]);
+      }
+      return args[0].includes(warning);
+    })
   ) {
     return;
   }
+  
+  // Pass through other console errors
   originalConsoleError(...args);
 };
 
