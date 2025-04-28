@@ -66,6 +66,12 @@ if (fs.existsSync(publicDir)) {
   console.log('✅ Copied public directory');
 }
 
+// Create a basic .env file if needed
+if (!fs.existsSync(path.join(projectRoot, '.env'))) {
+  console.log('Creating basic .env file...');
+  fs.writeFileSync(path.join(projectRoot, '.env'), 'ROLLUP_NATIVE_DISABLE=1\n');
+}
+
 // Try running vite build with specific configuration
 try {
   console.log('📋 Running Vite build...');
@@ -107,7 +113,18 @@ try {
   fs.unlinkSync(tempConfigPath);
 } catch (error) {
   console.error('❌ Build failed:', error.message);
-  // Continue regardless to ensure we have at least a static version
+  // Try using esbuild as a fallback
+  console.log('Trying esbuild fallback...');
+  try {
+    execSync('node scripts/esbuild-fallback.cjs', {
+      stdio: 'inherit',
+      cwd: projectRoot
+    });
+    console.log('✅ esbuild fallback completed');
+  } catch (esbuildError) {
+    console.error('❌ esbuild fallback failed:', esbuildError.message);
+    // Continue regardless to ensure we have at least a static version
+  }
 }
 
 console.log('✅ Build process complete. Check the dist directory.');

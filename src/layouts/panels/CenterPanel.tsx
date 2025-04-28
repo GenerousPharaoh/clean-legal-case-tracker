@@ -49,7 +49,8 @@ import { Link, LinkData } from '../../types';
 // Import icons for different file types
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import VideocamIcon from '@mui/icons-material/Videocam';
-import AudiotrackIcon from '@mui/icons-material/AudioTrack';
+// Use our fallback-aware import for AudioTrack
+import { AudioTrackIcon } from '../../components/icons';
 import SaveIcon from '@mui/icons-material/Save';
 import ErrorIcon from '@mui/icons-material/Error';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -630,7 +631,7 @@ const CenterPanel: React.FC = () => {
     } else if (linkData.type === 'media') {
       return linkData.mediaType === 'video' 
         ? <VideocamIcon fontSize="small" />
-        : <AudiotrackIcon fontSize="small" />;
+        : <AudioTrackIcon fontSize="small" />;
     }
     return <LinkIcon fontSize="small" />;
   };

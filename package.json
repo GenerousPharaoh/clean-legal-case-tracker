@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev8000": "vite --port 8000",
-    "build": "npm run syncenv && vite build",
-    "vercel-build": "node scripts/fix-rollup-vercel.cjs && node vercel-adapter.cjs && vite build",
+    "build": "npm run syncenv && vite build || node scripts/esbuild-fallback.cjs",
+    "vercel-build": "node scripts/fix-rollup-vercel.cjs && node scripts/emergency-build.cjs",
     "simple-build": "node scripts/simple-build.js",
     "direct-build": "node scripts/direct-build.cjs",
     "robust-build": "node scripts/fix-rollup-vercel.cjs && node scripts/direct-build.cjs",
