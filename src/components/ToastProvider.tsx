@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, type ReactNode, useRef } from 'react';
 import { Snackbar, Alert, AlertTitle, AlertProps, SnackbarProps, Typography, Box, IconButton } from '@mui/material';
 import { Slide } from './SafeTransitions';
 import { TransitionProps } from '@mui/material/transitions';
@@ -45,7 +45,7 @@ const SlideTransition = (props: TransitionProps & { children: ReactNode }) => {
   );
 };
 
-export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [options, setOptions] = useState<ToastOptions>({

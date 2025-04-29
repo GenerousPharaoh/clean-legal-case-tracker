@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import ToastNotification, { ToastVariant, ToastPosition, ToastAlignment } from '../components/ToastNotification';
 
 // Define the shape of a toast notification
@@ -44,10 +44,8 @@ interface ToastProviderProps {
  * Provides a consistent way to display toast notifications throughout the application
  * with various styles, positions, and behaviors.
  */
-export const ToastProvider: React.FC<ToastProviderProps> = ({
-  children,
-  maxToasts = 3
-}) => {
+export const ToastProvider = ({
+children, maxToasts = 3 }: ToastProviderProps) => {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // Generate a unique ID for each toast

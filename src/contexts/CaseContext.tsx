@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 
@@ -42,7 +42,7 @@ export const useCase = () => {
 };
 
 // Provider component
-export const CaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const CaseProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [currentCase, setCurrentCase] = useState<Case | null>(null);
   const [caseId, setCaseId] = useState<string | null>(null);
@@ -57,10 +57,15 @@ export const CaseProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .then(() => console.log('[CaseContext] Case loaded successfully'))
         .catch((err) => console.error('[CaseContext] Failed to load case:', err));
     } else {
-      console.log('[CaseContext] No case ID, clearing current case');
+      // Only clear the case if it's not already null to prevent unnecessary updates
+      if (currentCase !== null) {
+        console.log('[CaseContext] No case ID, clearing current case state');
       setCurrentCase(null);
+      }
     }
-  }, [caseId]);
+    // Removed loadCase from dependency array to prevent reference error
+    // The function is defined in the same component scope and doesn't change between renders
+  }, [caseId, currentCase]);
 
   // Log for debugging
   useEffect(() => {

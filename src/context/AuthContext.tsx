@@ -4,7 +4,7 @@
 //
 // This file is kept for backward compatibility only.
 
-import { createContext } from 'react';
+import { createContext, type ReactNode } from 'react';
 import { useAuthStore } from '../store/store';
 
 // For backward compatibility - redirect to the Zustand store
@@ -14,7 +14,7 @@ const AuthContext = createContext<any>(null);
 export const useAuth = useAuthStore;
 
 // Deprecated - kept for compatibility
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   console.warn('[DEPRECATED] AuthProvider is deprecated. Use useAuth from hooks/useAuth.ts instead.');
   return children;
 };
