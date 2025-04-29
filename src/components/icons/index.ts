@@ -8,8 +8,17 @@ import FallbackAudioTrack from './FallbackAudioTrack';
 // Try to import the real AudioTrack icon, fall back to our implementation if it fails
 let AudioTrackIcon;
 try {
-  // Try to dynamically import the actual MUI icon
-  AudioTrackIcon = require('@mui/icons-material/AudioTrack').default;
+  // Try to dynamically import the actual MUI icon (using dynamic import instead of require)
+  import('@mui/icons-material/AudioTrack').then(module => {
+    AudioTrackIcon = module.default;
+  }).catch(() => {
+    // If import fails, use our fallback
+    console.warn('Could not load @mui/icons-material/AudioTrack, using fallback');
+    AudioTrackIcon = FallbackAudioTrack;
+  });
+  
+  // Set fallback initially while import is pending
+  AudioTrackIcon = FallbackAudioTrack;
 } catch (error) {
   // If import fails, use our fallback
   console.warn('Could not load @mui/icons-material/AudioTrack, using fallback');

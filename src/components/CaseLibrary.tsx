@@ -353,7 +353,9 @@ const CaseLibrary: React.FC = () => {
         .from('cases')
         .insert([
           {
-            ...caseData,
+            name: caseData.name,
+            description: caseData.description,
+            status: caseData.status,
             owner_id: user.id,
             is_archived: false
           }

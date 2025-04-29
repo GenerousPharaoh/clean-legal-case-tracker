@@ -6,6 +6,7 @@ declare global {
   interface Window {
     __SUPABASE_CLIENT__?: any;
     __DEBUGGING_AUTH__?: boolean;
+    __SUPABASE_LISTENER__?: boolean;
   }
 }
 
@@ -140,54 +141,127 @@ const createSupabaseClient = () => {
   console.log('[Supabase Client] Creating a new client instance');
   supabaseInstance = createClient<Database>(supabaseUrl, supabaseKey, options);
   
+  // Add centralized auth state listener that updates the auth store directly
+  if (!isSSR && !window.__SUPABASE_LISTENER__) {
+    console.log('[Supabase Client] Setting up centralized auth listener');
+    
+    supabaseInstance.auth.onAuthStateChange((event, session) => {
+      // Import store directly to avoid circular dependencies
+      // Dynamic require causing error in browser environment
+      let authStore: any = null;
+      
+      // Use dynamic import instead of require
+      import('./store/store').then(module => {
+        authStore = module.useAuthStore;
+        const { setSession, setUser, clearUser } = authStore.getState();
+        
+        console.log(`[Supabase Auth] Auth state changed: ${event}`, session ? 'Session exists' : 'No session');
+        
+        if (event === 'SIGNED_IN' && session) {
+          console.log('[Supabase Auth] User signed in successfully');
+          setSession(session);
+          setUser(session?.user ? {
+            id: session.user.id,
+            email: session.user.email || '',
+          } : null);
+          
+          // Reset refresh failure counter when signed in successfully
+          refreshFailureCount = 0;
+          
+          // Dispatch an event for components to know auth state changed
+          window.dispatchEvent(new CustomEvent('supabase-signed-in', { detail: { session } }));
+        } else if (event === 'SIGNED_OUT') {
+          console.log('[Supabase Auth] User signed out');
+          clearUser(); // Clear both session and user
+          
+          // Clean up any potentially corrupted token data
+          try {
+            localStorage.removeItem(options.auth.storageKey);
+          } catch (e) {
+            console.error('[Supabase Auth] Failed to clean up storage on sign out', e);
+          }
+          
+          // Dispatch an event for components to know auth state changed
+          window.dispatchEvent(new CustomEvent('supabase-signed-out'));
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('[Supabase Auth] Token refreshed successfully');
+          setSession(session);
+          
+          // Reset refresh failure counter when token refreshed successfully
+          refreshFailureCount = 0;
+          
+          // Dispatch an event for components to know token was refreshed
+          window.dispatchEvent(new CustomEvent('supabase-token-refreshed', { detail: { session } }));
+        } else if (event === 'USER_UPDATED') {
+          console.log('[Supabase Auth] User data updated');
+          setSession(session);
+          if (session?.user) {
+            setUser(prev => ({
+              ...prev,
+              id: session.user.id,
+              email: session.user.email || ''
+            }));
+          }
+          
+          // Dispatch an event for components to know user data changed
+          window.dispatchEvent(new CustomEvent('supabase-user-updated', { detail: { session } }));
+        }
+      }).catch(error => {
+        console.error('[Supabase Auth] Error importing auth store:', error);
+      });
+    });
+    
+    // Mark that we've set up the listener
+    window.__SUPABASE_LISTENER__ = true;
+  }
+  
   // Attach to window for debugging
   if (!isSSR && (DEBUG_AUTH || !isProduction)) {
     window.__SUPABASE_CLIENT__ = supabaseInstance;
-  }
-  
-  // Set up error listener for auth events
-  if (!isSSR) {
-  supabaseInstance.auth.onAuthStateChange((event, session) => {
-    console.log(`[Supabase Auth] Auth state changed: ${event}`, session ? 'Session exists' : 'No session');
-    
-    if (event === 'SIGNED_IN') {
-      console.log('[Supabase Auth] User signed in successfully');
-      // Reset refresh failure counter when signed in successfully
-      refreshFailureCount = 0;
-      
-      // Dispatch an event for components to know auth state changed
-      window.dispatchEvent(new CustomEvent('supabase-signed-in', { detail: { session } }));
-    } else if (event === 'SIGNED_OUT') {
-      console.log('[Supabase Auth] User signed out');
-      // Clean up any potentially corrupted token data
-      try {
-        localStorage.removeItem(options.auth.storageKey);
-      } catch (e) {
-        console.error('[Supabase Auth] Failed to clean up storage on sign out', e);
-      }
-      
-      // Dispatch an event for components to know auth state changed
-      window.dispatchEvent(new CustomEvent('supabase-signed-out'));
-    } else if (event === 'TOKEN_REFRESHED') {
-      console.log('[Supabase Auth] Token refreshed successfully');
-      // Reset refresh failure counter when token refreshed successfully
-      refreshFailureCount = 0;
-      
-      // Dispatch an event for components to know token was refreshed
-      window.dispatchEvent(new CustomEvent('supabase-token-refreshed', { detail: { session } }));
-    } else if (event === 'USER_UPDATED') {
-      console.log('[Supabase Auth] User data updated');
-      
-      // Dispatch an event for components to know user data changed
-      window.dispatchEvent(new CustomEvent('supabase-user-updated', { detail: { session } }));
-    }
-  });
   }
   
   return supabaseInstance;
 };
 
 export const supabase = createSupabaseClient();
+
+// Initialize the auth store with the session on app boot
+if (!isSSR) {
+  console.log('[Supabase Client] Initializing auth store with session');
+  
+  // Import here to avoid circular dependencies
+  import('./store/store').then(({ useAuthStore }) => {
+    const { setSession, setUser, setLoading } = useAuthStore.getState();
+    
+    // Set loading state while we check for a session
+    setLoading(true);
+    
+    // Get the session and update the store
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+        });
+        
+        // Optional: Fetch user profile data and update store
+        // This would typically include role, name, etc.
+      } else {
+        setUser(null);
+      }
+      
+      // Mark loading as complete
+      setLoading(false);
+    }).catch(error => {
+      console.error('[Supabase Client] Error initializing auth store:', error);
+      setLoading(false);
+    });
+  }).catch(error => {
+    console.error('[Supabase Client] Error importing auth store:', error);
+  });
+}
 
 // Force clearing any URL fragments to prevent issues in hash-based routing
 if (!isSSR && window.location.hash && !window.location.hash.startsWith('#/')) {

@@ -52,19 +52,22 @@
           return new PatchedTimeout();
         };
         
-        // Try to patch @mui/utils/useTimeout directly
-        if (window.require) {
-          try {
-            // Try to require the module
-            const muiUtils = window.require('@mui/utils');
-            if (muiUtils && muiUtils.Timeout) {
-              // Replace the Timeout class
-              muiUtils.Timeout = PatchedTimeout;
-              console.log('[MUI FIX] Successfully patched @mui/utils Timeout class');
-            }
-          } catch (e) {
-            console.log('[MUI FIX] Could not patch using require:', e.message);
+        // Try to patch @mui/utils/useTimeout directly using dynamic import instead of require
+        try {
+          // Use dynamic import instead of window.require
+          if (typeof import === 'function') {
+            import('@mui/utils').then(muiUtils => {
+              if (muiUtils && muiUtils.Timeout) {
+                // Replace the Timeout class
+                muiUtils.Timeout = PatchedTimeout;
+                console.log('[MUI FIX] Successfully patched @mui/utils Timeout class');
+              }
+            }).catch(e => {
+              console.log('[MUI FIX] Could not patch using dynamic import:', e.message);
+            });
           }
+        } catch (e) {
+          console.log('[MUI FIX] Could not patch using dynamic import:', e.message);
         }
         
         // Global patch for any script that might create a Timeout

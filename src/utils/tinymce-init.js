@@ -1,25 +1,41 @@
 /**
- * Initialize TinyMCE self-hosted resources
- * This script ensures TinyMCE can find its assets when running in self-hosted mode
+ * Initialize TinyMCE with CDN resources
+ * This script configures TinyMCE to use the CDN properly
+ * FIXED: Updated to always use CDN and simplified plugin configuration
  */
 
 /* global window, console */
 
 // Set global TinyMCE configuration
 const tinymceInit = {
-  // Configure base URL for TinyMCE assets
+  // Configure TinyMCE to use CDN
   setupTinyMCE: () => {
     if (typeof window !== 'undefined' && window.tinymce) {
-      // Configure to use assets from public directory
-      window.tinymce.baseURL = '/tinymce';
+      // Get API key from environment variables
+      const apiKey = import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key';
+      
+      // Configure to use assets from CDN with API key
+      window.tinymce.baseURL = `https://cdn.tiny.cloud/1/${apiKey}/tinymce/6`;
       window.tinymce.suffix = '.min';
+      
+      // Patch the init function to ensure editors are not read-only by default
+      const originalInit = window.tinymce.init;
+      window.tinymce.init = function(settings) {
+        // Ensure readonly is explicitly set to false unless specified
+        if (settings && settings.readonly === undefined) {
+          settings.readonly = false;
+        }
+        
+        // Call the original init function
+        return originalInit.call(this, settings);
+      };
       
       // Log successful setup
       if (typeof console !== 'undefined') {
-        console?.log?.('Self-hosted TinyMCE initialized successfully');
+        console?.log?.('[TinyMCE] Initialized with CDN configuration');
       }
     } else if (typeof console !== 'undefined') {
-      console?.warn?.('TinyMCE not found. Self-hosted initialization failed.');
+      console?.warn?.('[TinyMCE] Not found. Initialization failed.');
     }
   }
 };
@@ -32,7 +48,7 @@ if (typeof window !== 'undefined') {
   try {
     tinymceInit?.setupTinyMCE?.();
   } catch (e) {
-    console?.error?.('Error initializing TinyMCE:', e);
+    console?.error?.('[TinyMCE] Error initializing:', e);
   }
 }
 
@@ -40,111 +56,9 @@ export default tinymceInit;
 
 /**
  * TinyMCE initialization utility functions
- * This file contains utility functions for initializing TinyMCE with custom plugins
+ * This file contains utility functions for initializing TinyMCE
+ * FIXED: Simplified plugin configuration to use only standard plugins available on CDN
  */
-
-/**
- * Initialize custom plugins for TinyMCE
- */
-export const initCustomPlugins = () => {
-  // Skip if window or tinymce is not available
-  if (!window || !window.tinymce) return;
-  
-  const { tinymce } = window;
-  
-  // Register the cite evidence plugin
-  tinymce.PluginManager.add('citeevidence', function(editor) {
-    // Add a button to the toolbar
-    editor.ui.registry.addButton('citeevidence', {
-      icon: 'bookmark',
-      tooltip: 'Cite Evidence',
-      onAction: function() {
-        // The button action will be defined in the TinyMCE component
-        // to have access to application state and the citation modal
-        editor.dispatch('OpenCitationFinder');
-      }
-    });
-    
-    // Add a menu item under "Insert" menu
-    editor.ui.registry.addMenuItem('citeevidence', {
-      text: 'Cite Evidence...',
-      icon: 'bookmark',
-      onAction: function() {
-        editor.dispatch('OpenCitationFinder');
-      }
-    });
-    
-    // Custom content formatter for citation placeholders
-    editor.on('PreInit', () => {
-      // Add custom styles for citation placeholders
-      editor.dom.addStyle(`
-        .evidence-link-placeholder {
-          display: inline-flex;
-          align-items: center;
-          background-color: #f0f7ff;
-          border-radius: 4px;
-          padding: 0 4px;
-          margin: 0 2px;
-          font-weight: 500;
-          color: #2962ff;
-          cursor: pointer;
-          border: 1px solid #90caf9;
-          white-space: nowrap;
-          font-size: 0.9em;
-          line-height: 1.6;
-          position: relative;
-        }
-        
-        .evidence-link-placeholder:hover {
-          background-color: #e3f2fd;
-          border-color: #64b5f6;
-        }
-        
-        .evidence-link-placeholder:hover::after {
-          content: attr(title);
-          position: absolute;
-          bottom: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          background-color: rgba(97, 97, 97, 0.9);
-          color: white;
-          font-size: 0.75rem;
-          padding: 5px 8px;
-          border-radius: 4px;
-          margin-bottom: 5px;
-          z-index: 10000;
-          white-space: normal;
-          max-width: 250px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          pointer-events: none;
-        }
-        
-        .evidence-link-placeholder:hover::before {
-          content: '';
-          position: absolute;
-          bottom: 100%;
-          left: 50%;
-          transform: translateX(-50%);
-          border-width: 5px;
-          border-style: solid;
-          border-color: transparent transparent rgba(97, 97, 97, 0.9) transparent;
-          margin-bottom: -5px;
-          z-index: 10000;
-          pointer-events: none;
-        }
-      `);
-    });
-    
-    return {
-      getMetadata: function() {
-        return {
-          name: 'Cite Evidence',
-          url: 'https://legalcasetracker.app'
-        };
-      }
-    };
-  });
-};
 
 /**
  * Get enhanced TinyMCE configuration
@@ -152,20 +66,21 @@ export const initCustomPlugins = () => {
  * @returns {Object} TinyMCE configuration object
  */
 export const getEnhancedEditorConfig = (onCiteButtonClick) => {
+  // Get API key from environment variables
+  const apiKey = import.meta.env.VITE_TINYMCE_API_KEY || 'no-api-key';
+  
   return {
-    // Plugin configuration
+    // FIXED: Use only standard plugins available on CDN
     plugins: [
       'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
       'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-      'insertdatetime', 'media', 'table', 'paste', 'wordcount', 'help',
-      'codesample', 'hr', 'nonbreaking', 'autoresize', 'noneditable',
-      'citeevidence' // Add our custom plugin
+      'insertdatetime', 'media', 'table', 'wordcount', 'help'
     ],
-    // Toolbar configuration with our custom citeevidence button
+    // FIXED: Simplified toolbar configuration
     toolbar: `
       undo redo | styles | fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | 
       alignleft aligncenter alignright alignjustify | bullist numlist outdent indent |
-      link image media table citeevidence | codesample hr charmap | searchreplace | preview fullscreen | help
+      link image media table | searchreplace | preview fullscreen | help
     `,
     // Style formats
     style_formats: [
@@ -183,12 +98,11 @@ export const getEnhancedEditorConfig = (onCiteButtonClick) => {
     font_family_formats: 'Andale Mono=andale mono,times; Arial=arial,helvetica,sans-serif; Arial Black=arial black,avant garde; Book Antiqua=book antiqua,palatino; Comic Sans MS=comic sans ms,sans-serif; Courier New=courier new,courier; Georgia=georgia,palatino; Helvetica=helvetica; Impact=impact,chicago; Symbol=symbol; Tahoma=tahoma,arial,helvetica,sans-serif; Terminal=terminal,monaco; Times New Roman=times new roman,times; Trebuchet MS=trebuchet ms,geneva; Verdana=verdana,geneva; Webdings=webdings; Wingdings=wingdings,zapf dingbats',
     font_size_formats: '8pt 10pt 11pt 12pt 14pt 18pt 24pt 36pt',
     // Other settings
-    // Enhanced editor configuration for better performance
     relative_urls: false,
     remove_script_host: true,
     convert_urls: true,
     browser_spellcheck: true,
-    contextmenu: false, // Disable the built-in context menu for better performance
+    contextmenu: false,
     image_advtab: true,
     extended_valid_elements: 'span[class|style|data-*|contenteditable|title]',
     custom_elements: 'span',
@@ -199,30 +113,35 @@ export const getEnhancedEditorConfig = (onCiteButtonClick) => {
     },
     paste_data_images: true,
     autoresize_min_height: 500,
-    autoresize_max_height: 2000, // Add a maximum height to prevent excessive growth
+    autoresize_max_height: 2000,
     autoresize_overflow_padding: 15,
     autoresize_bottom_margin: 30,
     menubar: false,
     statusbar: true, 
-    elementpath: false, // Disable element path in status bar for cleaner UI
+    elementpath: false,
     branding: false,
     
-    // Self-hosted configuration
+    // FIXED: Configure to use CDN
     skin: 'oxide',
-    content_css: 'custom',
-    // Paths for self-hosted assets
-    base_url: '/tinymce',
+    content_css: 'default',
+    // Explicitly set CDN paths with API key
+    base_url: `https://cdn.tiny.cloud/1/${apiKey}/tinymce/6`,
     suffix: '.min',
     // Disable promotion banner
     promotion: false,
     
-    // Event handler for the cite button
+    // FIXED: Simplified setup without custom plugins
     setup: function(editor) {
-      editor.on('OpenCitationFinder', function() {
-        if (typeof onCiteButtonClick === 'function') {
-          onCiteButtonClick(editor);
+      // Add a simple button that uses a standard icon
+      editor.ui.registry.addButton('cite', {
+        icon: 'bookmark',
+        tooltip: 'Cite Evidence',
+        onAction: function() {
+          if (typeof onCiteButtonClick === 'function') {
+            onCiteButtonClick(editor);
+          }
         }
       });
     }
   };
-}; 
+};
