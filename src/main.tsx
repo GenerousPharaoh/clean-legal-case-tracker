@@ -1,3 +1,6 @@
+// Ensure React is globally available (must be first import)
+import './utils/ensureReact';
+
 // Clean main.tsx without polyfill imports
 import React from 'react'
 import ReactDOM from 'react-dom/client'

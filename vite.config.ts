@@ -9,6 +9,8 @@ export default defineConfig({
     react({
       // Recommended: Remove React DevTools in production builds
       removeDevtoolsInProd: true,
+      // Force the classic JSX runtime to ensure React is available globally
+      jsxRuntime: 'classic',
       // Consider enabling Fast Refresh strictly for development if issues arise
       // fastRefresh: process.env.NODE_ENV !== 'production'
     })
