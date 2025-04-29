@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { createAppTheme } from '../theme';
 
@@ -18,7 +18,7 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 // Theme provider component that will wrap the app
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   // Initialize theme mode from localStorage or system preference
   const [mode, setMode] = useState<ThemeMode>(() => {
     // Check if theme preference is stored
