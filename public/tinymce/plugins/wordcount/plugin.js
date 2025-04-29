@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 7.8.0 (TBD)
+ * TinyMCE version 6.7.0 (2023-08-30)
  */
 
 (function () {
@@ -195,19 +195,11 @@
               Array.prototype.push.apply(word, url);
               i = endOfUrl;
             }
-            if (sChars[i + 1] === '.' && /^([a-zA-Z]\.)+$/.test(str + '.')) {
-              word.push(chars[i + 1]);
-              indices.push({
-                start: startOfWord,
-                end: endOfWord + 1
-              });
-            } else {
-              indices.push({
-                start: startOfWord,
-                end: endOfWord
-              });
-            }
             words.push(word);
+            indices.push({
+              start: startOfWord,
+              end: endOfWord
+            });
           }
           word = [];
         }
@@ -389,14 +381,12 @@
       editor.ui.registry.addButton('wordcount', {
         tooltip: 'Word count',
         icon: 'character-count',
-        onAction,
-        context: 'any'
+        onAction
       });
       editor.ui.registry.addMenuItem('wordcount', {
         text: 'Word count',
         icon: 'character-count',
-        onAction,
-        context: 'any'
+        onAction
       });
     };
 

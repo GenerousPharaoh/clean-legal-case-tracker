@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 7.8.0 (TBD)
+ * TinyMCE version 6.7.0 (2023-08-30)
  */
 
 (function () {
@@ -21,15 +21,13 @@
 
     var global$4 = tinymce.util.Tools.resolve('tinymce.PluginManager');
 
-    const random = () => window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
-
     let unique = 0;
     const generate = prefix => {
       const date = new Date();
       const time = date.getTime();
-      const random$1 = Math.floor(random() * 1000000000);
+      const random = Math.floor(Math.random() * 1000000000);
       unique++;
-      return prefix + '_' + random$1 + unique + String(time);
+      return prefix + '_' + random + unique + String(time);
     };
 
     const get$1 = customTabs => {
@@ -59,15 +57,13 @@
       editor.ui.registry.addButton('help', {
         icon: 'help',
         tooltip: 'Help',
-        onAction: dialogOpener,
-        context: 'any'
+        onAction: dialogOpener
       });
       editor.ui.registry.addMenuItem('help', {
         text: 'Help',
         icon: 'help',
         shortcut: 'Alt+0',
-        onAction: dialogOpener,
-        context: 'any'
+        onAction: dialogOpener
       });
     };
 
@@ -391,10 +387,6 @@
         action: 'Focus to element path'
       },
       {
-        shortcuts: ['Alt + F12'],
-        action: 'Focus to notification'
-      },
-      {
         shortcuts: ['Ctrl + F9'],
         action: 'Focus to contextual toolbar'
       },
@@ -447,6 +439,10 @@
       {
         key: 'accordion',
         name: 'Accordion'
+      },
+      {
+        key: 'advlist',
+        name: 'Advanced List'
       },
       {
         key: 'anchor',
@@ -517,10 +513,6 @@
         name: 'Lists'
       },
       {
-        key: 'advlist',
-        name: 'List Styles'
-      },
-      {
         key: 'media',
         name: 'Media'
       },
@@ -553,6 +545,10 @@
         name: 'Table'
       },
       {
+        key: 'template',
+        name: 'Template'
+      },
+      {
         key: 'textcolor',
         name: 'Text Color'
       },
@@ -574,10 +570,20 @@
         type: 'premium'
       },
       {
-        key: 'typography',
-        name: 'Advanced Typography',
+        key: 'advcode',
+        name: 'Advanced Code Editor',
+        type: 'premium'
+      },
+      {
+        key: 'advtable',
+        name: 'Advanced Tables',
+        type: 'premium'
+      },
+      {
+        key: 'advtemplate',
+        name: 'Advanced Templates',
         type: 'premium',
-        slug: 'advanced-typography'
+        slug: 'advanced-templates'
       },
       {
         key: 'ai',
@@ -595,29 +601,8 @@
         type: 'premium'
       },
       {
-        key: 'advcode',
-        name: 'Enhanced Code Editor',
-        type: 'premium'
-      },
-      {
-        key: 'mediaembed',
-        name: 'Enhanced Media Embed',
-        type: 'premium',
-        slug: 'introduction-to-mediaembed'
-      },
-      {
-        key: 'advtable',
-        name: 'Enhanced Tables',
-        type: 'premium'
-      },
-      {
-        key: 'exportpdf',
-        name: 'Export to PDF',
-        type: 'premium'
-      },
-      {
-        key: 'exportword',
-        name: 'Export to Word',
+        key: 'editimage',
+        name: 'Enhanced Image Editing',
         type: 'premium'
       },
       {
@@ -626,23 +611,25 @@
         type: 'premium'
       },
       {
+        key: 'typography',
+        name: 'Advanced Typography',
+        type: 'premium',
+        slug: 'advanced-typography'
+      },
+      {
+        key: 'mediaembed',
+        name: 'Enhanced Media Embed',
+        type: 'premium',
+        slug: 'introduction-to-mediaembed'
+      },
+      {
+        key: 'export',
+        name: 'Export',
+        type: 'premium'
+      },
+      {
         key: 'formatpainter',
         name: 'Format Painter',
-        type: 'premium'
-      },
-      {
-        key: 'editimage',
-        name: 'Image Editing',
-        type: 'premium'
-      },
-      {
-        key: 'uploadcare',
-        name: 'Image Optimizer Powered by Uploadcare',
-        type: 'premium'
-      },
-      {
-        key: 'importword',
-        name: 'Import from Word',
         type: 'premium'
       },
       {
@@ -654,16 +641,6 @@
       {
         key: 'linkchecker',
         name: 'Link Checker',
-        type: 'premium'
-      },
-      {
-        key: 'math',
-        name: 'Math',
-        type: 'premium'
-      },
-      {
-        key: 'markdown',
-        name: 'Markdown',
         type: 'premium'
       },
       {
@@ -693,13 +670,14 @@
         slug: 'introduction-to-powerpaste'
       },
       {
-        key: 'revisionhistory',
-        name: 'Revision History',
-        type: 'premium'
+        key: 'rtc',
+        name: 'Real-Time Collaboration',
+        type: 'premium',
+        slug: 'rtc-introduction'
       },
       {
         key: 'tinymcespellchecker',
-        name: 'Spell Checker',
+        name: 'Spell Checker Pro',
         type: 'premium',
         slug: 'introduction-to-tiny-spellchecker'
       },
@@ -712,12 +690,6 @@
         key: 'tableofcontents',
         name: 'Table of Contents',
         type: 'premium'
-      },
-      {
-        key: 'advtemplate',
-        name: 'Templates',
-        type: 'premium',
-        slug: 'advanced-templates'
       },
       {
         key: 'tinycomments',
@@ -744,7 +716,7 @@
         });
         const sortedPremiumPlugins = sort(map(premiumPlugins, p => p.name), (s1, s2) => s1.localeCompare(s2));
         const premiumPluginList = map(sortedPremiumPlugins, pluginName => `<li>${ pluginName }</li>`).join('');
-        return '<div>' + '<p><b>' + global$2.translate('Premium plugins:') + '</b></p>' + '<ul>' + premiumPluginList + '<li class="tox-help__more-link" ">' + '<a href="https://www.tiny.cloud/pricing/?utm_campaign=help_dialog_plugin_tab&utm_source=tiny&utm_medium=referral&utm_term=read_more&utm_content=premium_plugin_heading" rel="noopener" target="_blank"' + ' data-alloy-tabstop="true" tabindex="-1">' + global$2.translate('Learn more...') + '</a></li>' + '</ul>' + '</div>';
+        return '<div>' + '<p><b>' + global$2.translate('Premium plugins:') + '</b></p>' + '<ul>' + premiumPluginList + '<li class="tox-help__more-link" ">' + '<a href="https://www.tiny.cloud/pricing/?utm_campaign=editor_referral&utm_medium=help_dialog&utm_source=tinymce" rel="noopener" target="_blank"' + ' data-alloy-tabstop="true" tabindex="-1">' + global$2.translate('Learn more...') + '</a></li>' + '</ul>' + '</div>';
       };
       const makeLink = p => `<a data-alloy-tabstop="true" tabindex="-1" href="${ p.url }" target="_blank" rel="noopener">${ p.name }</a>`;
       const identifyUnknownPlugin = (editor, key) => {
@@ -770,7 +742,7 @@
         const name = x.type === 'premium' ? `${ x.name }*` : x.name;
         const html = makeLink({
           name,
-          url: `https://www.tiny.cloud/docs/tinymce/7/${ x.slug }/`
+          url: `https://www.tiny.cloud/docs/tinymce/6/${ x.slug }/`
         });
         return {
           name,
@@ -780,8 +752,7 @@
       const getPluginKeys = editor => {
         const keys$1 = keys(editor.plugins);
         const forcedPlugins = getForcedPlugins(editor);
-        const hiddenPlugins = isUndefined(forcedPlugins) ? ['onboarding'] : forcedPlugins.concat(['onboarding']);
-        return filter(keys$1, k => !contains(hiddenPlugins, k));
+        return isUndefined(forcedPlugins) ? keys$1 : filter(keys$1, k => !contains(forcedPlugins, k));
       };
       const pluginLister = editor => {
         const pluginKeys = getPluginKeys(editor);
@@ -823,7 +794,7 @@
     const tab = () => {
       const getVersion = (major, minor) => major.indexOf('@') === 0 ? 'X.X.X' : major + '.' + minor;
       const version = getVersion(global.majorVersion, global.minorVersion);
-      const changeLogLink = '<a data-alloy-tabstop="true" tabindex="-1" href="https://www.tiny.cloud/docs/tinymce/7/changelog/?utm_campaign=help_dialog_version_tab&utm_source=tiny&utm_medium=referral" rel="noopener" target="_blank">TinyMCE ' + version + '</a>';
+      const changeLogLink = '<a data-alloy-tabstop="true" tabindex="-1" href="https://www.tiny.cloud/docs/tinymce/6/changelog/?utm_campaign=editor_referral&utm_medium=help_dialog&utm_source=tinymce" rel="noopener" target="_blank">TinyMCE ' + version + '</a>';
       const htmlPanel = {
         type: 'htmlpanel',
         html: '<p>' + global$2.translate([

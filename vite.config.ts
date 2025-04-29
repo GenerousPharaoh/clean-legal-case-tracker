@@ -6,7 +6,12 @@ import path from 'path'
 export default defineConfig({
   root: process.cwd(), // Explicitly set root to current working directory
   plugins: [
-    react()
+    react({
+      // Recommended: Remove React DevTools in production builds
+      removeDevtoolsInProd: true,
+      // Consider enabling Fast Refresh strictly for development if issues arise
+      // fastRefresh: process.env.NODE_ENV !== 'production'
+    })
   ],
   server: {
     port: 8000,

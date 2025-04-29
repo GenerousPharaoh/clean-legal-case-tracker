@@ -1,0 +1,40 @@
+// Clean main.tsx without CSS imports
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+// CSS import removed to bypass Tailwind issues
+import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './contexts/ToastContext'
+import { initializeErrorHandlers } from './utils/errorHandler'
+import AuthErrorHandler from './components/AuthErrorHandler'
+import GlobalErrorBoundary from './components/GlobalErrorBoundary'
+
+// These are the only utility imports we're keeping
+import './utils/safeAccess'
+import './utils/tinymce-init'
+
+// Initialize error handlers (keeping this since it's part of the core app)
+initializeErrorHandlers()
+
+// Simple log for debugging
+console.log('[main] Starting application')
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <GlobalErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthErrorHandler />
+            <CssBaseline /> {/* MUI's CssBaseline will provide basic styling */}
+            <App />
+          </ToastProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </GlobalErrorBoundary>
+  </React.StrictMode>
+)
+
+console.log('[main] App rendered successfully with all providers')

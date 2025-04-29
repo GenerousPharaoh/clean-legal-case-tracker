@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { supabase } from '../supabaseClient';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
@@ -21,7 +21,7 @@ const magicLinkSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 type MagicLinkFormInputs = z.infer<typeof magicLinkSchema>;
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +73,7 @@ const LoginPage: React.FC = () => {
       if (signInError) {
         throw signInError;
       }
-      navigate('/'); // Redirect to main app on successful login
+      navigate('/cases'); // Redirect to cases page on successful login
     } catch (err: any) {
       setError(err.error_description || err.message || 'Login failed');
     } finally {
@@ -89,7 +89,7 @@ const LoginPage: React.FC = () => {
       const { error: magicLinkError } = await supabase.auth.signInWithOtp({
         email: data.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`, // Redirect to the main app after login
+          emailRedirectTo: `${window.location.origin}/cases`, // Redirect to cases page after login
         },
       });
 
@@ -112,7 +112,7 @@ const LoginPage: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/cases`,
         }
       });
 

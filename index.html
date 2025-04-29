@@ -6,12 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Legal Case Tracker</title>
     
-    <!-- UNIVERSAL POLYFILL: Comprehensive fix for all issues -->
-    <script src="/universal-polyfill.js"></script>
+    <!-- TinyMCE Fix: Prevents 404 errors for missing plugins -->
+    <script src="/tinymce-fix.js"></script>
     
-    <!-- For backward compatibility, keep original polyfills -->
-    <script src="/mui-timeout-fix.js"></script>
-    <script src="/emergency-fix.js"></script>
+    <!-- Map.clear Fix: Addresses the "this.events[e].clear is not a function" error -->
+    <script src="/map-clear-fix.js"></script>
+    
+    <!-- Pre-load TinyMCE from CDN to avoid plugin 404s -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6.7.0/tinymce.min.js" referrerpolicy="origin"></script>
   </head>
   <body>
     <div id="root"></div>

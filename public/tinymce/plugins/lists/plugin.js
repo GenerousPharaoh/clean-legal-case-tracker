@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 7.8.0 (TBD)
+ * TinyMCE version 6.7.0 (2023-08-30)
  */
 
 (function () {
@@ -40,7 +40,6 @@
 
     const noop = () => {
     };
-    const compose1 = (fbc, fab) => a => fbc(fab(a));
     const constant = value => {
       return () => {
         return value;
@@ -268,10 +267,7 @@
     const equals = (lhs, rhs, comparator = tripleEquals) => lift2(lhs, rhs, comparator).getOr(lhs.isNone() && rhs.isNone());
     const lift2 = (oa, ob, f) => oa.isSome() && ob.isSome() ? Optional.some(f(oa.getOrDie(), ob.getOrDie())) : Optional.none();
 
-    const COMMENT = 8;
-    const DOCUMENT_FRAGMENT = 11;
     const ELEMENT = 1;
-    const TEXT = 3;
 
     const fromHtml = (html, scope) => {
       const doc = scope || document;
@@ -337,39 +333,17 @@
     };
     const is = is$1;
 
-    const Global = typeof window !== 'undefined' ? window : Function('return this;')();
-
-    const path = (parts, scope) => {
-      let o = scope !== undefined && scope !== null ? scope : Global;
-      for (let i = 0; i < parts.length && o !== undefined && o !== null; ++i) {
-        o = o[parts[i]];
+    var ClosestOrAncestor = (is, ancestor, scope, a, isRoot) => {
+      if (is(scope, a)) {
+        return Optional.some(scope);
+      } else if (isFunction(isRoot) && isRoot(scope)) {
+        return Optional.none();
+      } else {
+        return ancestor(scope, a, isRoot);
       }
-      return o;
-    };
-    const resolve = (p, scope) => {
-      const parts = p.split('.');
-      return path(parts, scope);
     };
 
-    const unsafe = (name, scope) => {
-      return resolve(name, scope);
-    };
-    const getOrDie = (name, scope) => {
-      const actual = unsafe(name, scope);
-      if (actual === undefined || actual === null) {
-        throw new Error(name + ' not available on this browser');
-      }
-      return actual;
-    };
-
-    const getPrototypeOf = Object.getPrototypeOf;
-    const sandHTMLElement = scope => {
-      return getOrDie('HTMLElement', scope);
-    };
-    const isPrototypeOf = x => {
-      const scope = resolve('ownerDocument.defaultView', x);
-      return isObject(x) && (sandHTMLElement(scope).prototype.isPrototypeOf(x) || /^HTML\w*Element$/.test(getPrototypeOf(x).constructor.name));
-    };
+    typeof window !== 'undefined' ? window : Function('return this;')();
 
     const name = element => {
       const r = element.dom.nodeName;
@@ -377,11 +351,7 @@
     };
     const type = element => element.dom.nodeType;
     const isType = t => element => type(element) === t;
-    const isComment = element => type(element) === COMMENT || name(element) === '#comment';
-    const isHTMLElement = element => isElement$1(element) && isPrototypeOf(element.dom);
     const isElement$1 = isType(ELEMENT);
-    const isText = isType(TEXT);
-    const isDocumentFragment = isType(DOCUMENT_FRAGMENT);
     const isTag = tag => e => isElement$1(e) && name(e) === tag;
 
     const parent = element => Optional.from(element.dom.parentNode).map(SugarElement.fromDom);
@@ -395,34 +365,7 @@
     const firstChild = element => child(element, 0);
     const lastChild = element => child(element, element.dom.childNodes.length - 1);
 
-    const isShadowRoot = dos => isDocumentFragment(dos) && isNonNullable(dos.dom.host);
-    const getRootNode = e => SugarElement.fromDom(e.dom.getRootNode());
-    const getShadowRoot = e => {
-      const r = getRootNode(e);
-      return isShadowRoot(r) ? Optional.some(r) : Optional.none();
-    };
-    const getShadowHost = e => SugarElement.fromDom(e.dom.host);
-
-    const inBody = element => {
-      const dom = isText(element) ? element.dom.parentNode : element.dom;
-      if (dom === undefined || dom === null || dom.ownerDocument === null) {
-        return false;
-      }
-      const doc = dom.ownerDocument;
-      return getShadowRoot(SugarElement.fromDom(dom)).fold(() => doc.body.contains(dom), compose1(inBody, getShadowHost));
-    };
-
-    var ClosestOrAncestor = (is, ancestor, scope, a, isRoot) => {
-      if (is(scope, a)) {
-        return Optional.some(scope);
-      } else if (isFunction(isRoot) && isRoot(scope)) {
-        return Optional.none();
-      } else {
-        return ancestor(scope, a, isRoot);
-      }
-    };
-
-    const ancestor$3 = (scope, predicate, isRoot) => {
+    const ancestor$2 = (scope, predicate, isRoot) => {
       let element = scope.dom;
       const stop = isFunction(isRoot) ? isRoot : never;
       while (element.parentNode) {
@@ -436,26 +379,10 @@
       }
       return Optional.none();
     };
-    const closest$2 = (scope, predicate, isRoot) => {
+    const closest = (scope, predicate, isRoot) => {
       const is = (s, test) => test(s);
-      return ClosestOrAncestor(is, ancestor$3, scope, predicate, isRoot);
+      return ClosestOrAncestor(is, ancestor$2, scope, predicate, isRoot);
     };
-
-    const ancestor$2 = (scope, selector, isRoot) => ancestor$3(scope, e => is$1(e, selector), isRoot);
-    const closest$1 = (scope, selector, isRoot) => {
-      const is = (element, selector) => is$1(element, selector);
-      return ClosestOrAncestor(is, ancestor$2, scope, selector, isRoot);
-    };
-
-    const closest = target => closest$1(target, '[contenteditable]');
-    const isEditable = (element, assumeEditable = false) => {
-      if (inBody(element)) {
-        return element.dom.isContentEditable;
-      } else {
-        return closest(element).fold(constant(assumeEditable), editable => getRaw(editable) === 'true');
-      }
-    };
-    const getRaw = element => element.dom.contentEditable;
 
     const before$1 = (marker, element) => {
       const parent$1 = parent(marker);
@@ -472,14 +399,6 @@
         });
       }, v => {
         before$1(v, element);
-      });
-    };
-    const prepend = (parent, element) => {
-      const firstChild$1 = firstChild(parent);
-      firstChild$1.fold(() => {
-        append$1(parent, element);
-      }, v => {
-        parent.dom.insertBefore(element.dom, v.dom);
       });
     };
     const append$1 = (parent, element) => {
@@ -626,7 +545,7 @@
     const getForcedRootBlock = option('forced_root_block');
     const getForcedRootBlockAttrs = option('forced_root_block_attrs');
 
-    const createTextBlock = (editor, contentNode, attrs = {}) => {
+    const createTextBlock = (editor, contentNode) => {
       const dom = editor.dom;
       const blockElements = editor.schema.getBlockElements();
       const fragment = dom.createFragment();
@@ -635,10 +554,7 @@
       let node;
       let textBlock;
       let hasContentNode = false;
-      textBlock = dom.create(blockName, {
-        ...blockAttrs,
-        ...attrs.style ? { style: attrs.style } : {}
-      });
+      textBlock = dom.create(blockName, blockAttrs);
       if (!isBlock(contentNode.firstChild, blockElements)) {
         fragment.appendChild(textBlock);
       }
@@ -803,11 +719,9 @@
     const isListHost = (schema, node) => !isListNode(node) && !isListItemNode(node) && exists(listNames, listName => schema.isValidChild(node.nodeName, listName));
     const getClosestListHost = (editor, elm) => {
       const parentBlocks = editor.dom.getParents(elm, editor.dom.isBlock);
-      const isNotForcedRootBlock = elm => elm.nodeName.toLowerCase() !== getForcedRootBlock(editor);
-      const parentBlock = find(parentBlocks, elm => isNotForcedRootBlock(elm) && isListHost(editor.schema, elm));
+      const parentBlock = find(parentBlocks, elm => isListHost(editor.schema, elm));
       return parentBlock.getOr(editor.getBody());
     };
-    const isListInsideAnLiWithFirstAndLastNotListElement = list => parent(list).exists(parent => isListItemNode(parent.dom) && firstChild(parent).exists(firstChild => !isListNode(firstChild.dom)) && lastChild(parent).exists(lastChild => !isListNode(lastChild.dom)));
     const findLastParentListNode = (editor, elm) => {
       const parentLists = editor.dom.getParents(elm, 'ol,ul', getClosestListHost(editor, elm));
       return last(parentLists);
@@ -817,14 +731,9 @@
       const subsequentLists = filter$1(editor.selection.getSelectedBlocks(), isOlUlNode);
       return firstList.toArray().concat(subsequentLists);
     };
-    const getParentLists = editor => {
-      const elm = editor.selection.getStart();
-      return editor.dom.getParents(elm, 'ol,ul', getClosestListHost(editor, elm));
-    };
     const getSelectedListRoots = editor => {
       const selectedLists = getSelectedLists(editor);
-      const parentLists = getParentLists(editor);
-      return find(parentLists, p => isListInsideAnLiWithFirstAndLastNotListElement(SugarElement.fromDom(p))).fold(() => getUniqueListRoots(editor, selectedLists), l => [l]);
+      return getUniqueListRoots(editor, selectedLists);
     };
     const getUniqueListRoots = (editor, lists) => {
       const listRoots = map(lists, list => findLastParentListNode(editor, list).getOr(list));
@@ -836,11 +745,11 @@
     const isWithinNonEditable = (editor, element) => element !== null && !editor.dom.isEditable(element);
     const selectionIsWithinNonEditableList = editor => {
       const parentList = getParentList(editor);
-      return isWithinNonEditable(editor, parentList) || !editor.selection.isEditable();
+      return isWithinNonEditable(editor, parentList);
     };
     const isWithinNonEditableList = (editor, element) => {
       const parentList = editor.dom.getParent(element, 'ol,ul,dl');
-      return isWithinNonEditable(editor, parentList) || !editor.selection.isEditable();
+      return isWithinNonEditable(editor, parentList);
     };
     const setNodeChangeHandler = (editor, nodeChangeHandler) => {
       const initialNode = editor.selection.getNode();
@@ -887,32 +796,6 @@
       internalSet(dom, property, value);
     };
 
-    const isList = el => is(el, 'OL,UL');
-    const isListItem = el => is(el, 'LI');
-    const hasFirstChildList = el => firstChild(el).exists(isList);
-    const hasLastChildList = el => lastChild(el).exists(isList);
-
-    const isEntryList = entry => 'listAttributes' in entry;
-    const isEntryComment = entry => 'isComment' in entry;
-    const isEntryFragment = entry => 'isFragment' in entry;
-    const isIndented = entry => entry.depth > 0;
-    const isSelected = entry => entry.isSelected;
-    const cloneItemContent = li => {
-      const children$1 = children(li);
-      const content = hasLastChildList(li) ? children$1.slice(0, -1) : children$1;
-      return map(content, deep);
-    };
-    const createEntry = (li, depth, isSelected) => parent(li).filter(isElement$1).map(list => ({
-      depth,
-      dirty: false,
-      isSelected,
-      content: cloneItemContent(li),
-      itemAttributes: clone$1(li),
-      listAttributes: clone$1(list),
-      listType: name(list),
-      isInPreviousLi: false
-    }));
-
     const joinSegment = (parent, child) => {
       append$1(parent.item, child.list);
     };
@@ -935,7 +818,7 @@
     const createSegments = (scope, entry, size) => {
       const segments = [];
       for (let i = 0; i < size; i++) {
-        segments.push(createSegment(scope, isEntryList(entry) ? entry.listType : entry.parentListType));
+        segments.push(createSegment(scope, entry.listType));
       }
       return segments;
     };
@@ -944,10 +827,8 @@
         set(segments[i].item, 'list-style-type', 'none');
       }
       last(segments).each(segment => {
-        if (isEntryList(entry)) {
-          setAll(segment.list, entry.listAttributes);
-          setAll(segment.item, entry.itemAttributes);
-        }
+        setAll(segment.list, entry.listAttributes);
+        setAll(segment.item, entry.itemAttributes);
         append(segment.item, entry.content);
       });
     };
@@ -970,16 +851,9 @@
     const writeShallow = (scope, cast, entry) => {
       const newCast = cast.slice(0, entry.depth);
       last(newCast).each(segment => {
-        if (isEntryList(entry)) {
-          const item = createItem(scope, entry.itemAttributes, entry.content);
-          appendItem(segment, item);
-          normalizeSegment(segment, entry);
-        } else if (isEntryFragment(entry)) {
-          append(segment.item, entry.content);
-        } else {
-          const item = SugarElement.fromHtml(`<!--${ entry.content }-->`);
-          append$1(segment.list, item);
-        }
+        const item = createItem(scope, entry.itemAttributes, entry.content);
+        appendItem(segment, item);
+        normalizeSegment(segment, entry);
       });
       return newCast;
     };
@@ -991,26 +865,32 @@
       return cast.concat(segments);
     };
     const composeList = (scope, entries) => {
-      let firstCommentEntryOpt = Optional.none();
-      const cast = foldl(entries, (cast, entry, i) => {
-        if (!isEntryComment(entry)) {
-          return entry.depth > cast.length ? writeDeep(scope, cast, entry) : writeShallow(scope, cast, entry);
-        } else {
-          if (i === 0) {
-            firstCommentEntryOpt = Optional.some(entry);
-            return cast;
-          }
-          return writeShallow(scope, cast, entry);
-        }
+      const cast = foldl(entries, (cast, entry) => {
+        return entry.depth > cast.length ? writeDeep(scope, cast, entry) : writeShallow(scope, cast, entry);
       }, []);
-      firstCommentEntryOpt.each(firstCommentEntry => {
-        const item = SugarElement.fromHtml(`<!--${ firstCommentEntry.content }-->`);
-        head(cast).each(fistCast => {
-          prepend(fistCast.list, item);
-        });
-      });
       return head(cast).map(segment => segment.list);
     };
+
+    const isList = el => is(el, 'OL,UL');
+    const hasFirstChildList = el => firstChild(el).exists(isList);
+    const hasLastChildList = el => lastChild(el).exists(isList);
+
+    const isIndented = entry => entry.depth > 0;
+    const isSelected = entry => entry.isSelected;
+    const cloneItemContent = li => {
+      const children$1 = children(li);
+      const content = hasLastChildList(li) ? children$1.slice(0, -1) : children$1;
+      return map(content, deep);
+    };
+    const createEntry = (li, depth, isSelected) => parent(li).filter(isElement$1).map(list => ({
+      depth,
+      dirty: false,
+      isSelected,
+      content: cloneItemContent(li),
+      itemAttributes: clone$1(li),
+      listAttributes: clone$1(list),
+      listType: name(list)
+    }));
 
     const indentEntry = (indentation, entry) => {
       switch (indentation) {
@@ -1027,10 +907,8 @@
     };
 
     const cloneListProperties = (target, source) => {
-      if (isEntryList(target) && isEntryList(source)) {
-        target.listType = source.listType;
-        target.listAttributes = { ...source.listAttributes };
-      }
+      target.listType = source.listType;
+      target.listAttributes = { ...source.listAttributes };
     };
     const cleanListProperties = entry => {
       entry.listAttributes = filter(entry.listAttributes, (_value, key) => key !== 'start');
@@ -1044,7 +922,7 @@
     const normalizeEntries = entries => {
       each$1(entries, (entry, i) => {
         closestSiblingEntry(entries, i).fold(() => {
-          if (entry.dirty && isEntryList(entry)) {
+          if (entry.dirty) {
             cleanListProperties(entry);
           }
         }, matchingEntry => cloneListProperties(entry, matchingEntry));
@@ -1066,17 +944,7 @@
       };
     };
 
-    const parseSingleItem = (depth, itemSelection, selectionState, item) => {
-      var _a;
-      if (isComment(item)) {
-        return [{
-            depth: depth + 1,
-            content: (_a = item.dom.nodeValue) !== null && _a !== void 0 ? _a : '',
-            dirty: false,
-            isSelected: false,
-            isComment: true
-          }];
-      }
+    const parseItem = (depth, itemSelection, selectionState, item) => firstChild(item).filter(isList).fold(() => {
       itemSelection.each(selection => {
         if (eq(selection.start, item)) {
           selectionState.set(true);
@@ -1090,29 +958,7 @@
       });
       const childListEntries = lastChild(item).filter(isList).map(list => parseList(depth, itemSelection, selectionState, list)).getOr([]);
       return currentItemEntry.toArray().concat(childListEntries);
-    };
-    const parseItem = (depth, itemSelection, selectionState, item) => firstChild(item).filter(isList).fold(() => parseSingleItem(depth, itemSelection, selectionState, item), list => {
-      const parsedSiblings = foldl(children(item), (acc, liChild, i) => {
-        if (i === 0) {
-          return acc;
-        } else {
-          if (isListItem(liChild)) {
-            return acc.concat(parseSingleItem(depth, itemSelection, selectionState, liChild));
-          } else {
-            const fragment = {
-              isFragment: true,
-              depth,
-              content: [liChild],
-              isSelected: false,
-              dirty: false,
-              parentListType: name(list)
-            };
-            return acc.concat(fragment);
-          }
-        }
-      }, []);
-      return parseList(depth, itemSelection, selectionState, list).concat(parsedSiblings);
-    });
+    }, list => parseList(depth, itemSelection, selectionState, list));
     const parseList = (depth, itemSelection, selectionState, list) => bind(children(list), element => {
       const parser = isList(element) ? parseList : parseItem;
       const newDepth = depth + 1;
@@ -1130,9 +976,8 @@
     const outdentedComposer = (editor, entries) => {
       const normalizedEntries = normalizeEntries(entries);
       return map(normalizedEntries, entry => {
-        const content = !isEntryComment(entry) ? fromElements(entry.content) : fromElements([SugarElement.fromHtml(`<!--${ entry.content }-->`)]);
-        const listItemAttrs = isEntryList(entry) ? entry.itemAttributes : {};
-        return SugarElement.fromDom(createTextBlock(editor, content.dom, listItemAttrs));
+        const content = fromElements(entry.content);
+        return SugarElement.fromDom(createTextBlock(editor, content.dom));
       });
     };
     const indentedComposer = (editor, entries) => {
@@ -1189,7 +1034,7 @@
     const zeroWidth = '\uFEFF';
     const isZwsp = char => char === zeroWidth;
 
-    const ancestor$1 = (scope, predicate, isRoot) => ancestor$3(scope, predicate, isRoot).isSome();
+    const ancestor$1 = (scope, predicate, isRoot) => ancestor$2(scope, predicate, isRoot).isSome();
 
     const ancestor = (element, target) => ancestor$1(element, curry(eq, target));
 
@@ -1660,9 +1505,8 @@
       const childNodes = elm.childNodes;
       return childNodes.length === 1 && !isListNode(childNodes[0]) && dom.isBlock(childNodes[0]);
     };
-    const isUnwrappable = node => Optional.from(node).map(SugarElement.fromDom).filter(isHTMLElement).exists(el => isEditable(el) && !contains$1(['details'], name(el)));
     const unwrapSingleBlockChild = (dom, elm) => {
-      if (hasOnlyOneBlockChild(dom, elm) && isUnwrappable(elm.firstChild)) {
+      if (hasOnlyOneBlockChild(dom, elm)) {
         dom.remove(elm.firstChild, true);
       }
     };
@@ -1743,8 +1587,7 @@
         }
         const rng = normalizeRange(selection.getRng());
         const otherLi = dom.getParent(findNextCaretContainer(editor, rng, isForward, root), 'LI', root);
-        const willMergeParentIntoChild = otherLi && (isForward ? dom.isChildOf(li, otherLi) : dom.isChildOf(otherLi, li));
-        if (otherLi && otherLi !== li && !willMergeParentIntoChild) {
+        if (otherLi && otherLi !== li) {
           editor.undoManager.transact(() => {
             if (isForward) {
               mergeForward(editor, rng, otherLi, li);
@@ -1755,19 +1598,6 @@
                 mergeBackward(editor, rng, li, otherLi);
               }
             }
-          });
-          return true;
-        } else if (willMergeParentIntoChild && !isForward && otherLi !== li) {
-          const commonAncestorParent = rng.commonAncestorContainer.parentElement;
-          if (!commonAncestorParent || dom.isChildOf(otherLi, commonAncestorParent)) {
-            return false;
-          }
-          editor.undoManager.transact(() => {
-            const bookmark = createBookmark(rng);
-            moveChildren(dom, commonAncestorParent, otherLi);
-            commonAncestorParent.remove();
-            const resolvedBookmark = resolveBookmark(bookmark);
-            editor.selection.setRng(resolvedBookmark);
           });
           return true;
         } else if (!otherLi) {
@@ -1793,19 +1623,18 @@
       const selectionStartElm = editor.selection.getStart();
       const root = getClosestEditingHost(editor, selectionStartElm);
       const block = dom.getParent(selectionStartElm, dom.isBlock, root);
-      if (block && dom.isEmpty(block, undefined, { checkRootAsContent: true })) {
+      if (block && dom.isEmpty(block)) {
         const rng = normalizeRange(editor.selection.getRng());
-        const nextCaretContainer = findNextCaretContainer(editor, rng, isForward, root);
-        const otherLi = dom.getParent(nextCaretContainer, 'LI', root);
-        if (nextCaretContainer && otherLi) {
+        const otherLi = dom.getParent(findNextCaretContainer(editor, rng, isForward, root), 'LI', root);
+        if (otherLi) {
           const findValidElement = element => contains$1([
             'td',
             'th',
             'caption'
           ], name(element));
           const findRoot = node => node.dom === root;
-          const otherLiCell = closest$2(SugarElement.fromDom(otherLi), findValidElement, findRoot);
-          const caretCell = closest$2(SugarElement.fromDom(rng.startContainer), findValidElement, findRoot);
+          const otherLiCell = closest(SugarElement.fromDom(otherLi), findValidElement, findRoot);
+          const caretCell = closest(SugarElement.fromDom(rng.startContainer), findValidElement, findRoot);
           if (!equals(otherLiCell, caretCell, eq)) {
             return false;
           }
@@ -1813,7 +1642,7 @@
             const parentNode = otherLi.parentNode;
             removeBlock(dom, block, root);
             mergeWithAdjacentLists(dom, parentNode);
-            editor.selection.select(nextCaretContainer, true);
+            editor.selection.select(otherLi, true);
             editor.selection.collapse(isForward);
           });
           return true;
@@ -1833,14 +1662,7 @@
     const backspaceDeleteRange = editor => {
       if (hasListSelection(editor)) {
         editor.undoManager.transact(() => {
-          let shouldFireInput = true;
-          const inputHandler = () => shouldFireInput = false;
-          editor.on('input', inputHandler);
           editor.execCommand('Delete');
-          editor.off('input', inputHandler);
-          if (shouldFireInput) {
-            editor.dispatch('input');
-          }
           normalizeLists(editor.dom, editor.getBody());
         });
         return true;

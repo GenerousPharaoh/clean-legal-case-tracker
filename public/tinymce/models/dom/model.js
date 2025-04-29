@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 7.8.0 (TBD)
+ * TinyMCE version 6.7.0 (2023-08-30)
  */
 
 (function () {
@@ -749,15 +749,16 @@
     });
 
     const isShadowRoot = dos => isDocumentFragment(dos) && isNonNullable(dos.dom.host);
-    const getRootNode = e => SugarElement.fromDom(e.dom.getRootNode());
-    const getContentContainer = dos => isShadowRoot(dos) ? dos : SugarElement.fromDom(documentOrOwner(dos).dom.body);
+    const supported = isFunction(Element.prototype.attachShadow) && isFunction(Node.prototype.getRootNode);
+    const isSupported$1 = constant(supported);
+    const getRootNode = supported ? e => SugarElement.fromDom(e.dom.getRootNode()) : documentOrOwner;
     const getShadowRoot = e => {
       const r = getRootNode(e);
       return isShadowRoot(r) ? Optional.some(r) : Optional.none();
     };
     const getShadowHost = e => SugarElement.fromDom(e.dom.host);
     const getOriginalEventTarget = event => {
-      if (isNonNullable(event.target)) {
+      if (isSupported$1() && isNonNullable(event.target)) {
         const el = SugarElement.fromDom(event.target);
         if (isElement(el) && isOpenShadowHost(el)) {
           if (event.composed && event.composedPath) {
@@ -878,14 +879,7 @@
     const bindFrom = (a, f) => a !== undefined && a !== null ? f(a) : Optional.none();
     const someIf = (b, a) => b ? Optional.some(a) : Optional.none();
 
-    const removeFromStart = (str, numChars) => {
-      return str.substring(numChars);
-    };
-
     const checkRange = (str, substr, start) => substr === '' || str.length >= substr.length && str.substr(start, start + substr.length) === substr;
-    const removeLeading = (str, prefix) => {
-      return startsWith(str, prefix) ? removeFromStart(str, prefix.length) : str;
-    };
     const contains = (str, substr, start = 0, end) => {
       const idx = str.indexOf(substr, start);
       if (idx !== -1) {
@@ -1370,7 +1364,7 @@
     const PlatformDetection = { detect: detect$3 };
 
     const mediaMatch = query => window.matchMedia(query).matches;
-    let platform = cached(() => PlatformDetection.detect(window.navigator.userAgent, Optional.from(window.navigator.userAgentData), mediaMatch));
+    let platform = cached(() => PlatformDetection.detect(navigator.userAgent, Optional.from(navigator.userAgentData), mediaMatch));
     const detect$2 = () => platform();
 
     const Dimension = (name, getOffset) => {
@@ -1512,7 +1506,7 @@
       });
       return columnsGroup;
     };
-    const generate$2 = list => {
+    const generate$1 = list => {
       const access = {};
       const cells = [];
       const tableOpt = head(list).map(rowData => rowData.element).bind(table);
@@ -1570,7 +1564,7 @@
     };
     const fromTable = table => {
       const list = fromTable$1(table);
-      return generate$2(list);
+      return generate$1(list);
     };
     const justCells = warehouse => bind$2(warehouse.all, w => w.cells);
     const justColumns = warehouse => values(warehouse.columns);
@@ -1578,7 +1572,7 @@
     const getColumnAt = (warehouse, columnIndex) => Optional.from(warehouse.columns[columnIndex]);
     const Warehouse = {
       fromTable,
-      generate: generate$2,
+      generate: generate$1,
       getAt,
       findItem,
       filterItems,
@@ -1841,7 +1835,6 @@
     const rPercentageBasedSizeRegex = /(\d+(\.\d+)?)%/;
     const rPixelBasedSizeRegex = /(\d+(\.\d+)?)px|em/;
     const isCol$2 = isTag('col');
-    const isRow$2 = isTag('tr');
     const getPercentSize = (elm, outerGetter, innerGetter) => {
       const relativeParent = parentElement(elm).getOrThunk(() => getBody$1(owner(elm)));
       return outerGetter(elm) / innerGetter(relativeParent) * 100;
@@ -1854,9 +1847,6 @@
     };
     const setHeight = (cell, amount) => {
       set$1(cell, 'height', amount + 'px');
-    };
-    const removeHeight = cell => {
-      remove$5(cell, 'height');
     };
     const getHeightValue = cell => getRuntime(cell) + 'px';
     const convert = (cell, number, getter, setter) => {
@@ -1889,11 +1879,11 @@
       });
     };
     const getRawWidth$1 = element => getRaw$1(element, 'width');
-    const getRawHeight$1 = element => getRaw$1(element, 'height');
+    const getRawHeight = element => getRaw$1(element, 'height');
     const getPercentageWidth = cell => getPercentSize(cell, get$9, getInner);
     const getPixelWidth$1 = cell => isCol$2(cell) ? get$9(cell) : getRuntime$1(cell);
     const getHeight = cell => {
-      return isRow$2(cell) ? get$8(cell) : get$7(cell, 'rowspan', getTotalHeight);
+      return get$7(cell, 'rowspan', getTotalHeight);
     };
     const getGenericWidth = cell => {
       const width = getRawWidth$1(cell);
@@ -1907,7 +1897,6 @@
       set$1(cell, 'width', amount + unit);
     };
     const getPixelTableWidth = table => get$9(table) + 'px';
-    const getPixelTableHeight = table => get$8(table) + 'px';
     const getPercentTableWidth = table => getPercentSize(table, get$9, getInner) + '%';
     const isPercentSizing$1 = table => getRawWidth$1(table).exists(size => rPercentageBasedSizeRegex.test(size));
     const isPixelSizing$1 = table => getRawWidth$1(table).exists(size => rPixelBasedSizeRegex.test(size));
@@ -1919,7 +1908,7 @@
       return getRawWidth$1(cell).getOrThunk(() => getPixelWidth$1(cell) + 'px');
     };
     const getRawH = cell => {
-      return getRawHeight$1(cell).getOrThunk(() => getHeight(cell) + 'px');
+      return getRawHeight(cell).getOrThunk(() => getHeight(cell) + 'px');
     };
     const justCols = warehouse => map$1(Warehouse.justColumns(warehouse), column => Optional.from(column.element));
     const isValidColumn = cell => {
@@ -1966,19 +1955,20 @@
         return deduced.getOrThunk(tableSize.minCellWidth);
       });
     };
-    const getHeightFrom = (warehouse, table, getHeight, fallback) => {
-      const rowCells = rows(warehouse);
-      const rows$1 = map$1(warehouse.all, r => Optional.some(r.element));
-      const backups = [Optional.some(height.edge(table))].concat(map$1(height.positions(rowCells, table), pos => pos.map(p => p.y)));
-      return map$1(rows$1, (row, i) => getDimension(row, i, backups, always, getHeight, fallback));
+    const getHeightFrom = (warehouse, table, direction, getHeight, fallback) => {
+      const rows$1 = rows(warehouse);
+      const backups = [Optional.some(direction.edge(table))].concat(map$1(direction.positions(rows$1, table), pos => pos.map(p => p.y)));
+      return map$1(rows$1, (cellOption, c) => {
+        return getDimension(cellOption, c, backups, not(hasRowspan), getHeight, fallback);
+      });
     };
-    const getPixelHeights = (warehouse, table) => {
-      return getHeightFrom(warehouse, table, getHeight, deduced => {
+    const getPixelHeights = (warehouse, table, direction) => {
+      return getHeightFrom(warehouse, table, direction, getHeight, deduced => {
         return deduced.getOrThunk(minHeight);
       });
     };
-    const getRawHeights = (warehouse, table) => {
-      return getHeightFrom(warehouse, table, getRawH, getDeduced);
+    const getRawHeights = (warehouse, table, direction) => {
+      return getHeightFrom(warehouse, table, direction, getRawH, getDeduced);
     };
 
     const widthLookup = (table, getter) => () => {
@@ -2499,26 +2489,6 @@
       return options.isSet('table_default_styles') ? defaultStyles : determineDefaultTableStyles(editor, defaultStyles);
     };
     const tableUseColumnGroup = option('table_use_colgroups');
-    const fixedContainerSelector = option('fixed_toolbar_container');
-    const fixedToolbarContainerTarget = option('fixed_toolbar_container_target');
-    const fixedContainerTarget = editor => {
-      var _a;
-      if (!editor.inline) {
-        return Optional.none();
-      }
-      const selector = (_a = fixedContainerSelector(editor)) !== null && _a !== void 0 ? _a : '';
-      if (selector.length > 0) {
-        return descendant(body$1(), selector);
-      }
-      const element = fixedToolbarContainerTarget(editor);
-      if (isNonNullable(element)) {
-        return Optional.some(SugarElement.fromDom(element));
-      }
-      return Optional.none();
-    };
-    const useFixedContainer = editor => editor.inline && fixedContainerTarget(editor).isSome();
-    const getUiMode = option('ui_mode');
-    const isSplitUiMode = editor => !useFixedContainer(editor) && getUiMode(editor) === 'split';
 
     const closest = target => closest$1(target, '[contenteditable]');
     const isEditable$1 = (element, assumeEditable = false) => {
@@ -2542,12 +2512,10 @@
     const getSelectionStart = editor => SugarElement.fromDom(editor.selection.getStart());
     const getPixelWidth = elm => elm.getBoundingClientRect().width;
     const getPixelHeight = elm => elm.getBoundingClientRect().height;
-    const getRawValue = prop => (editor, elm) => {
-      const raw = editor.dom.getStyle(elm, prop) || editor.dom.getAttrib(elm, prop);
+    const getRawWidth = (editor, elm) => {
+      const raw = editor.dom.getStyle(elm, 'width') || editor.dom.getAttrib(elm, 'width');
       return Optional.from(raw).filter(isNotEmpty);
     };
-    const getRawWidth = getRawValue('width');
-    const getRawHeight = getRawValue('height');
     const isPercentage$1 = value => /^(\d+(\.\d+)?)%$/.test(value);
     const isPixel = value => /^(\d+(\.\d+)?)px$/.test(value);
     const isInEditableContext$1 = cell => closest$2(cell, isTag('table')).exists(isEditable$1);
@@ -3045,32 +3013,13 @@
       });
     };
     const serializeElements = (editor, elements) => map$1(elements, elm => editor.selection.serializer.serialize(elm.dom, {})).join('');
-    const getTextContent = (editor, replicaElements) => {
-      const doc = editor.getDoc();
-      const dos = getRootNode(SugarElement.fromDom(editor.getBody()));
-      const offscreenDiv = SugarElement.fromTag('div', doc);
-      set$2(offscreenDiv, 'data-mce-bogus', 'all');
-      setAll(offscreenDiv, {
-        position: 'fixed',
-        left: '-9999999px',
-        top: '0',
-        overflow: 'hidden',
-        opacity: '0'
-      });
-      const root = getContentContainer(dos);
-      append(offscreenDiv, replicaElements);
-      append$1(root, offscreenDiv);
-      const textContent = offscreenDiv.dom.innerText;
-      remove$6(offscreenDiv);
-      return textContent;
-    };
+    const getTextContent = elements => map$1(elements, element => element.dom.innerText).join('');
     const registerEvents = (editor, actions) => {
       editor.on('BeforeGetContent', e => {
         const multiCellContext = cells => {
           e.preventDefault();
-          extractSelected(cells).each(replicaElements => {
-            const content = e.format === 'text' ? getTextContent(editor, replicaElements) : serializeElements(editor, replicaElements);
-            e.content = content;
+          extractSelected(cells).each(elements => {
+            e.content = e.format === 'text' ? getTextContent(elements) : serializeElements(editor, elements);
           });
         };
         if (e.selection === true) {
@@ -4063,7 +4012,7 @@
       return replaceIn(grid, targetCells, comparator, substitution, replace, Optional.none, always);
     };
 
-    const generate$1 = cases => {
+    const generate = cases => {
       if (!isArray(cases)) {
         throw new Error('cases must be an array');
       }
@@ -4126,7 +4075,7 @@
       });
       return adt;
     };
-    const Adt = { generate: generate$1 };
+    const Adt = { generate };
 
     const adt$6 = Adt.generate([
       { none: [] },
@@ -4208,6 +4157,17 @@
         colspan: column.colspan
       }));
     };
+    const recalculateHeightForCells = (warehouse, heights) => {
+      const all = Warehouse.justCells(warehouse);
+      return map$1(all, cell => {
+        const height = total(cell.row, cell.row + cell.rowspan, heights);
+        return {
+          element: cell.element,
+          height,
+          rowspan: cell.rowspan
+        };
+      });
+    };
     const matchRowHeight = (warehouse, heights) => {
       return map$1(warehouse.all, (row, i) => {
         return {
@@ -4242,16 +4202,17 @@
       recalculateAndApply(warehouse, newWidths, tableSize);
       resizing.resizeTable(tableSize.adjustTableWidth, clampedStep, isLastColumn);
     };
-    const adjustHeight = (table, delta, index) => {
+    const adjustHeight = (table, delta, index, direction) => {
       const warehouse = Warehouse.fromTable(table);
-      const heights = getPixelHeights(warehouse, table);
+      const heights = getPixelHeights(warehouse, table, direction);
       const newHeights = map$1(heights, (dy, i) => index === i ? Math.max(delta + dy, minHeight()) : dy);
+      const newCellSizes = recalculateHeightForCells(warehouse, newHeights);
       const newRowSizes = matchRowHeight(warehouse, newHeights);
       each$2(newRowSizes, row => {
         setHeight(row.element, row.height);
       });
-      each$2(Warehouse.justCells(warehouse), cell => {
-        removeHeight(cell.element);
+      each$2(newCellSizes, cell => {
+        setHeight(cell.element, cell.height);
       });
       const total = sumUp(newHeights);
       setHeight(table, total);
@@ -4620,7 +4581,7 @@
     const opEraseRows = (grid, details, _comparator, _genWrappers) => {
       const rows = uniqueRows(details);
       const newGrid = deleteRowsAt(grid, rows[0].row, rows[rows.length - 1].row);
-      const maxRowIndex = Math.max(extractGridDetails(newGrid).rows.length - 1, 0);
+      const maxRowIndex = newGrid.length > 0 ? newGrid.length - 1 : 0;
       return bundle(newGrid, Math.min(details[0].row, maxRowIndex), details[0].column);
     };
     const opMergeCells = (grid, mergable, comparator, genWrappers) => {
@@ -4665,7 +4626,7 @@
       const context = rows[pasteDetails.cells[0].row];
       const gridB = gridifyRows(pasteDetails.clipboard, pasteDetails.generators, context);
       const mergedGrid = insertCols(index, grid, gridB, pasteDetails.generators, comparator);
-      return bundle(mergedGrid, pasteDetails.cells[0].row, index);
+      return bundle(mergedGrid, pasteDetails.cells[0].row, pasteDetails.cells[0].column);
     };
     const opPasteRowsBefore = (grid, pasteDetails, comparator, _genWrappers) => {
       const rows = extractGridDetails(grid).rows;
@@ -4681,7 +4642,7 @@
       const context = rows[pasteDetails.cells[0].row];
       const gridB = gridifyRows(pasteDetails.clipboard, pasteDetails.generators, context);
       const mergedGrid = insertRows(index, grid, gridB, pasteDetails.generators, comparator);
-      return bundle(mergedGrid, index, pasteDetails.cells[0].column);
+      return bundle(mergedGrid, pasteDetails.cells[0].row, pasteDetails.cells[0].column);
     };
     const opGetColumnsType = (table, target) => {
       const house = Warehouse.fromTable(table);
@@ -4748,9 +4709,9 @@
     const eraseRows = run(opEraseRows, onCells, noop, prune, Generators.modification);
     const makeColumnsHeader = run(opMakeColumnsHeader, onUnlockedCells, noop, noop, headerCellGenerator);
     const unmakeColumnsHeader = run(opUnmakeColumnsHeader, onUnlockedCells, noop, noop, bodyCellGenerator);
-    const makeRowsHeader = run(opMakeRowsHeader, onCells, noop, noop, headerCellGenerator);
-    const makeRowsBody = run(opMakeRowsBody, onCells, noop, noop, bodyCellGenerator);
-    const makeRowsFooter = run(opMakeRowsFooter, onCells, noop, noop, bodyCellGenerator);
+    const makeRowsHeader = run(opMakeRowsHeader, onUnlockedCells, noop, noop, headerCellGenerator);
+    const makeRowsBody = run(opMakeRowsBody, onUnlockedCells, noop, noop, bodyCellGenerator);
+    const makeRowsFooter = run(opMakeRowsFooter, onUnlockedCells, noop, noop, bodyCellGenerator);
     const makeCellsHeader = run(opMakeCellsHeader, onUnlockedCells, noop, noop, headerCellGenerator);
     const unmakeCellsHeader = run(opUnmakeCellsHeader, onUnlockedCells, noop, noop, bodyCellGenerator);
     const mergeCells = run(opMergeCells, onUnlockedMergable, resize, noop, Generators.merging);
@@ -5149,9 +5110,11 @@
         set$1(column.element, 'width', width + unit);
       });
     };
-    const redistributeToH = (newHeights, rows, cells) => {
+    const redistributeToH = (newHeights, rows, cells, unit) => {
       each$2(cells, cell => {
-        remove$5(cell.element, 'height');
+        const heights = newHeights.slice(cell.row, cell.rowspan + cell.row);
+        const h = sum(heights, minHeight());
+        set$1(cell.element, 'height', h + unit);
       });
       each$2(rows, (row, i) => {
         set$1(row.element, 'height', newHeights[i]);
@@ -5178,10 +5141,11 @@
         set$1(table, 'width', newWidth);
       });
       optHeight.each(newHeight => {
+        const hUnit = getUnit(newHeight);
         const totalHeight = get$8(table);
-        const oldHeights = getRawHeights(warehouse, table);
+        const oldHeights = getRawHeights(warehouse, table, height);
         const nuHeights = redistribute$1(oldHeights, totalHeight, newHeight);
-        redistributeToH(nuHeights, rows, cells);
+        redistributeToH(nuHeights, rows, cells, hUnit);
         set$1(table, 'height', newHeight);
       });
     };
@@ -5191,24 +5155,18 @@
 
     const cleanupLegacyAttributes = element => {
       remove$7(element, 'width');
-      remove$7(element, 'height');
     };
-    const convertToPercentSizeWidth = table => {
+    const convertToPercentSize = table => {
       const newWidth = getPercentTableWidth(table);
       redistribute(table, Optional.some(newWidth), Optional.none());
       cleanupLegacyAttributes(table);
     };
-    const convertToPixelSizeWidth = table => {
+    const convertToPixelSize = table => {
       const newWidth = getPixelTableWidth(table);
       redistribute(table, Optional.some(newWidth), Optional.none());
       cleanupLegacyAttributes(table);
     };
-    const convertToPixelSizeHeight = table => {
-      const newHeight = getPixelTableHeight(table);
-      redistribute(table, Optional.none(), Optional.some(newHeight));
-      cleanupLegacyAttributes(table);
-    };
-    const convertToNoneSizeWidth = table => {
+    const convertToNoneSize = table => {
       remove$5(table, 'width');
       const columns = columns$1(table);
       const rowElements = columns.length > 0 ? columns : cells$1(table);
@@ -5316,11 +5274,11 @@
       });
       return descendant(getBody(editor), 'table[data-mce-id="__mce"]').map(table => {
         if (isTablePixelsForced(editor)) {
-          convertToPixelSizeWidth(table);
+          convertToPixelSize(table);
         } else if (isTableResponsiveForced(editor)) {
-          convertToNoneSizeWidth(table);
+          convertToNoneSize(table);
         } else if (isTablePercentagesForced(editor) || isPercentage(defaultStyles.width)) {
-          convertToPercentSizeWidth(table);
+          convertToPercentSize(table);
         }
         removeDataStyle(table);
         remove$7(table, 'data-mce-id');
@@ -5397,11 +5355,11 @@
         if (!isForcedSizing) {
           table(cellOrCaption, isRoot).each(table => {
             if (sizing === 'relative' && !isPercentSizing(table)) {
-              convertToPercentSizeWidth(table);
+              convertToPercentSize(table);
             } else if (sizing === 'fixed' && !isPixelSizing(table)) {
-              convertToPixelSizeWidth(table);
+              convertToPixelSize(table);
             } else if (sizing === 'responsive' && !isNoneSizing(table)) {
-              convertToNoneSizeWidth(table);
+              convertToNoneSize(table);
             }
             removeDataStyle(table);
             fireTableModified(editor, table.dom, structureModified);
@@ -6356,6 +6314,7 @@
                 const isCellClosestContentEditable = is(closest(event.target), singleCell, eq$1);
                 if (isNonEditableCell && isCellClosestContentEditable) {
                   annotations.selectRange(container, boxes, singleCell, singleCell);
+                  bridge.selectContents(singleCell);
                 }
               } else if (boxes.length > 1) {
                 annotations.selectRange(container, boxes, cellSel.start, cellSel.finish);
@@ -6473,32 +6432,32 @@
     };
 
     const caretPositionFromPoint = (doc, x, y) => {
-      var _a;
-      return Optional.from((_a = doc.caretPositionFromPoint) === null || _a === void 0 ? void 0 : _a.call(doc, x, y)).bind(pos => {
+      var _a, _b;
+      return Optional.from((_b = (_a = doc.dom).caretPositionFromPoint) === null || _b === void 0 ? void 0 : _b.call(_a, x, y)).bind(pos => {
         if (pos.offsetNode === null) {
           return Optional.none();
         }
-        const r = doc.createRange();
+        const r = doc.dom.createRange();
         r.setStart(pos.offsetNode, pos.offset);
         r.collapse();
         return Optional.some(r);
       });
     };
     const caretRangeFromPoint = (doc, x, y) => {
-      var _a;
-      return Optional.from((_a = doc.caretRangeFromPoint) === null || _a === void 0 ? void 0 : _a.call(doc, x, y));
+      var _a, _b;
+      return Optional.from((_b = (_a = doc.dom).caretRangeFromPoint) === null || _b === void 0 ? void 0 : _b.call(_a, x, y));
     };
-    const availableSearch = (doc, x, y) => {
-      if (doc.caretPositionFromPoint) {
-        return caretPositionFromPoint(doc, x, y);
-      } else if (doc.caretRangeFromPoint) {
-        return caretRangeFromPoint(doc, x, y);
+    const availableSearch = (() => {
+      if (document.caretPositionFromPoint) {
+        return caretPositionFromPoint;
+      } else if (document.caretRangeFromPoint) {
+        return caretRangeFromPoint;
       } else {
-        return Optional.none();
+        return Optional.none;
       }
-    };
+    })();
     const fromPoint = (win, x, y) => {
-      const doc = win.document;
+      const doc = SugarElement.fromDom(win.document);
       return availableSearch(doc, x, y).map(rng => SimRange.create(SugarElement.fromDom(rng.startContainer), rng.startOffset, SugarElement.fromDom(rng.endContainer), rng.endOffset));
     };
 
@@ -6565,7 +6524,7 @@
           } else if (selection.extend) {
             try {
               setLegacyRtlRange(win, selection, start, soffset, finish, foffset);
-            } catch (_a) {
+            } catch (e) {
               doSetRange(win, finish, foffset, start, soffset);
             }
           } else {
@@ -7036,12 +6995,11 @@
       const onSelection = (cells, start, finish) => {
         const tableOpt = table(start);
         tableOpt.each(table => {
-          const cellsDom = map$1(cells, cell => cell.dom);
           const cloneFormats = getTableCloneElements(editor);
           const generators = cellOperations(noop, SugarElement.fromDom(editor.getDoc()), cloneFormats);
           const selectedCells = getCellsFromSelection(editor);
-          const otherCellsDom = getOtherCells(table, { selection: selectedCells }, generators).map(otherCells => map(otherCells, cellArr => map$1(cellArr, cell => cell.dom))).getOrUndefined();
-          fireTableSelectionChange(editor, cellsDom, start.dom, finish.dom, otherCellsDom);
+          const otherCells = getOtherCells(table, { selection: selectedCells }, generators);
+          fireTableSelectionChange(editor, cells, start, finish, otherCells);
         });
       };
       const onClear = () => fireTableSelectionClear(editor);
@@ -7749,7 +7707,7 @@
         set$2(target, 'data-initial-' + dir, getCssValue(target, dir));
         add(target, resizeBarDragging);
         set$1(target, 'opacity', '0.2');
-        resizing.go(wire.dragContainer());
+        resizing.go(wire.parent());
       };
       const mousedown = bind(wire.parent(), 'mousedown', event => {
         if (isRowBar(event.target)) {
@@ -7827,7 +7785,7 @@
         const table = event.table;
         events.trigger.beforeResize(table, 'row');
         const delta = hdirection.delta(event.delta, table);
-        adjustHeight(table, delta, event.row);
+        adjustHeight(table, delta, event.row, hdirection);
         events.trigger.afterResize(table, 'row');
       });
       manager.events.startAdjust.bind(_event => {
@@ -7853,23 +7811,11 @@
     };
     const TableResize = { create };
 
-    const random = () => window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
-
-    let unique = 0;
-    const generate = prefix => {
-      const date = new Date();
-      const time = date.getTime();
-      const random$1 = Math.floor(random() * 1000000000);
-      unique++;
-      return prefix + '_' + random$1 + unique + String(time);
-    };
-
     const only = (element, isResizable) => {
       const parent = isDocument(element) ? documentElement(element) : element;
       return {
         parent: constant(parent),
         view: constant(element),
-        dragContainer: constant(parent),
         origin: constant(SugarPosition(0, 0)),
         isResizable
       };
@@ -7879,7 +7825,6 @@
       return {
         parent: constant(chrome),
         view: constant(editable),
-        dragContainer: constant(chrome),
         origin,
         isResizable
       };
@@ -7888,58 +7833,31 @@
       return {
         parent: constant(chrome),
         view: constant(editable),
-        dragContainer: constant(chrome),
         origin: constant(SugarPosition(0, 0)),
-        isResizable
-      };
-    };
-    const scrollable = (editable, chrome, dragContainer, isResizable) => {
-      return {
-        parent: constant(chrome),
-        view: constant(editable),
-        dragContainer: constant(dragContainer),
-        origin: () => absolute(chrome),
         isResizable
       };
     };
     const ResizeWire = {
       only,
       detached,
-      body,
-      scrollable
+      body
     };
 
-    const createContainer = position => {
-      const id = generate('resizer-container');
+    const createContainer = () => {
       const container = SugarElement.fromTag('div');
-      set$2(container, 'id', id);
       setAll(container, {
-        position,
+        position: 'static',
         height: '0',
         width: '0',
         padding: '0',
         margin: '0',
         border: '0'
       });
+      append$1(body$1(), container);
       return container;
     };
-    const getInlineResizeWire = (editor, isResizable) => {
-      const isSplitUiMode$1 = isSplitUiMode(editor);
-      const editorBody = SugarElement.fromDom(editor.getBody());
-      const container = createContainer(isSplitUiMode$1 ? 'relative' : 'static');
-      const body = body$1();
-      if (isSplitUiMode$1) {
-        after$5(editorBody, container);
-        return ResizeWire.scrollable(editorBody, container, body, isResizable);
-      }
-      append$1(body, container);
-      return ResizeWire.body(editorBody, container, isResizable);
-    };
     const get = (editor, isResizable) => {
-      if (editor.inline) {
-        return getInlineResizeWire(editor, isResizable);
-      }
-      return ResizeWire.only(SugarElement.fromDom(editor.getDoc()), isResizable);
+      return editor.inline ? ResizeWire.body(SugarElement.fromDom(editor.getBody()), createContainer(), isResizable) : ResizeWire.only(SugarElement.fromDom(editor.getDoc()), isResizable);
     };
     const remove = (editor, wire) => {
       if (editor.inline) {
@@ -7950,7 +7868,7 @@
     const isTable = node => isNonNullable(node) && node.nodeName === 'TABLE';
     const barResizerPrefix = 'bar-';
     const isResizable = elm => get$b(elm, 'data-mce-resize') !== 'false';
-    const syncTableCellPixels = table => {
+    const syncPixels = table => {
       const warehouse = Warehouse.fromTable(table);
       if (!Warehouse.hasColumns(warehouse)) {
         each$2(cells$1(table), cell => {
@@ -7960,29 +7878,19 @@
         });
       }
     };
-    const isCornerResize = origin => startsWith(origin, 'corner-');
-    const getCornerLocation = origin => removeLeading(origin, 'corner-');
     const TableResizeHandler = editor => {
       const selectionRng = value();
       const tableResize = value();
       const resizeWire = value();
       let startW;
       let startRawW;
-      let startH;
-      let startRawH;
       const lazySizing = table => get$5(editor, table);
       const lazyResizingBehaviour = () => isPreserveTableColumnResizing(editor) ? preserveTable() : resizeTable();
       const getNumColumns = table => getGridSize(table).columns;
-      const getNumRows = table => getGridSize(table).rows;
-      const afterCornerResize = (table, origin, width, height) => {
-        const location = getCornerLocation(origin);
-        const isRightEdgeResize = endsWith(location, 'e');
-        const isNorthEdgeResize = startsWith(location, 'n');
+      const afterCornerResize = (table, origin, width) => {
+        const isRightEdgeResize = endsWith(origin, 'e');
         if (startRawW === '') {
-          convertToPercentSizeWidth(table);
-        }
-        if (startRawH === '') {
-          convertToPixelSizeHeight(table);
+          convertToPercentSize(table);
         }
         if (width !== startW && startRawW !== '') {
           set$1(table, 'width', startRawW);
@@ -7996,12 +7904,7 @@
           set$1(table, 'width', targetPercentW + '%');
         }
         if (isPixel(startRawW)) {
-          syncTableCellPixels(table);
-        }
-        if (height !== startH && startRawH !== '') {
-          set$1(table, 'height', startRawH);
-          const idx = isNorthEdgeResize ? 0 : getNumRows(table) - 1;
-          adjustHeight(table, height - startH, idx);
+          syncPixels(table);
         }
       };
       const destroy = () => {
@@ -8018,9 +7921,7 @@
         if (hasTableObjectResizing(editor) && hasTableResizeBars(editor)) {
           const resizing = lazyResizingBehaviour();
           const sz = TableResize.create(rawWire, resizing, lazySizing);
-          if (!editor.mode.isReadOnly()) {
-            sz.on();
-          }
+          sz.on();
           sz.events.startDrag.bind(_event => {
             selectionRng.set(editor.selection.getRng());
           });
@@ -8044,23 +7945,21 @@
       });
       editor.on('ObjectResizeStart', e => {
         const targetElm = e.target;
-        if (isTable(targetElm) && !editor.mode.isReadOnly()) {
+        if (isTable(targetElm)) {
           const table = SugarElement.fromDom(targetElm);
           each$2(editor.dom.select('.mce-clonedresizable'), clone => {
             editor.dom.addClass(clone, 'mce-' + getTableColumnResizingBehaviour(editor) + '-columns');
           });
           if (!isPixelSizing(table) && isTablePixelsForced(editor)) {
-            convertToPixelSizeWidth(table);
+            convertToPixelSize(table);
           } else if (!isPercentSizing(table) && isTablePercentagesForced(editor)) {
-            convertToPercentSizeWidth(table);
+            convertToPercentSize(table);
           }
           if (isNoneSizing(table) && startsWith(e.origin, barResizerPrefix)) {
-            convertToPercentSizeWidth(table);
+            convertToPercentSize(table);
           }
           startW = e.width;
           startRawW = isTableResponsiveForced(editor) ? '' : getRawWidth(editor, targetElm).getOr('');
-          startH = e.height;
-          startRawH = getRawHeight(editor, targetElm).getOr('');
         }
       });
       editor.on('ObjectResized', e => {
@@ -8068,33 +7967,32 @@
         if (isTable(targetElm)) {
           const table = SugarElement.fromDom(targetElm);
           const origin = e.origin;
-          if (isCornerResize(origin)) {
-            afterCornerResize(table, origin, e.width, e.height);
+          if (startsWith(origin, 'corner-')) {
+            afterCornerResize(table, origin, e.width);
           }
           removeDataStyle(table);
           fireTableModified(editor, table.dom, styleModified);
         }
       });
-      const showResizeBars = () => {
-        tableResize.on(resize => {
-          resize.on();
-          resize.showBars();
-        });
-      };
-      const hideResizeBars = () => {
-        tableResize.on(resize => {
-          resize.off();
-          resize.hideBars();
-        });
-      };
-      editor.on('DisabledStateChange', e => {
-        e.state ? hideResizeBars() : showResizeBars();
-      });
       editor.on('SwitchMode', () => {
-        editor.mode.isReadOnly() ? hideResizeBars() : showResizeBars();
+        tableResize.on(resize => {
+          if (editor.mode.isReadOnly()) {
+            resize.hideBars();
+          } else {
+            resize.showBars();
+          }
+        });
       });
       editor.on('dragstart dragend', e => {
-        e.type === 'dragstart' ? hideResizeBars() : showResizeBars();
+        tableResize.on(resize => {
+          if (e.type === 'dragstart') {
+            resize.hideBars();
+            resize.off();
+          } else {
+            resize.on();
+            resize.showBars();
+          }
+        });
       });
       editor.on('remove', () => {
         destroy();

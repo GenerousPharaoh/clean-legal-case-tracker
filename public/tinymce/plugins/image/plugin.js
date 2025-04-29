@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 7.8.0 (TBD)
+ * TinyMCE version 6.7.0 (2023-08-30)
  */
 
 (function () {
@@ -322,12 +322,13 @@
     const getImageSize = url => new Promise(callback => {
       const img = document.createElement('img');
       const done = dimensions => {
+        img.onload = img.onerror = null;
         if (img.parentNode) {
           img.parentNode.removeChild(img);
         }
         callback(dimensions);
       };
-      img.addEventListener('load', () => {
+      img.onload = () => {
         const width = parseIntAndGetMax(img.width, img.clientWidth);
         const height = parseIntAndGetMax(img.height, img.clientHeight);
         const dimensions = {
@@ -335,10 +336,10 @@
           height
         };
         done(Promise.resolve(dimensions));
-      });
-      img.addEventListener('error', () => {
+      };
+      img.onerror = () => {
         done(Promise.reject(`Failed to get image dimensions for: ${ url }`));
-      });
+      };
       const style = img.style;
       style.visibility = 'hidden';
       style.position = 'fixed';
@@ -741,7 +742,6 @@
         write(css => normalizeCss$1(editor, css), data, image);
         syncSrcAttr(editor, image);
         if (isFigure(image.parentNode)) {
-          editor.dom.setStyle(image, 'float', '');
           const figure = image.parentNode;
           splitTextBlock(editor, figure);
           editor.selection.select(image.parentNode);
@@ -992,8 +992,7 @@
         name: 'src',
         type: 'urlinput',
         filetype: 'image',
-        label: 'Source',
-        picker_text: 'Browse files'
+        label: 'Source'
       };
       const imageList = info.imageList.map(items => ({
         name: 'images',
@@ -1279,7 +1278,6 @@
           });
           api.showTab('general');
           changeSrc(helpers, info, state, api);
-          api.focus('src');
         };
         blobToDataUri(file).then(dataUrl => {
           const blobInfo = helpers.createBlobCache(file, blobUri, dataUrl);
@@ -1289,9 +1287,7 @@
               finalize();
             }).catch(err => {
               finalize();
-              helpers.alertErr(err, () => {
-                api.focus('fileinput');
-              });
+              helpers.alertErr(err);
             });
           } else {
             helpers.addToBlobCache(blobInfo);
@@ -1372,8 +1368,8 @@
     const addToBlobCache = editor => blobInfo => {
       editor.editorUpload.blobCache.add(blobInfo);
     };
-    const alertErr = editor => (message, callback) => {
-      editor.windowManager.alert(message, callback);
+    const alertErr = editor => message => {
+      editor.windowManager.alert(message);
     };
     const normalizeCss = editor => cssText => normalizeCss$1(editor, cssText);
     const parseStyle = editor => cssText => editor.dom.parseStyle(cssText);

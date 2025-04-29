@@ -5,6 +5,9 @@ import { Backdrop, CircularProgress, Box, Typography } from '@mui/material';
 import { supabase } from './supabaseClient';
 import { handleSupabaseError, ErrorCategory, reportError } from './utils/authErrorHandler';
 
+// Import the standard ProtectedRoute component
+import ProtectedRoute from './components/ProtectedRoute';
+
 // Main layout and pages
 import MainLayout from './layouts/MainLayout';
 import CaseLibrary from './components/CaseLibrary';
@@ -15,105 +18,13 @@ import AcceptInvitePage from './pages/AcceptInvitePage';
 import ClientPortalPage from './pages/ClientPortalPage';
 import { CaseProvider } from './contexts/CaseContext';
 import AuthCallback from './components/AuthCallback';
-
-// Define a protected route component
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requireAuth?: boolean;
-  allowedRoles?: string[];
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  requireAuth = true,
-  allowedRoles = [] 
-}) => {
-  const { session, user, loading } = useAuth();
-  const location = useLocation();
-
-  // Check for session expiry
-  useEffect(() => {
-    if (requireAuth && session) {
-      const checkSessionExpiry = async () => {
-        try {
-          // Try to get user to verify session is still valid
-          const { data, error } = await supabase.auth.getUser();
-          
-          if (error) {
-            reportError(
-              'Session expired', 
-              ErrorCategory.AUTH, 
-              'Please sign in again to continue.'
-            );
-            // Force redirect to login
-            window.location.href = '/login';
-          }
-        } catch (err) {
-          handleSupabaseError(err, 'Error validating session');
-        }
-      };
-      
-      // Check on mount
-      checkSessionExpiry();
-    }
-  }, [session, requireAuth]);
-  
-  // Role-based access control
-  const checkRoleAccess = () => {
-    if (allowedRoles.length === 0) return true;
-    if (!user || !user.role) return false;
-    
-    return allowedRoles.includes(user.role);
-  };
-
-  // Show loading state while auth state is being determined
-  if (loading) {
-    return (
-      <Backdrop open={true} sx={{ color: '#fff', zIndex: 9999 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <CircularProgress color="inherit" />
-          <Typography variant="body1" sx={{ mt: 2 }}>
-            Authenticating...
-          </Typography>
-        </Box>
-      </Backdrop>
-    );
-  }
-
-  // If authentication is required and no session exists, redirect to login
-  if (requireAuth && !session) {
-    // Store the intended location to redirect back after login
-    sessionStorage.setItem('redirectAfterLogin', location.pathname);
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  // If authentication should not exist and it does (e.g., login page when already logged in)
-  if (!requireAuth && session) {
-    // Get redirect path (if stored) or default to home
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/';
-    // Clear stored path
-    sessionStorage.removeItem('redirectAfterLogin');
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  // Check role-based access if roles are specified
-  if (requireAuth && session && !checkRoleAccess()) {
-    reportError(
-      'Access denied', 
-      ErrorCategory.PERMISSION, 
-      'You do not have permission to access this page.'
-    );
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
-};
+import SignoutPage from './pages/SignoutPage';
 
 // Main routes configuration
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public routes - use the imported ProtectedRoute */}
       <Route path="/login" element={
         <ProtectedRoute requireAuth={false}>
           <LoginPage />
@@ -133,7 +44,10 @@ const AppRoutes: React.FC = () => {
       
       <Route path="/client-portal/:token" element={<ClientPortalPage />} />
 
-      {/* Protected routes within MainLayout */}
+      {/* Public signout route */}
+      <Route path="/signout" element={<SignoutPage />} />
+
+      {/* Protected routes within MainLayout - use the imported ProtectedRoute */}
       <Route
         path="/"
         element={

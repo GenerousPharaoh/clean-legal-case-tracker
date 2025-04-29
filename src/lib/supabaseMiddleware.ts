@@ -4,40 +4,9 @@ import { handleSupabaseError, ErrorCategory, reportError } from '../utils/authEr
 /**
  * Initialize Supabase middleware to handle common error scenarios
  * This adds global error handling for auth errors and session management
+ * Note: Auth state management is now centralized in supabaseClient.ts
  */
 export const initSupabaseMiddleware = () => {
-  // Set up auth state change listener for global monitoring
-  const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-    console.log('Auth state changed:', event);
-    
-    // User signed out
-    if (event === 'SIGNED_OUT') {
-      console.log('User signed out');
-    }
-    
-    // User signed in
-    if (event === 'SIGNED_IN' && session) {
-      console.log('User signed in:', session.user?.id);
-    }
-    
-    // Token refreshed
-    if (event === 'TOKEN_REFRESHED' && session) {
-      console.log('Token refreshed for user:', session.user?.id);
-    }
-    
-    // User session updated
-    if (event === 'USER_UPDATED' && session) {
-      console.log('User updated:', session.user?.id);
-    }
-    
-    // Save current auth status in localStorage for quick client-side checks
-    if (session) {
-      localStorage.setItem('auth_status', 'authenticated');
-    } else if (event === 'SIGNED_OUT') {
-      localStorage.removeItem('auth_status');
-    }
-  });
-  
   // Patch the Supabase client functions to add error handling
   const originalAuthSignIn = supabase.auth.signInWithPassword;
   const originalAuthSignUp = supabase.auth.signUp;
@@ -138,9 +107,8 @@ export const initSupabaseMiddleware = () => {
     }
   };
   
-  // Return function to clean up listeners when needed
+  // Return function to clean up when needed
   return () => {
-    subscription?.unsubscribe();
     window.fetch = originalFetch;
     // Restore original Supabase functions
     supabase.auth.signInWithPassword = originalAuthSignIn;

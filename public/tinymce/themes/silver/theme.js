@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 7.8.0 (TBD)
+ * TinyMCE version 6.7.0 (2023-08-30)
  */
 
 (function () {
@@ -336,9 +336,9 @@
       copy.sort(comparator);
       return copy;
     };
-    const get$i = (xs, i) => i >= 0 && i < xs.length ? Optional.some(xs[i]) : Optional.none();
-    const head = xs => get$i(xs, 0);
-    const last$1 = xs => get$i(xs, xs.length - 1);
+    const get$h = (xs, i) => i >= 0 && i < xs.length ? Optional.some(xs[i]) : Optional.none();
+    const head = xs => get$h(xs, 0);
+    const last$1 = xs => get$h(xs, xs.length - 1);
     const from = isFunction(Array.from) ? Array.from : x => nativeSlice.call(x);
     const findMap = (arr, f) => {
       for (let i = 0; i < arr.length; i++) {
@@ -351,7 +351,7 @@
     };
 
     const keys = Object.keys;
-    const hasOwnProperty = Object.hasOwnProperty;
+    const hasOwnProperty$1 = Object.hasOwnProperty;
     const each = (obj, f) => {
       const props = keys(obj);
       for (let k = 0, len = props.length; k < len; k++) {
@@ -417,10 +417,10 @@
     const values = obj => {
       return mapToArray(obj, identity);
     };
-    const get$h = (obj, key) => {
+    const get$g = (obj, key) => {
       return has$2(obj, key) ? Optional.from(obj[key]) : Optional.none();
     };
-    const has$2 = (obj, key) => hasOwnProperty.call(obj, key);
+    const has$2 = (obj, key) => hasOwnProperty$1.call(obj, key);
     const hasNonNullableKey = (obj, key) => has$2(obj, key) && obj[key] !== undefined && obj[key] !== null;
 
     const is$1 = (lhs, rhs, comparator = tripleEquals) => lhs.exists(left => comparator(left, rhs));
@@ -484,12 +484,8 @@
     const trim$1 = blank(/^\s+|\s+$/g);
     const isNotEmpty = s => s.length > 0;
     const isEmpty = s => !isNotEmpty(s);
-    const toFloat = value => {
-      const num = parseFloat(value);
-      return isNaN(num) ? Optional.none() : Optional.some(num);
-    };
 
-    const isSupported = dom => dom.style !== undefined && isFunction(dom.style.getPropertyValue);
+    const isSupported$1 = dom => dom.style !== undefined && isFunction(dom.style.getPropertyValue);
 
     const fromHtml$2 = (html, scope) => {
       const doc = scope || document;
@@ -656,7 +652,9 @@
     };
 
     const isShadowRoot = dos => isDocumentFragment(dos) && isNonNullable(dos.dom.host);
-    const getRootNode = e => SugarElement.fromDom(e.dom.getRootNode());
+    const supported = isFunction(Element.prototype.attachShadow) && isFunction(Node.prototype.getRootNode);
+    const isSupported = constant$1(supported);
+    const getRootNode = supported ? e => SugarElement.fromDom(e.dom.getRootNode()) : documentOrOwner;
     const getContentContainer = dos => isShadowRoot(dos) ? dos : SugarElement.fromDom(documentOrOwner(dos).dom.body);
     const isInShadowRoot = e => getShadowRoot(e).isSome();
     const getShadowRoot = e => {
@@ -665,7 +663,7 @@
     };
     const getShadowHost = e => SugarElement.fromDom(e.dom.host);
     const getOriginalEventTarget = event => {
-      if (isNonNullable(event.target)) {
+      if (isSupported() && isNonNullable(event.target)) {
         const el = SugarElement.fromDom(event.target);
         if (isElement$1(el) && isOpenShadowHost(el)) {
           if (event.composed && event.composedPath) {
@@ -714,16 +712,16 @@
         rawSet(dom, k, v);
       });
     };
-    const get$g = (element, key) => {
+    const get$f = (element, key) => {
       const v = element.dom.getAttribute(key);
       return v === null ? undefined : v;
     };
-    const getOpt = (element, key) => Optional.from(get$g(element, key));
+    const getOpt = (element, key) => Optional.from(get$f(element, key));
     const has$1 = (element, key) => {
       const dom = element.dom;
       return dom && dom.hasAttribute ? dom.hasAttribute(key) : false;
     };
-    const remove$8 = (element, key) => {
+    const remove$7 = (element, key) => {
       element.dom.removeAttribute(key);
     };
     const clone$2 = element => foldl(element.dom.attributes, (acc, attr) => {
@@ -736,12 +734,12 @@
         console.error('Invalid call to CSS.set. Property ', property, ':: Value ', value, ':: Element ', dom);
         throw new Error('CSS value must be a string: ' + value);
       }
-      if (isSupported(dom)) {
+      if (isSupported$1(dom)) {
         dom.style.setProperty(property, value);
       }
     };
     const internalRemove = (dom, property) => {
-      if (isSupported(dom)) {
+      if (isSupported$1(dom)) {
         dom.style.removeProperty(property);
       }
     };
@@ -765,13 +763,13 @@
         });
       });
     };
-    const get$f = (element, property) => {
+    const get$e = (element, property) => {
       const dom = element.dom;
       const styles = window.getComputedStyle(dom);
       const r = styles.getPropertyValue(property);
       return r === '' && !inBody(element) ? getUnsafeProperty(dom, property) : r;
     };
-    const getUnsafeProperty = (dom, property) => isSupported(dom) ? dom.style.getPropertyValue(property) : '';
+    const getUnsafeProperty = (dom, property) => isSupported$1(dom) ? dom.style.getPropertyValue(property) : '';
     const getRaw = (element, property) => {
       const dom = element.dom;
       const raw = getUnsafeProperty(dom, property);
@@ -780,7 +778,7 @@
     const getAllRaw = element => {
       const css = {};
       const dom = element.dom;
-      if (isSupported(dom)) {
+      if (isSupported$1(dom)) {
         for (let i = 0; i < dom.style.length; i++) {
           const ruleName = dom.style.item(i);
           css[ruleName] = dom.style[ruleName];
@@ -794,11 +792,11 @@
       const style = getRaw(element, property);
       return style.isSome();
     };
-    const remove$7 = (element, property) => {
+    const remove$6 = (element, property) => {
       const dom = element.dom;
       internalRemove(dom, property);
       if (is$1(getOpt(element, 'style').map(trim$1), '')) {
-        remove$8(element, 'style');
+        remove$7(element, 'style');
       }
     };
     const reflow = e => e.dom.offsetWidth;
@@ -809,21 +807,21 @@
           throw new Error(name + '.set accepts only positive integer values. Value was ' + h);
         }
         const dom = element.dom;
-        if (isSupported(dom)) {
+        if (isSupported$1(dom)) {
           dom.style[name] = h + 'px';
         }
       };
       const get = element => {
         const r = getOffset(element);
         if (r <= 0 || r === null) {
-          const css = get$f(element, name);
+          const css = get$e(element, name);
           return parseFloat(css) || 0;
         }
         return r;
       };
       const getOuter = get;
       const aggregate = (element, properties) => foldl(properties, (acc, property) => {
-        const val = get$f(element, property);
+        const val = get$e(element, property);
         const value = val === undefined ? 0 : parseInt(val, 10);
         return isNaN(value) ? acc : acc + value;
       }, 0);
@@ -845,7 +843,7 @@
       const dom = element.dom;
       return inBody(element) ? dom.getBoundingClientRect().height : dom.offsetHeight;
     });
-    const get$e = element => api$2.get(element);
+    const get$d = element => api$2.get(element);
     const getOuter$2 = element => api$2.getOuter(element);
     const setMax$1 = (element, value) => {
       const inclusions = [
@@ -910,7 +908,7 @@
 
     const api$1 = Dimension('width', element => element.dom.offsetWidth);
     const set$7 = (element, h) => api$1.set(element, h);
-    const get$d = element => api$1.get(element);
+    const get$c = element => api$1.get(element);
     const getOuter$1 = element => api$1.getOuter(element);
     const setMax = (element, value) => {
       const inclusions = [
@@ -981,7 +979,7 @@
       };
       return nu$d(group(1), group(2));
     };
-    const detect$4 = (versionRegexes, agent) => {
+    const detect$5 = (versionRegexes, agent) => {
       const cleanedAgent = String(agent).toLowerCase();
       if (versionRegexes.length === 0) {
         return unknown$3();
@@ -999,7 +997,7 @@
     };
     const Version = {
       nu: nu$d,
-      detect: detect$4,
+      detect: detect$5,
       unknown: unknown$3
     };
 
@@ -1016,14 +1014,14 @@
       });
     };
 
-    const detect$3 = (candidates, userAgent) => {
+    const detect$4 = (candidates, userAgent) => {
       const agent = String(userAgent).toLowerCase();
       return find$5(candidates, candidate => {
         return candidate.search(agent);
       });
     };
     const detectBrowser = (browsers, userAgent) => {
-      return detect$3(browsers, userAgent).map(browser => {
+      return detect$4(browsers, userAgent).map(browser => {
         const version = Version.detect(browser.versionRegexes, userAgent);
         return {
           current: browser.name,
@@ -1032,7 +1030,7 @@
       });
     };
     const detectOs = (oses, userAgent) => {
-      return detect$3(oses, userAgent).map(os => {
+      return detect$4(oses, userAgent).map(os => {
         const version = Version.detect(os.versionRegexes, userAgent);
         return {
           current: os.name,
@@ -1235,7 +1233,7 @@
       chromeos: constant$1(chromeos)
     };
 
-    const detect$2 = (userAgent, userAgentDataOpt, mediaMatch) => {
+    const detect$3 = (userAgent, userAgentDataOpt, mediaMatch) => {
       const browsers = PlatformInfo.browsers();
       const oses = PlatformInfo.oses();
       const browser = userAgentDataOpt.bind(userAgentData => detectBrowser$1(browsers, userAgentData)).orThunk(() => detectBrowser(browsers, userAgent)).fold(Browser.unknown, Browser.nu);
@@ -1247,11 +1245,11 @@
         deviceType
       };
     };
-    const PlatformDetection = { detect: detect$2 };
+    const PlatformDetection = { detect: detect$3 };
 
     const mediaMatch = query => window.matchMedia(query).matches;
-    let platform = cached(() => PlatformDetection.detect(window.navigator.userAgent, Optional.from(window.navigator.userAgentData), mediaMatch));
-    const detect$1 = () => platform();
+    let platform = cached(() => PlatformDetection.detect(navigator.userAgent, Optional.from(navigator.userAgentData), mediaMatch));
+    const detect$2 = () => platform();
 
     const mkEvent = (target, x, y, stop, prevent, kill, raw) => ({
       target,
@@ -1330,17 +1328,17 @@
     const empty = element => {
       element.dom.textContent = '';
       each$1(children(element), rogue => {
-        remove$6(rogue);
+        remove$5(rogue);
       });
     };
-    const remove$6 = element => {
+    const remove$5 = element => {
       const dom = element.dom;
       if (dom.parentNode !== null) {
         dom.parentNode.removeChild(dom);
       }
     };
 
-    const get$c = _DOC => {
+    const get$b = _DOC => {
       const doc = _DOC !== undefined ? _DOC.dom : document;
       const x = doc.body.scrollLeft || doc.documentElement.scrollLeft;
       const y = doc.body.scrollTop || doc.documentElement.scrollTop;
@@ -1354,9 +1352,9 @@
       }
     };
 
-    const get$b = _win => {
+    const get$a = _win => {
       const win = _win === undefined ? window : _win;
-      if (detect$1().browser.isFirefox()) {
+      if (detect$2().browser.isFirefox()) {
         return Optional.none();
       } else {
         return Optional.from(win.visualViewport);
@@ -1373,8 +1371,8 @@
     const getBounds$3 = _win => {
       const win = _win === undefined ? window : _win;
       const doc = win.document;
-      const scroll = get$c(SugarElement.fromDom(doc));
-      return get$b(win).fold(() => {
+      const scroll = get$b(SugarElement.fromDom(doc));
+      return get$a(win).fold(() => {
         const html = win.document.documentElement;
         const width = html.clientWidth;
         const height = html.clientHeight;
@@ -1413,7 +1411,7 @@
 
     const find$2 = element => {
       const doc = getDocument();
-      const scroll = get$c(doc);
+      const scroll = get$b(doc);
       const path = pathTo(element, Navigation);
       return path.fold(curry(absolute$3, element), frames => {
         const offset = viewport$1(element);
@@ -1476,121 +1474,9 @@
     };
     const win = () => getBounds$3(window);
 
-    const Cell = initial => {
-      let value = initial;
-      const get = () => {
-        return value;
-      };
-      const set = v => {
-        value = v;
-      };
-      return {
-        get,
-        set
-      };
-    };
+    var global$a = tinymce.util.Tools.resolve('tinymce.ThemeManager');
 
-    const singleton$1 = doRevoke => {
-      const subject = Cell(Optional.none());
-      const revoke = () => subject.get().each(doRevoke);
-      const clear = () => {
-        revoke();
-        subject.set(Optional.none());
-      };
-      const isSet = () => subject.get().isSome();
-      const get = () => subject.get();
-      const set = s => {
-        revoke();
-        subject.set(Optional.some(s));
-      };
-      return {
-        clear,
-        isSet,
-        get,
-        set
-      };
-    };
-    const destroyable = () => singleton$1(s => s.destroy());
-    const unbindable = () => singleton$1(s => s.unbind());
-    const value$4 = () => {
-      const subject = singleton$1(noop);
-      const on = f => subject.get().each(f);
-      return {
-        ...subject,
-        on
-      };
-    };
-
-    var ClosestOrAncestor = (is, ancestor, scope, a, isRoot) => {
-      if (is(scope, a)) {
-        return Optional.some(scope);
-      } else if (isFunction(isRoot) && isRoot(scope)) {
-        return Optional.none();
-      } else {
-        return ancestor(scope, a, isRoot);
-      }
-    };
-
-    const ancestor$2 = (scope, predicate, isRoot) => {
-      let element = scope.dom;
-      const stop = isFunction(isRoot) ? isRoot : never;
-      while (element.parentNode) {
-        element = element.parentNode;
-        const el = SugarElement.fromDom(element);
-        if (predicate(el)) {
-          return Optional.some(el);
-        } else if (stop(el)) {
-          break;
-        }
-      }
-      return Optional.none();
-    };
-    const closest$4 = (scope, predicate, isRoot) => {
-      const is = (s, test) => test(s);
-      return ClosestOrAncestor(is, ancestor$2, scope, predicate, isRoot);
-    };
-    const sibling$1 = (scope, predicate) => {
-      const element = scope.dom;
-      if (!element.parentNode) {
-        return Optional.none();
-      }
-      return child$1(SugarElement.fromDom(element.parentNode), x => !eq(scope, x) && predicate(x));
-    };
-    const child$1 = (scope, predicate) => {
-      const pred = node => predicate(SugarElement.fromDom(node));
-      const result = find$5(scope.dom.childNodes, pred);
-      return result.map(SugarElement.fromDom);
-    };
-    const descendant$1 = (scope, predicate) => {
-      const descend = node => {
-        for (let i = 0; i < node.childNodes.length; i++) {
-          const child = SugarElement.fromDom(node.childNodes[i]);
-          if (predicate(child)) {
-            return Optional.some(child);
-          }
-          const res = descend(node.childNodes[i]);
-          if (res.isSome()) {
-            return res;
-          }
-        }
-        return Optional.none();
-      };
-      return descend(scope.dom);
-    };
-
-    const first$1 = selector => one(selector);
-    const ancestor$1 = (scope, selector, isRoot) => ancestor$2(scope, e => is(e, selector), isRoot);
-    const sibling = (scope, selector) => sibling$1(scope, e => is(e, selector));
-    const child = (scope, selector) => child$1(scope, e => is(e, selector));
-    const descendant = (scope, selector) => one(selector, scope);
-    const closest$3 = (scope, selector, isRoot) => {
-      const is$1 = (element, selector) => is(element, selector);
-      return ClosestOrAncestor(is$1, ancestor$1, scope, selector, isRoot);
-    };
-
-    var global$b = tinymce.util.Tools.resolve('tinymce.ThemeManager');
-
-    const value$3 = value => {
+    const value$4 = value => {
       const applyHelper = fn => fn(value);
       const constHelper = constant$1(value);
       const outputHelper = () => output;
@@ -1640,9 +1526,9 @@
       };
       return output;
     };
-    const fromOption = (optional, err) => optional.fold(() => error$1(err), value$3);
+    const fromOption = (optional, err) => optional.fold(() => error$1(err), value$4);
     const Result = {
-      value: value$3,
+      value: value$4,
       error: error$1,
       fromOption
     };
@@ -1745,7 +1631,7 @@
     const shallow$1 = (old, nu) => {
       return nu;
     };
-    const deep$1 = (old, nu) => {
+    const deep = (old, nu) => {
       const bothObjects = isPlainObject(old) && isPlainObject(nu);
       return bothObjects ? deepMerge(old, nu) : nu;
     };
@@ -1766,7 +1652,7 @@
         return ret;
       };
     };
-    const deepMerge = baseMerge(deep$1);
+    const deepMerge = baseMerge(deep);
     const merge$1 = baseMerge(shallow$1);
 
     const required$2 = () => ({
@@ -1828,7 +1714,7 @@
     const unsupportedFields = (path, unsupported) => nu$a(path, () => 'There are unsupported fields: [' + unsupported.join(', ') + '] specified');
     const custom = (path, err) => nu$a(path, constant$1(err));
 
-    const value$2 = validator => {
+    const value$3 = validator => {
       const extract = (path, val) => {
         return SimpleResult.bindError(validator(val), err => custom(path, err));
       };
@@ -1838,16 +1724,16 @@
         toString
       };
     };
-    const anyValue$1 = value$2(SimpleResult.svalue);
+    const anyValue$1 = value$3(SimpleResult.svalue);
 
-    const requiredAccess = (path, obj, key, bundle) => get$h(obj, key).fold(() => missingRequired(path, key, obj), bundle);
+    const requiredAccess = (path, obj, key, bundle) => get$g(obj, key).fold(() => missingRequired(path, key, obj), bundle);
     const fallbackAccess = (obj, key, fallback, bundle) => {
-      const v = get$h(obj, key).getOrThunk(() => fallback(obj));
+      const v = get$g(obj, key).getOrThunk(() => fallback(obj));
       return bundle(v);
     };
-    const optionAccess = (obj, key, bundle) => bundle(get$h(obj, key));
+    const optionAccess = (obj, key, bundle) => bundle(get$g(obj, key));
     const optionDefaultedAccess = (obj, key, fallback, bundle) => {
-      const opt = get$h(obj, key).map(val => val === true ? fallback(obj) : val);
+      const opt = get$g(obj, key).map(val => val === true ? fallback(obj) : val);
       return bundle(opt);
     };
     const extractField = (field, path, obj, key, prop) => {
@@ -1959,7 +1845,7 @@
       };
     };
     const setOf$1 = (validator, prop) => {
-      const validateKeys = (path, keys) => arrOf(value$2(validator)).extract(path, keys);
+      const validateKeys = (path, keys) => arrOf(value$3(validator)).extract(path, keys);
       const extract = (path, o) => {
         const keys$1 = keys(o);
         const validatedKeys = validateKeys(path, keys$1);
@@ -1988,7 +1874,7 @@
     const arrOfObj = compose(arrOf, objOf);
 
     const anyValue = constant$1(anyValue$1);
-    const typedValue = (validator, expectedType) => value$2(a => {
+    const typedValue = (validator, expectedType) => value$3(a => {
       const actualType = typeof a;
       return validator(a) ? SimpleResult.svalue(a) : SimpleResult.serror(`Expected type: ${ expectedType } but got: ${ actualType }`);
     });
@@ -2019,7 +1905,7 @@
         return false;
       }
     };
-    const postMessageable = value$2(a => {
+    const postMessageable = value$3(a => {
       if (isPostMessageable(a)) {
         return SimpleResult.svalue(a);
       } else {
@@ -2028,12 +1914,12 @@
     });
 
     const chooseFrom = (path, input, branches, ch) => {
-      const fields = get$h(branches, ch);
+      const fields = get$g(branches, ch);
       return fields.fold(() => missingBranch(path, branches, ch), vp => vp.extract(path.concat(['branch: ' + ch]), input));
     };
     const choose$2 = (key, branches) => {
       const extract = (path, input) => {
-        const choice = get$h(input, key);
+        const choice = get$g(input, key);
         return choice.fold(() => missingKey(path, key), chosen => chooseFrom(path, input, branches, chosen));
       };
       const toString = () => 'chooseOn(' + key + '). Possible values: ' + keys(branches);
@@ -2044,7 +1930,7 @@
     };
 
     const arrOfVal = () => arrOf(anyValue$1);
-    const valueOf = validator => value$2(v => validator(v).fold(SimpleResult.serror, SimpleResult.svalue));
+    const valueOf = validator => value$3(v => validator(v).fold(SimpleResult.serror, SimpleResult.svalue));
     const setOf = (validator, prop) => setOf$1(v => SimpleResult.fromResult(validator(v)), prop);
     const extractValue = (label, prop, obj) => {
       const res = prop.extract([label], obj);
@@ -2074,8 +1960,9 @@
     const requiredNumber = key => requiredOf(key, number);
     const requiredString = key => requiredOf(key, string);
     const requiredStringEnum = (key, values) => field$1(key, key, required$2(), validateEnum(values));
+    const requiredBoolean = key => requiredOf(key, boolean);
     const requiredFunction = key => requiredOf(key, functionProcessor);
-    const forbid = (key, message) => field$1(key, key, asOption(), value$2(_v => SimpleResult.serror('The field: ' + key + ' is forbidden. ' + message)));
+    const forbid = (key, message) => field$1(key, key, asOption(), value$3(_v => SimpleResult.serror('The field: ' + key + ' is forbidden. ' + message)));
     const requiredObjOf = (key, objSchema) => field$1(key, key, required$2(), objOf(objSchema));
     const requiredArrayOfObj = (key, objFields) => field$1(key, key, required$2(), arrOfObj(objFields));
     const requiredArrayOf = (key, schema) => field$1(key, key, required$2(), arrOf(schema));
@@ -2098,6 +1985,20 @@
     const defaultedPostMsg = (key, fallback) => defaultedOf(key, fallback, postMessageable);
     const defaultedArrayOf = (key, fallback, schema) => defaultedOf(key, fallback, arrOf(schema));
     const defaultedObjOf = (key, fallback, objSchema) => defaultedOf(key, fallback, objOf(objSchema));
+
+    const Cell = initial => {
+      let value = initial;
+      const get = () => {
+        return value;
+      };
+      const set = v => {
+        value = v;
+      };
+      return {
+        get,
+        set
+      };
+    };
 
     const generate$7 = cases => {
       if (!isArray(cases)) {
@@ -2238,7 +2139,7 @@
     };
 
     const ensureIsRoot = isRoot => isFunction(isRoot) ? isRoot : never;
-    const ancestor = (scope, transform, isRoot) => {
+    const ancestor$2 = (scope, transform, isRoot) => {
       let element = scope.dom;
       const stop = ensureIsRoot(isRoot);
       while (element.parentNode) {
@@ -2253,10 +2154,10 @@
       }
       return Optional.none();
     };
-    const closest$2 = (scope, transform, isRoot) => {
+    const closest$4 = (scope, transform, isRoot) => {
       const current = transform(scope);
       const stop = ensureIsRoot(isRoot);
-      return current.orThunk(() => stop(scope) ? Optional.none() : ancestor(scope, transform, stop));
+      return current.orThunk(() => stop(scope) ? Optional.none() : ancestor$2(scope, transform, stop));
     };
 
     const isSource = (component, simulatedEvent) => eq(component.element, simulatedEvent.event.target);
@@ -2450,7 +2351,7 @@
       return run$1(name, (component, simulatedEvent) => {
         const ev = simulatedEvent.event;
         const target = component.getSystem().getByDom(ev.target).getOrThunk(() => {
-          const closest = closest$2(ev.target, el => component.getSystem().getByDom(el).toOptional(), never);
+          const closest = closest$4(ev.target, el => component.getSystem().getByDom(el).toOptional(), never);
           return closest.getOr(component);
         });
         f(component, target, simulatedEvent);
@@ -2473,6 +2374,124 @@
     const runOnDetached = runOnSourceName(detachedFromDom());
     const runOnInit = runOnSourceName(systemInit());
     const runOnExecute$1 = runOnName(execute$5());
+
+    const fromHtml$1 = (html, scope) => {
+      const doc = scope || document;
+      const div = doc.createElement('div');
+      div.innerHTML = html;
+      return children(SugarElement.fromDom(div));
+    };
+
+    const get$9 = element => element.dom.innerHTML;
+    const set$6 = (element, content) => {
+      const owner = owner$4(element);
+      const docDom = owner.dom;
+      const fragment = SugarElement.fromDom(docDom.createDocumentFragment());
+      const contentElements = fromHtml$1(content, docDom);
+      append$1(fragment, contentElements);
+      empty(element);
+      append$2(element, fragment);
+    };
+    const getOuter = element => {
+      const container = SugarElement.fromTag('div');
+      const clone = SugarElement.fromDom(element.dom.cloneNode(true));
+      append$2(container, clone);
+      return get$9(container);
+    };
+
+    const clone$1 = (original, isDeep) => SugarElement.fromDom(original.dom.cloneNode(isDeep));
+    const shallow = original => clone$1(original, false);
+
+    const getHtml = element => {
+      if (isShadowRoot(element)) {
+        return '#shadow-root';
+      } else {
+        const clone = shallow(element);
+        return getOuter(clone);
+      }
+    };
+
+    const element = elem => getHtml(elem);
+
+    const isRecursive = (component, originator, target) => eq(originator, component.element) && !eq(originator, target);
+    const events$i = derive$2([can(focus$4(), (component, simulatedEvent) => {
+        const event = simulatedEvent.event;
+        const originator = event.originator;
+        const target = event.target;
+        if (isRecursive(component, originator, target)) {
+          console.warn(focus$4() + ' did not get interpreted by the desired target. ' + '\nOriginator: ' + element(originator) + '\nTarget: ' + element(target) + '\nCheck the ' + focus$4() + ' event handlers');
+          return false;
+        } else {
+          return true;
+        }
+      })]);
+
+    var DefaultEvents = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        events: events$i
+    });
+
+    let unique = 0;
+    const generate$6 = prefix => {
+      const date = new Date();
+      const time = date.getTime();
+      const random = Math.floor(Math.random() * 1000000000);
+      unique++;
+      return prefix + '_' + random + unique + String(time);
+    };
+
+    const prefix$1 = constant$1('alloy-id-');
+    const idAttr$1 = constant$1('data-alloy-id');
+
+    const prefix = prefix$1();
+    const idAttr = idAttr$1();
+    const write = (label, elem) => {
+      const id = generate$6(prefix + label);
+      writeOnly(elem, id);
+      return id;
+    };
+    const writeOnly = (elem, uid) => {
+      Object.defineProperty(elem.dom, idAttr, {
+        value: uid,
+        writable: true
+      });
+    };
+    const read$1 = elem => {
+      const id = isElement$1(elem) ? elem.dom[idAttr] : null;
+      return Optional.from(id);
+    };
+    const generate$5 = prefix => generate$6(prefix);
+
+    const make$8 = identity;
+
+    const NoContextApi = getComp => {
+      const getMessage = event => `The component must be in a context to execute: ${ event }` + (getComp ? '\n' + element(getComp().element) + ' is not in context.' : '');
+      const fail = event => () => {
+        throw new Error(getMessage(event));
+      };
+      const warn = event => () => {
+        console.warn(getMessage(event));
+      };
+      return {
+        debugInfo: constant$1('fake'),
+        triggerEvent: warn('triggerEvent'),
+        triggerFocus: warn('triggerFocus'),
+        triggerEscape: warn('triggerEscape'),
+        broadcast: warn('broadcast'),
+        broadcastOn: warn('broadcastOn'),
+        broadcastEvent: warn('broadcastEvent'),
+        build: fail('build'),
+        buildOrPatch: fail('buildOrPatch'),
+        addToWorld: fail('addToWorld'),
+        removeFromWorld: fail('removeFromWorld'),
+        addToGui: fail('addToGui'),
+        removeFromGui: fail('removeFromGui'),
+        getByUid: fail('getByUid'),
+        getByDom: fail('getByDom'),
+        isConnected: never
+      };
+    };
+    const singleton$1 = NoContextApi();
 
     const markAsBehaviourApi = (f, apiName, apiFunction) => {
       const delegate = apiFunction.toString();
@@ -2509,909 +2528,6 @@
       return f;
     };
 
-    const nu$8 = s => ({
-      classes: isUndefined(s.classes) ? [] : s.classes,
-      attributes: isUndefined(s.attributes) ? {} : s.attributes,
-      styles: isUndefined(s.styles) ? {} : s.styles
-    });
-    const merge = (defnA, mod) => ({
-      ...defnA,
-      attributes: {
-        ...defnA.attributes,
-        ...mod.attributes
-      },
-      styles: {
-        ...defnA.styles,
-        ...mod.styles
-      },
-      classes: defnA.classes.concat(mod.classes)
-    });
-
-    const executeEvent = (bConfig, bState, executor) => runOnExecute$1(component => {
-      executor(component, bConfig, bState);
-    });
-    const loadEvent = (bConfig, bState, f) => runOnInit((component, _simulatedEvent) => {
-      f(component, bConfig, bState);
-    });
-    const create$5 = (schema, name, active, apis, extra, state) => {
-      const configSchema = objOfOnly(schema);
-      const schemaSchema = optionObjOf(name, [optionObjOfOnly('config', schema)]);
-      return doCreate(configSchema, schemaSchema, name, active, apis, extra, state);
-    };
-    const createModes$1 = (modes, name, active, apis, extra, state) => {
-      const configSchema = modes;
-      const schemaSchema = optionObjOf(name, [optionOf('config', modes)]);
-      return doCreate(configSchema, schemaSchema, name, active, apis, extra, state);
-    };
-    const wrapApi = (bName, apiFunction, apiName) => {
-      const f = (component, ...rest) => {
-        const args = [component].concat(rest);
-        return component.config({ name: constant$1(bName) }).fold(() => {
-          throw new Error('We could not find any behaviour configuration for: ' + bName + '. Using API: ' + apiName);
-        }, info => {
-          const rest = Array.prototype.slice.call(args, 1);
-          return apiFunction.apply(undefined, [
-            component,
-            info.config,
-            info.state
-          ].concat(rest));
-        });
-      };
-      return markAsBehaviourApi(f, apiName, apiFunction);
-    };
-    const revokeBehaviour = name => ({
-      key: name,
-      value: undefined
-    });
-    const doCreate = (configSchema, schemaSchema, name, active, apis, extra, state) => {
-      const getConfig = info => hasNonNullableKey(info, name) ? info[name]() : Optional.none();
-      const wrappedApis = map$1(apis, (apiF, apiName) => wrapApi(name, apiF, apiName));
-      const wrappedExtra = map$1(extra, (extraF, extraName) => markAsExtraApi(extraF, extraName));
-      const me = {
-        ...wrappedExtra,
-        ...wrappedApis,
-        revoke: curry(revokeBehaviour, name),
-        config: spec => {
-          const prepared = asRawOrDie$1(name + '-config', configSchema, spec);
-          return {
-            key: name,
-            value: {
-              config: prepared,
-              me,
-              configAsRaw: cached(() => asRawOrDie$1(name + '-config', configSchema, spec)),
-              initialConfig: spec,
-              state
-            }
-          };
-        },
-        schema: constant$1(schemaSchema),
-        exhibit: (info, base) => {
-          return lift2(getConfig(info), get$h(active, 'exhibit'), (behaviourInfo, exhibitor) => {
-            return exhibitor(base, behaviourInfo.config, behaviourInfo.state);
-          }).getOrThunk(() => nu$8({}));
-        },
-        name: constant$1(name),
-        handlers: info => {
-          return getConfig(info).map(behaviourInfo => {
-            const getEvents = get$h(active, 'events').getOr(() => ({}));
-            return getEvents(behaviourInfo.config, behaviourInfo.state);
-          }).getOr({});
-        }
-      };
-      return me;
-    };
-
-    const NoState = { init: () => nu$7({ readState: constant$1('No State required') }) };
-    const nu$7 = spec => spec;
-
-    const derive$1 = capabilities => wrapAll(capabilities);
-    const simpleSchema = objOfOnly([
-      required$1('fields'),
-      required$1('name'),
-      defaulted('active', {}),
-      defaulted('apis', {}),
-      defaulted('state', NoState),
-      defaulted('extra', {})
-    ]);
-    const create$4 = data => {
-      const value = asRawOrDie$1('Creating behaviour: ' + data.name, simpleSchema, data);
-      return create$5(value.fields, value.name, value.active, value.apis, value.extra, value.state);
-    };
-    const modeSchema = objOfOnly([
-      required$1('branchKey'),
-      required$1('branches'),
-      required$1('name'),
-      defaulted('active', {}),
-      defaulted('apis', {}),
-      defaulted('state', NoState),
-      defaulted('extra', {})
-    ]);
-    const createModes = data => {
-      const value = asRawOrDie$1('Creating behaviour: ' + data.name, modeSchema, data);
-      return createModes$1(choose$1(value.branchKey, value.branches), value.name, value.active, value.apis, value.extra, value.state);
-    };
-    const revoke = constant$1(undefined);
-
-    const read$1 = (element, attr) => {
-      const value = get$g(element, attr);
-      return value === undefined || value === '' ? [] : value.split(' ');
-    };
-    const add$4 = (element, attr, id) => {
-      const old = read$1(element, attr);
-      const nu = old.concat([id]);
-      set$9(element, attr, nu.join(' '));
-      return true;
-    };
-    const remove$5 = (element, attr, id) => {
-      const nu = filter$2(read$1(element, attr), v => v !== id);
-      if (nu.length > 0) {
-        set$9(element, attr, nu.join(' '));
-      } else {
-        remove$8(element, attr);
-      }
-      return false;
-    };
-
-    const supports = element => element.dom.classList !== undefined;
-    const get$a = element => read$1(element, 'class');
-    const add$3 = (element, clazz) => add$4(element, 'class', clazz);
-    const remove$4 = (element, clazz) => remove$5(element, 'class', clazz);
-    const toggle$5 = (element, clazz) => {
-      if (contains$2(get$a(element), clazz)) {
-        return remove$4(element, clazz);
-      } else {
-        return add$3(element, clazz);
-      }
-    };
-
-    const add$2 = (element, clazz) => {
-      if (supports(element)) {
-        element.dom.classList.add(clazz);
-      } else {
-        add$3(element, clazz);
-      }
-    };
-    const cleanClass = element => {
-      const classList = supports(element) ? element.dom.classList : get$a(element);
-      if (classList.length === 0) {
-        remove$8(element, 'class');
-      }
-    };
-    const remove$3 = (element, clazz) => {
-      if (supports(element)) {
-        const classList = element.dom.classList;
-        classList.remove(clazz);
-      } else {
-        remove$4(element, clazz);
-      }
-      cleanClass(element);
-    };
-    const toggle$4 = (element, clazz) => {
-      const result = supports(element) ? element.dom.classList.toggle(clazz) : toggle$5(element, clazz);
-      cleanClass(element);
-      return result;
-    };
-    const has = (element, clazz) => supports(element) && element.dom.classList.contains(clazz);
-
-    const add$1 = (element, classes) => {
-      each$1(classes, x => {
-        add$2(element, x);
-      });
-    };
-    const remove$2 = (element, classes) => {
-      each$1(classes, x => {
-        remove$3(element, x);
-      });
-    };
-    const toggle$3 = (element, classes) => {
-      each$1(classes, x => {
-        toggle$4(element, x);
-      });
-    };
-    const hasAll = (element, classes) => forall(classes, clazz => has(element, clazz));
-    const getNative = element => {
-      const classList = element.dom.classList;
-      const r = new Array(classList.length);
-      for (let i = 0; i < classList.length; i++) {
-        const item = classList.item(i);
-        if (item !== null) {
-          r[i] = item;
-        }
-      }
-      return r;
-    };
-    const get$9 = element => supports(element) ? getNative(element) : get$a(element);
-
-    const NuPositionCss = (position, left, top, right, bottom) => {
-      const toPx = num => num + 'px';
-      return {
-        position,
-        left: left.map(toPx),
-        top: top.map(toPx),
-        right: right.map(toPx),
-        bottom: bottom.map(toPx)
-      };
-    };
-    const toOptions = position => ({
-      ...position,
-      position: Optional.some(position.position)
-    });
-    const applyPositionCss = (element, position) => {
-      setOptions(element, toOptions(position));
-    };
-
-    const getOffsetParent = element => {
-      const isFixed = is$1(getRaw(element, 'position'), 'fixed');
-      const offsetParent$1 = isFixed ? Optional.none() : offsetParent(element);
-      return offsetParent$1.orThunk(() => {
-        const marker = SugarElement.fromTag('span');
-        return parent(element).bind(parent => {
-          append$2(parent, marker);
-          const offsetParent$1 = offsetParent(marker);
-          remove$6(marker);
-          return offsetParent$1;
-        });
-      });
-    };
-    const getOrigin = element => getOffsetParent(element).map(absolute$3).getOrThunk(() => SugarPosition(0, 0));
-
-    const appear = (component, contextualInfo) => {
-      const elem = component.element;
-      add$2(elem, contextualInfo.transitionClass);
-      remove$3(elem, contextualInfo.fadeOutClass);
-      add$2(elem, contextualInfo.fadeInClass);
-      contextualInfo.onShow(component);
-    };
-    const disappear = (component, contextualInfo) => {
-      const elem = component.element;
-      add$2(elem, contextualInfo.transitionClass);
-      remove$3(elem, contextualInfo.fadeInClass);
-      add$2(elem, contextualInfo.fadeOutClass);
-      contextualInfo.onHide(component);
-    };
-    const isPartiallyVisible = (box, bounds) => box.y < bounds.bottom && box.bottom > bounds.y;
-    const isTopCompletelyVisible = (box, bounds) => box.y >= bounds.y;
-    const isBottomCompletelyVisible = (box, bounds) => box.bottom <= bounds.bottom;
-    const forceTopPosition = (winBox, leftX, viewport) => ({
-      location: 'top',
-      leftX,
-      topY: viewport.bounds.y - winBox.y
-    });
-    const forceBottomPosition = (winBox, leftX, viewport) => ({
-      location: 'bottom',
-      leftX,
-      bottomY: winBox.bottom - viewport.bounds.bottom
-    });
-    const getDockedLeftPosition = bounds => {
-      return bounds.box.x - bounds.win.x;
-    };
-    const tryDockingPosition = (modes, bounds, viewport) => {
-      const winBox = bounds.win;
-      const box = bounds.box;
-      const leftX = getDockedLeftPosition(bounds);
-      return findMap(modes, mode => {
-        switch (mode) {
-        case 'bottom':
-          return !isBottomCompletelyVisible(box, viewport.bounds) ? Optional.some(forceBottomPosition(winBox, leftX, viewport)) : Optional.none();
-        case 'top':
-          return !isTopCompletelyVisible(box, viewport.bounds) ? Optional.some(forceTopPosition(winBox, leftX, viewport)) : Optional.none();
-        default:
-          return Optional.none();
-        }
-      }).getOr({ location: 'no-dock' });
-    };
-    const isVisibleForModes = (modes, box, viewport) => forall(modes, mode => {
-      switch (mode) {
-      case 'bottom':
-        return isBottomCompletelyVisible(box, viewport.bounds);
-      case 'top':
-        return isTopCompletelyVisible(box, viewport.bounds);
-      }
-    });
-    const getXYForRestoring = (pos, viewport) => {
-      const priorY = viewport.optScrollEnv.fold(constant$1(pos.bounds.y), scrollEnv => scrollEnv.scrollElmTop + (pos.bounds.y - scrollEnv.currentScrollTop));
-      return SugarPosition(pos.bounds.x, priorY);
-    };
-    const getXYForSaving = (box, viewport) => {
-      const priorY = viewport.optScrollEnv.fold(constant$1(box.y), scrollEnv => box.y + scrollEnv.currentScrollTop - scrollEnv.scrollElmTop);
-      return SugarPosition(box.x, priorY);
-    };
-    const getPrior = (elem, viewport, state) => state.getInitialPos().map(pos => {
-      const xy = getXYForRestoring(pos, viewport);
-      return {
-        box: bounds(xy.left, xy.top, get$d(elem), get$e(elem)),
-        location: pos.location
-      };
-    });
-    const storePrior = (elem, box, viewport, state, decision) => {
-      const xy = getXYForSaving(box, viewport);
-      const bounds$1 = bounds(xy.left, xy.top, box.width, box.height);
-      state.setInitialPos({
-        style: getAllRaw(elem),
-        position: get$f(elem, 'position') || 'static',
-        bounds: bounds$1,
-        location: decision.location
-      });
-    };
-    const storePriorIfNone = (elem, box, viewport, state, decision) => {
-      state.getInitialPos().fold(() => storePrior(elem, box, viewport, state, decision), () => noop);
-    };
-    const revertToOriginal = (elem, box, state) => state.getInitialPos().bind(position => {
-      var _a;
-      state.clearInitialPos();
-      switch (position.position) {
-      case 'static':
-        return Optional.some({ morph: 'static' });
-      case 'absolute':
-        const offsetParent = getOffsetParent(elem).getOr(body());
-        const offsetBox = box$1(offsetParent);
-        const scrollDelta = (_a = offsetParent.dom.scrollTop) !== null && _a !== void 0 ? _a : 0;
-        return Optional.some({
-          morph: 'absolute',
-          positionCss: NuPositionCss('absolute', get$h(position.style, 'left').map(_left => box.x - offsetBox.x), get$h(position.style, 'top').map(_top => box.y - offsetBox.y + scrollDelta), get$h(position.style, 'right').map(_right => offsetBox.right - box.right), get$h(position.style, 'bottom').map(_bottom => offsetBox.bottom - box.bottom))
-        });
-      default:
-        return Optional.none();
-      }
-    });
-    const tryMorphToOriginal = (elem, viewport, state) => getPrior(elem, viewport, state).filter(({box}) => isVisibleForModes(state.getModes(), box, viewport)).bind(({box}) => revertToOriginal(elem, box, state));
-    const tryDecisionToFixedMorph = decision => {
-      switch (decision.location) {
-      case 'top': {
-          return Optional.some({
-            morph: 'fixed',
-            positionCss: NuPositionCss('fixed', Optional.some(decision.leftX), Optional.some(decision.topY), Optional.none(), Optional.none())
-          });
-        }
-      case 'bottom': {
-          return Optional.some({
-            morph: 'fixed',
-            positionCss: NuPositionCss('fixed', Optional.some(decision.leftX), Optional.none(), Optional.none(), Optional.some(decision.bottomY))
-          });
-        }
-      default:
-        return Optional.none();
-      }
-    };
-    const tryMorphToFixed = (elem, viewport, state) => {
-      const box = box$1(elem);
-      const winBox = win();
-      const decision = tryDockingPosition(state.getModes(), {
-        win: winBox,
-        box
-      }, viewport);
-      if (decision.location === 'top' || decision.location === 'bottom') {
-        storePrior(elem, box, viewport, state, decision);
-        return tryDecisionToFixedMorph(decision);
-      } else {
-        return Optional.none();
-      }
-    };
-    const tryMorphToOriginalOrUpdateFixed = (elem, viewport, state) => {
-      return tryMorphToOriginal(elem, viewport, state).orThunk(() => {
-        return viewport.optScrollEnv.bind(_ => getPrior(elem, viewport, state)).bind(({box, location}) => {
-          const winBox = win();
-          const leftX = getDockedLeftPosition({
-            win: winBox,
-            box
-          });
-          const decision = location === 'top' ? forceTopPosition(winBox, leftX, viewport) : forceBottomPosition(winBox, leftX, viewport);
-          return tryDecisionToFixedMorph(decision);
-        });
-      });
-    };
-    const tryMorph = (component, viewport, state) => {
-      const elem = component.element;
-      const isDocked = is$1(getRaw(elem, 'position'), 'fixed');
-      return isDocked ? tryMorphToOriginalOrUpdateFixed(elem, viewport, state) : tryMorphToFixed(elem, viewport, state);
-    };
-    const calculateMorphToOriginal = (component, viewport, state) => {
-      const elem = component.element;
-      return getPrior(elem, viewport, state).bind(({box}) => revertToOriginal(elem, box, state));
-    };
-    const forceDockWith = (elem, viewport, state, getDecision) => {
-      const box = box$1(elem);
-      const winBox = win();
-      const leftX = getDockedLeftPosition({
-        win: winBox,
-        box
-      });
-      const decision = getDecision(winBox, leftX, viewport);
-      if (decision.location === 'bottom' || decision.location === 'top') {
-        storePriorIfNone(elem, box, viewport, state, decision);
-        return tryDecisionToFixedMorph(decision);
-      } else {
-        return Optional.none();
-      }
-    };
-
-    const morphToStatic = (component, config, state) => {
-      state.setDocked(false);
-      each$1([
-        'left',
-        'right',
-        'top',
-        'bottom',
-        'position'
-      ], prop => remove$7(component.element, prop));
-      config.onUndocked(component);
-    };
-    const morphToCoord = (component, config, state, position) => {
-      const isDocked = position.position === 'fixed';
-      state.setDocked(isDocked);
-      applyPositionCss(component.element, position);
-      const method = isDocked ? config.onDocked : config.onUndocked;
-      method(component);
-    };
-    const updateVisibility = (component, config, state, viewport, morphToDocked = false) => {
-      config.contextual.each(contextInfo => {
-        contextInfo.lazyContext(component).each(box => {
-          const isVisible = isPartiallyVisible(box, viewport.bounds);
-          if (isVisible !== state.isVisible()) {
-            state.setVisible(isVisible);
-            if (morphToDocked && !isVisible) {
-              add$1(component.element, [contextInfo.fadeOutClass]);
-              contextInfo.onHide(component);
-            } else {
-              const method = isVisible ? appear : disappear;
-              method(component, contextInfo);
-            }
-          }
-        });
-      });
-    };
-    const applyFixedMorph = (component, config, state, viewport, morph) => {
-      updateVisibility(component, config, state, viewport, true);
-      morphToCoord(component, config, state, morph.positionCss);
-    };
-    const applyMorph = (component, config, state, viewport, morph) => {
-      switch (morph.morph) {
-      case 'static': {
-          return morphToStatic(component, config, state);
-        }
-      case 'absolute': {
-          return morphToCoord(component, config, state, morph.positionCss);
-        }
-      case 'fixed': {
-          return applyFixedMorph(component, config, state, viewport, morph);
-        }
-      }
-    };
-    const refreshInternal = (component, config, state) => {
-      const viewport = config.lazyViewport(component);
-      updateVisibility(component, config, state, viewport);
-      tryMorph(component, viewport, state).each(morph => {
-        applyMorph(component, config, state, viewport, morph);
-      });
-    };
-    const resetInternal = (component, config, state) => {
-      const elem = component.element;
-      state.setDocked(false);
-      const viewport = config.lazyViewport(component);
-      calculateMorphToOriginal(component, viewport, state).each(staticOrAbsoluteMorph => {
-        switch (staticOrAbsoluteMorph.morph) {
-        case 'static': {
-            morphToStatic(component, config, state);
-            break;
-          }
-        case 'absolute': {
-            morphToCoord(component, config, state, staticOrAbsoluteMorph.positionCss);
-            break;
-          }
-        }
-      });
-      state.setVisible(true);
-      config.contextual.each(contextInfo => {
-        remove$2(elem, [
-          contextInfo.fadeInClass,
-          contextInfo.fadeOutClass,
-          contextInfo.transitionClass
-        ]);
-        contextInfo.onShow(component);
-      });
-      refresh$4(component, config, state);
-    };
-    const refresh$4 = (component, config, state) => {
-      if (component.getSystem().isConnected()) {
-        refreshInternal(component, config, state);
-      }
-    };
-    const reset$2 = (component, config, state) => {
-      if (state.isDocked()) {
-        resetInternal(component, config, state);
-      }
-    };
-    const forceDockWithDecision = getDecision => (component, config, state) => {
-      const viewport = config.lazyViewport(component);
-      const optMorph = forceDockWith(component.element, viewport, state, getDecision);
-      optMorph.each(morph => {
-        applyFixedMorph(component, config, state, viewport, morph);
-      });
-    };
-    const forceDockToTop = forceDockWithDecision(forceTopPosition);
-    const forceDockToBottom = forceDockWithDecision(forceBottomPosition);
-    const isDocked$2 = (component, config, state) => state.isDocked();
-    const setModes = (component, config, state, modes) => state.setModes(modes);
-    const getModes = (component, config, state) => state.getModes();
-
-    var DockingApis = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        refresh: refresh$4,
-        reset: reset$2,
-        isDocked: isDocked$2,
-        getModes: getModes,
-        setModes: setModes,
-        forceDockToTop: forceDockToTop,
-        forceDockToBottom: forceDockToBottom
-    });
-
-    const events$i = (dockInfo, dockState) => derive$2([
-      runOnSource(transitionend(), (component, simulatedEvent) => {
-        dockInfo.contextual.each(contextInfo => {
-          if (has(component.element, contextInfo.transitionClass)) {
-            remove$2(component.element, [
-              contextInfo.transitionClass,
-              contextInfo.fadeInClass
-            ]);
-            const notify = dockState.isVisible() ? contextInfo.onShown : contextInfo.onHidden;
-            notify(component);
-          }
-          simulatedEvent.stop();
-        });
-      }),
-      run$1(windowScroll(), (component, _) => {
-        refresh$4(component, dockInfo, dockState);
-      }),
-      run$1(externalElementScroll(), (component, _) => {
-        refresh$4(component, dockInfo, dockState);
-      }),
-      run$1(windowResize(), (component, _) => {
-        reset$2(component, dockInfo, dockState);
-      })
-    ]);
-
-    var ActiveDocking = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        events: events$i
-    });
-
-    const fromHtml$1 = (html, scope) => {
-      const doc = scope || document;
-      const div = doc.createElement('div');
-      div.innerHTML = html;
-      return children(SugarElement.fromDom(div));
-    };
-
-    const get$8 = element => element.dom.innerHTML;
-    const set$6 = (element, content) => {
-      const owner = owner$4(element);
-      const docDom = owner.dom;
-      const fragment = SugarElement.fromDom(docDom.createDocumentFragment());
-      const contentElements = fromHtml$1(content, docDom);
-      append$1(fragment, contentElements);
-      empty(element);
-      append$2(element, fragment);
-    };
-    const getOuter = element => {
-      const container = SugarElement.fromTag('div');
-      const clone = SugarElement.fromDom(element.dom.cloneNode(true));
-      append$2(container, clone);
-      return get$8(container);
-    };
-
-    const clone$1 = (original, isDeep) => SugarElement.fromDom(original.dom.cloneNode(isDeep));
-    const shallow = original => clone$1(original, false);
-    const deep = original => clone$1(original, true);
-
-    const getHtml = element => {
-      if (isShadowRoot(element)) {
-        return '#shadow-root';
-      } else {
-        const clone = shallow(element);
-        return getOuter(clone);
-      }
-    };
-
-    const element = elem => getHtml(elem);
-
-    const unknown = 'unknown';
-    var EventConfiguration;
-    (function (EventConfiguration) {
-      EventConfiguration[EventConfiguration['STOP'] = 0] = 'STOP';
-      EventConfiguration[EventConfiguration['NORMAL'] = 1] = 'NORMAL';
-      EventConfiguration[EventConfiguration['LOGGING'] = 2] = 'LOGGING';
-    }(EventConfiguration || (EventConfiguration = {})));
-    const eventConfig = Cell({});
-    const makeEventLogger = (eventName, initialTarget) => {
-      const sequence = [];
-      const startTime = new Date().getTime();
-      return {
-        logEventCut: (_name, target, purpose) => {
-          sequence.push({
-            outcome: 'cut',
-            target,
-            purpose
-          });
-        },
-        logEventStopped: (_name, target, purpose) => {
-          sequence.push({
-            outcome: 'stopped',
-            target,
-            purpose
-          });
-        },
-        logNoParent: (_name, target, purpose) => {
-          sequence.push({
-            outcome: 'no-parent',
-            target,
-            purpose
-          });
-        },
-        logEventNoHandlers: (_name, target) => {
-          sequence.push({
-            outcome: 'no-handlers-left',
-            target
-          });
-        },
-        logEventResponse: (_name, target, purpose) => {
-          sequence.push({
-            outcome: 'response',
-            purpose,
-            target
-          });
-        },
-        write: () => {
-          const finishTime = new Date().getTime();
-          if (contains$2([
-              'mousemove',
-              'mouseover',
-              'mouseout',
-              systemInit()
-            ], eventName)) {
-            return;
-          }
-          console.log(eventName, {
-            event: eventName,
-            time: finishTime - startTime,
-            target: initialTarget.dom,
-            sequence: map$2(sequence, s => {
-              if (!contains$2([
-                  'cut',
-                  'stopped',
-                  'response'
-                ], s.outcome)) {
-                return s.outcome;
-              } else {
-                return '{' + s.purpose + '} ' + s.outcome + ' at (' + element(s.target) + ')';
-              }
-            })
-          });
-        }
-      };
-    };
-    const processEvent = (eventName, initialTarget, f) => {
-      const status = get$h(eventConfig.get(), eventName).orThunk(() => {
-        const patterns = keys(eventConfig.get());
-        return findMap(patterns, p => eventName.indexOf(p) > -1 ? Optional.some(eventConfig.get()[p]) : Optional.none());
-      }).getOr(EventConfiguration.NORMAL);
-      switch (status) {
-      case EventConfiguration.NORMAL:
-        return f(noLogger());
-      case EventConfiguration.LOGGING: {
-          const logger = makeEventLogger(eventName, initialTarget);
-          const output = f(logger);
-          logger.write();
-          return output;
-        }
-      case EventConfiguration.STOP:
-        return true;
-      }
-    };
-    const path = [
-      'alloy/data/Fields',
-      'alloy/debugging/Debugging'
-    ];
-    const getTrace = () => {
-      const err = new Error();
-      if (err.stack !== undefined) {
-        const lines = err.stack.split('\n');
-        return find$5(lines, line => line.indexOf('alloy') > 0 && !exists(path, p => line.indexOf(p) > -1)).getOr(unknown);
-      } else {
-        return unknown;
-      }
-    };
-    const ignoreEvent = {
-      logEventCut: noop,
-      logEventStopped: noop,
-      logNoParent: noop,
-      logEventNoHandlers: noop,
-      logEventResponse: noop,
-      write: noop
-    };
-    const monitorEvent = (eventName, initialTarget, f) => processEvent(eventName, initialTarget, f);
-    const noLogger = constant$1(ignoreEvent);
-
-    const menuFields = constant$1([
-      required$1('menu'),
-      required$1('selectedMenu')
-    ]);
-    const itemFields = constant$1([
-      required$1('item'),
-      required$1('selectedItem')
-    ]);
-    constant$1(objOf(itemFields().concat(menuFields())));
-    const itemSchema$3 = constant$1(objOf(itemFields()));
-
-    const _initSize = requiredObjOf('initSize', [
-      required$1('numColumns'),
-      required$1('numRows')
-    ]);
-    const itemMarkers = () => requiredOf('markers', itemSchema$3());
-    const tieredMenuMarkers = () => requiredObjOf('markers', [required$1('backgroundMenu')].concat(menuFields()).concat(itemFields()));
-    const markers$1 = required => requiredObjOf('markers', map$2(required, required$1));
-    const onPresenceHandler = (label, fieldName, presence) => {
-      getTrace();
-      return field$1(fieldName, fieldName, presence, valueOf(f => Result.value((...args) => {
-        return f.apply(undefined, args);
-      })));
-    };
-    const onHandler = fieldName => onPresenceHandler('onHandler', fieldName, defaulted$1(noop));
-    const onKeyboardHandler = fieldName => onPresenceHandler('onKeyboardHandler', fieldName, defaulted$1(Optional.none));
-    const onStrictHandler = fieldName => onPresenceHandler('onHandler', fieldName, required$2());
-    const onStrictKeyboardHandler = fieldName => onPresenceHandler('onKeyboardHandler', fieldName, required$2());
-    const output$1 = (name, value) => customField(name, constant$1(value));
-    const snapshot = name => customField(name, identity);
-    const initSize = constant$1(_initSize);
-
-    var DockingSchema = [
-      optionObjOf('contextual', [
-        requiredString('fadeInClass'),
-        requiredString('fadeOutClass'),
-        requiredString('transitionClass'),
-        requiredFunction('lazyContext'),
-        onHandler('onShow'),
-        onHandler('onShown'),
-        onHandler('onHide'),
-        onHandler('onHidden')
-      ]),
-      defaultedFunction('lazyViewport', () => ({
-        bounds: win(),
-        optScrollEnv: Optional.none()
-      })),
-      defaultedArrayOf('modes', [
-        'top',
-        'bottom'
-      ], string),
-      onHandler('onDocked'),
-      onHandler('onUndocked')
-    ];
-
-    const init$g = spec => {
-      const docked = Cell(false);
-      const visible = Cell(true);
-      const initialBounds = value$4();
-      const modes = Cell(spec.modes);
-      const readState = () => `docked:  ${ docked.get() }, visible: ${ visible.get() }, modes: ${ modes.get().join(',') }`;
-      return nu$7({
-        isDocked: docked.get,
-        setDocked: docked.set,
-        getInitialPos: initialBounds.get,
-        setInitialPos: initialBounds.set,
-        clearInitialPos: initialBounds.clear,
-        isVisible: visible.get,
-        setVisible: visible.set,
-        getModes: modes.get,
-        setModes: modes.set,
-        readState
-      });
-    };
-
-    var DockingState = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        init: init$g
-    });
-
-    const Docking = create$4({
-      fields: DockingSchema,
-      name: 'docking',
-      active: ActiveDocking,
-      apis: DockingApis,
-      state: DockingState
-    });
-
-    const isRecursive = (component, originator, target) => eq(originator, component.element) && !eq(originator, target);
-    const events$h = derive$2([can(focus$4(), (component, simulatedEvent) => {
-        const event = simulatedEvent.event;
-        const originator = event.originator;
-        const target = event.target;
-        if (isRecursive(component, originator, target)) {
-          console.warn(focus$4() + ' did not get interpreted by the desired target. ' + '\nOriginator: ' + element(originator) + '\nTarget: ' + element(target) + '\nCheck the ' + focus$4() + ' event handlers');
-          return false;
-        } else {
-          return true;
-        }
-      })]);
-
-    var DefaultEvents = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        events: events$h
-    });
-
-    const cycleBy = (value, delta, min, max) => {
-      const r = value + delta;
-      if (r > max) {
-        return min;
-      } else if (r < min) {
-        return max;
-      } else {
-        return r;
-      }
-    };
-    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-    const random = () => window.crypto.getRandomValues(new Uint32Array(1))[0] / 4294967295;
-
-    let unique = 0;
-    const generate$6 = prefix => {
-      const date = new Date();
-      const time = date.getTime();
-      const random$1 = Math.floor(random() * 1000000000);
-      unique++;
-      return prefix + '_' + random$1 + unique + String(time);
-    };
-
-    const prefix$1 = constant$1('alloy-id-');
-    const idAttr$1 = constant$1('data-alloy-id');
-
-    const prefix = prefix$1();
-    const idAttr = idAttr$1();
-    const write = (label, elem) => {
-      const id = generate$6(prefix + label);
-      writeOnly(elem, id);
-      return id;
-    };
-    const writeOnly = (elem, uid) => {
-      Object.defineProperty(elem.dom, idAttr, {
-        value: uid,
-        writable: true
-      });
-    };
-    const read = elem => {
-      const id = isElement$1(elem) ? elem.dom[idAttr] : null;
-      return Optional.from(id);
-    };
-    const generate$5 = prefix => generate$6(prefix);
-
-    const make$8 = identity;
-
-    const NoContextApi = getComp => {
-      const getMessage = event => `The component must be in a context to execute: ${ event }` + (getComp ? '\n' + element(getComp().element) + ' is not in context.' : '');
-      const fail = event => () => {
-        throw new Error(getMessage(event));
-      };
-      const warn = event => () => {
-        console.warn(getMessage(event));
-      };
-      return {
-        debugInfo: constant$1('fake'),
-        triggerEvent: warn('triggerEvent'),
-        triggerFocus: warn('triggerFocus'),
-        triggerEscape: warn('triggerEscape'),
-        broadcast: warn('broadcast'),
-        broadcastOn: warn('broadcastOn'),
-        broadcastEvent: warn('broadcastEvent'),
-        build: fail('build'),
-        buildOrPatch: fail('buildOrPatch'),
-        addToWorld: fail('addToWorld'),
-        removeFromWorld: fail('removeFromWorld'),
-        addToGui: fail('addToGui'),
-        removeFromGui: fail('removeFromGui'),
-        getByUid: fail('getByUid'),
-        getByDom: fail('getByDom'),
-        isConnected: never
-      };
-    };
-    const singleton = NoContextApi();
-
     const premadeTag = generate$6('alloy-premade');
     const premade$1 = comp => {
       Object.defineProperty(comp.element.dom, premadeTag, {
@@ -3421,8 +2537,11 @@
       return wrap$1(premadeTag, comp);
     };
     const isPremade = element => has$2(element.dom, premadeTag);
-    const getPremade = spec => get$h(spec, premadeTag);
+    const getPremade = spec => get$g(spec, premadeTag);
     const makeApi = f => markAsSketchApi((component, ...rest) => f(component.getApis(), component, ...rest), f);
+
+    const NoState = { init: () => nu$8({ readState: constant$1('No State required') }) };
+    const nu$8 = spec => spec;
 
     const generateFrom$1 = (spec, all) => {
       const schema = map$2(all, a => optionObjOf(a.name(), [
@@ -3450,12 +2569,30 @@
       const r = {};
       each(data, (detail, key) => {
         each(detail, (value, indexKey) => {
-          const chain = get$h(r, indexKey).getOr([]);
+          const chain = get$g(r, indexKey).getOr([]);
           r[indexKey] = chain.concat([tuple(key, value)]);
         });
       });
       return r;
     };
+
+    const nu$7 = s => ({
+      classes: isUndefined(s.classes) ? [] : s.classes,
+      attributes: isUndefined(s.attributes) ? {} : s.attributes,
+      styles: isUndefined(s.styles) ? {} : s.styles
+    });
+    const merge = (defnA, mod) => ({
+      ...defnA,
+      attributes: {
+        ...defnA.attributes,
+        ...mod.attributes
+      },
+      styles: {
+        ...defnA.styles,
+        ...mod.styles
+      },
+      classes: defnA.classes.concat(mod.classes)
+    });
 
     const combine$2 = (info, baseMod, behaviours, base) => {
       const modsByBehaviour = { ...baseMod };
@@ -3473,7 +2610,7 @@
       const combinedClasses = foldr(byAspect.classes, (b, a) => a.modification.concat(b), []);
       const combinedAttributes = combineObjects(byAspect.attributes);
       const combinedStyles = combineObjects(byAspect.styles);
-      return nu$8({
+      return nu$7({
         classes: combinedClasses,
         attributes: combinedAttributes,
         styles: combinedStyles
@@ -3608,8 +2745,7 @@
           baseBehaviour,
           'disabling',
           'toggling',
-          'representing',
-          'tooltipping'
+          'representing'
         ],
         [input()]: [
           baseBehaviour,
@@ -3621,7 +2757,6 @@
           baseBehaviour,
           'representing',
           'item-events',
-          'toolbar-button-events',
           'tooltipping'
         ],
         [mousedown()]: [
@@ -3652,10 +2787,83 @@
       uid: detail.uid,
       domChildren: map$2(detail.components, comp => comp.element)
     });
-    const toModification = detail => detail.domModification.fold(() => nu$8({}), nu$8);
+    const toModification = detail => detail.domModification.fold(() => nu$7({}), nu$7);
     const toEvents = info => info.events;
 
-    const get$7 = element => element.dom.value;
+    const read = (element, attr) => {
+      const value = get$f(element, attr);
+      return value === undefined || value === '' ? [] : value.split(' ');
+    };
+    const add$4 = (element, attr, id) => {
+      const old = read(element, attr);
+      const nu = old.concat([id]);
+      set$9(element, attr, nu.join(' '));
+      return true;
+    };
+    const remove$4 = (element, attr, id) => {
+      const nu = filter$2(read(element, attr), v => v !== id);
+      if (nu.length > 0) {
+        set$9(element, attr, nu.join(' '));
+      } else {
+        remove$7(element, attr);
+      }
+      return false;
+    };
+
+    const supports = element => element.dom.classList !== undefined;
+    const get$8 = element => read(element, 'class');
+    const add$3 = (element, clazz) => add$4(element, 'class', clazz);
+    const remove$3 = (element, clazz) => remove$4(element, 'class', clazz);
+
+    const add$2 = (element, clazz) => {
+      if (supports(element)) {
+        element.dom.classList.add(clazz);
+      } else {
+        add$3(element, clazz);
+      }
+    };
+    const cleanClass = element => {
+      const classList = supports(element) ? element.dom.classList : get$8(element);
+      if (classList.length === 0) {
+        remove$7(element, 'class');
+      }
+    };
+    const remove$2 = (element, clazz) => {
+      if (supports(element)) {
+        const classList = element.dom.classList;
+        classList.remove(clazz);
+      } else {
+        remove$3(element, clazz);
+      }
+      cleanClass(element);
+    };
+    const has = (element, clazz) => supports(element) && element.dom.classList.contains(clazz);
+
+    const add$1 = (element, classes) => {
+      each$1(classes, x => {
+        add$2(element, x);
+      });
+    };
+    const remove$1 = (element, classes) => {
+      each$1(classes, x => {
+        remove$2(element, x);
+      });
+    };
+    const hasAll = (element, classes) => forall(classes, clazz => has(element, clazz));
+    const getNative = element => {
+      const classList = element.dom.classList;
+      const r = new Array(classList.length);
+      for (let i = 0; i < classList.length; i++) {
+        const item = classList.item(i);
+        if (item !== null) {
+          r[i] = item;
+        }
+      }
+      return r;
+    };
+    const get$7 = element => supports(element) ? getNative(element) : get$8(element);
+
+    const get$6 = element => element.dom.value;
     const set$5 = (element, value) => {
       if (value === undefined) {
         throw new Error('Value.set was undefined');
@@ -3681,14 +2889,14 @@
       obsoleted.fold(() => append$2(parent, child), obs => {
         if (!eq(obs, child)) {
           before$1(obs, child);
-          remove$6(obs);
+          remove$5(obs);
         }
       });
     };
     const patchChildrenWith = (parent, nu, f) => {
       const builtChildren = map$2(nu, f);
       const currentChildren = children(parent);
-      each$1(currentChildren.slice(builtChildren.length), remove$6);
+      each$1(currentChildren.slice(builtChildren.length), remove$5);
       return builtChildren;
     };
     const patchSpecChild = (parent, index, spec, build) => {
@@ -3728,7 +2936,7 @@
         toRemove: attrsToRemove
       } = diffKeyValueSet(definition.attributes, existingAttributes);
       const updateAttrs = () => {
-        each$1(attrsToRemove, a => remove$8(obsoleted, a));
+        each$1(attrsToRemove, a => remove$7(obsoleted, a));
         setAll$1(obsoleted, attrsToSet);
       };
       const existingStyles = getAllRaw(obsoleted);
@@ -3737,15 +2945,15 @@
         toRemove: stylesToRemove
       } = diffKeyValueSet(definition.styles, existingStyles);
       const updateStyles = () => {
-        each$1(stylesToRemove, s => remove$7(obsoleted, s));
+        each$1(stylesToRemove, s => remove$6(obsoleted, s));
         setAll(obsoleted, stylesToSet);
       };
-      const existingClasses = get$9(obsoleted);
+      const existingClasses = get$7(obsoleted);
       const classesToRemove = difference(existingClasses, definition.classes);
       const classesToAdd = difference(definition.classes, existingClasses);
       const updateClasses = () => {
         add$1(obsoleted, classesToAdd);
-        remove$2(obsoleted, classesToRemove);
+        remove$1(obsoleted, classesToRemove);
       };
       const updateHtml = html => {
         set$6(obsoleted, html);
@@ -3757,7 +2965,7 @@
       const updateValue = () => {
         const valueElement = obsoleted;
         const value = definition.value.getOrUndefined();
-        if (value !== get$7(valueElement)) {
+        if (value !== get$6(valueElement)) {
           set$5(valueElement, value !== null && value !== void 0 ? value : '');
         }
       };
@@ -3786,7 +2994,7 @@
       try {
         const e = reconcileToDom(definition, obsoleted);
         return Optional.some(e);
-      } catch (_a) {
+      } catch (err) {
         return Optional.none();
       }
     };
@@ -3799,7 +3007,7 @@
     };
 
     const getBehaviours$2 = spec => {
-      const behaviours = get$h(spec, 'behaviours').getOr({});
+      const behaviours = get$g(spec, 'behaviours').getOr({});
       return bind$3(keys(behaviours), name => {
         const behaviour = behaviours[name];
         return isNonNullable(behaviour) ? [behaviour.me] : [];
@@ -3824,7 +3032,7 @@
     };
     const build$2 = (spec, obsoleted) => {
       const getMe = () => me;
-      const systemApi = Cell(singleton);
+      const systemApi = Cell(singleton$1);
       const info = getOrDie(toInfo(spec));
       const bBlob = generate$4(spec);
       const bList = getBehaviours$3(bBlob);
@@ -3873,7 +3081,7 @@
     };
 
     const buildSubcomponents = (spec, obsoleted) => {
-      const components = get$h(spec, 'components').getOr([]);
+      const components = get$g(spec, 'components').getOr([]);
       return obsoleted.fold(() => map$2(components, build$1), obs => map$2(components, (c, i) => {
         return buildOrPatch(c, child$2(obs, i));
       }));
@@ -3941,19 +3149,77 @@
     const build$1 = spec => buildOrPatch(spec, Optional.none());
     const premade = premade$1;
 
-    const closest$1 = (scope, predicate, isRoot) => closest$4(scope, predicate, isRoot).isSome();
+    var ClosestOrAncestor = (is, ancestor, scope, a, isRoot) => {
+      if (is(scope, a)) {
+        return Optional.some(scope);
+      } else if (isFunction(isRoot) && isRoot(scope)) {
+        return Optional.none();
+      } else {
+        return ancestor(scope, a, isRoot);
+      }
+    };
+
+    const ancestor$1 = (scope, predicate, isRoot) => {
+      let element = scope.dom;
+      const stop = isFunction(isRoot) ? isRoot : never;
+      while (element.parentNode) {
+        element = element.parentNode;
+        const el = SugarElement.fromDom(element);
+        if (predicate(el)) {
+          return Optional.some(el);
+        } else if (stop(el)) {
+          break;
+        }
+      }
+      return Optional.none();
+    };
+    const closest$3 = (scope, predicate, isRoot) => {
+      const is = (s, test) => test(s);
+      return ClosestOrAncestor(is, ancestor$1, scope, predicate, isRoot);
+    };
+    const child$1 = (scope, predicate) => {
+      const pred = node => predicate(SugarElement.fromDom(node));
+      const result = find$5(scope.dom.childNodes, pred);
+      return result.map(SugarElement.fromDom);
+    };
+    const descendant$1 = (scope, predicate) => {
+      const descend = node => {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          const child = SugarElement.fromDom(node.childNodes[i]);
+          if (predicate(child)) {
+            return Optional.some(child);
+          }
+          const res = descend(node.childNodes[i]);
+          if (res.isSome()) {
+            return res;
+          }
+        }
+        return Optional.none();
+      };
+      return descend(scope.dom);
+    };
+
+    const closest$2 = (scope, predicate, isRoot) => closest$3(scope, predicate, isRoot).isSome();
+
+    const ancestor = (scope, selector, isRoot) => ancestor$1(scope, e => is(e, selector), isRoot);
+    const child = (scope, selector) => child$1(scope, e => is(e, selector));
+    const descendant = (scope, selector) => one(selector, scope);
+    const closest$1 = (scope, selector, isRoot) => {
+      const is$1 = (element, selector) => is(element, selector);
+      return ClosestOrAncestor(is$1, ancestor, scope, selector, isRoot);
+    };
 
     const attribute = 'aria-controls';
     const find$1 = queryElem => {
-      const dependent = closest$4(queryElem, elem => {
+      const dependent = closest$3(queryElem, elem => {
         if (!isElement$1(elem)) {
           return false;
         }
-        const id = get$g(elem, 'id');
+        const id = get$f(elem, 'id');
         return id !== undefined && id.indexOf(attribute) > -1;
       });
       return dependent.bind(dep => {
-        const id = get$g(dep, 'id');
+        const id = get$f(dep, 'id');
         const dos = getRootNode(dep);
         return descendant(dos, `[${ attribute }="${ id }"]`);
       });
@@ -3964,7 +3230,7 @@
         set$9(elem, attribute, ariaId);
       };
       const unlink = elem => {
-        remove$8(elem, attribute);
+        remove$7(elem, attribute);
       };
       return {
         id: ariaId,
@@ -3974,7 +3240,156 @@
     };
 
     const isAriaPartOf = (component, queryElem) => find$1(queryElem).exists(owner => isPartOf$1(component, owner));
-    const isPartOf$1 = (component, queryElem) => closest$1(queryElem, el => eq(el, component.element), never) || isAriaPartOf(component, queryElem);
+    const isPartOf$1 = (component, queryElem) => closest$2(queryElem, el => eq(el, component.element), never) || isAriaPartOf(component, queryElem);
+
+    const unknown = 'unknown';
+    var EventConfiguration;
+    (function (EventConfiguration) {
+      EventConfiguration[EventConfiguration['STOP'] = 0] = 'STOP';
+      EventConfiguration[EventConfiguration['NORMAL'] = 1] = 'NORMAL';
+      EventConfiguration[EventConfiguration['LOGGING'] = 2] = 'LOGGING';
+    }(EventConfiguration || (EventConfiguration = {})));
+    const eventConfig = Cell({});
+    const makeEventLogger = (eventName, initialTarget) => {
+      const sequence = [];
+      const startTime = new Date().getTime();
+      return {
+        logEventCut: (_name, target, purpose) => {
+          sequence.push({
+            outcome: 'cut',
+            target,
+            purpose
+          });
+        },
+        logEventStopped: (_name, target, purpose) => {
+          sequence.push({
+            outcome: 'stopped',
+            target,
+            purpose
+          });
+        },
+        logNoParent: (_name, target, purpose) => {
+          sequence.push({
+            outcome: 'no-parent',
+            target,
+            purpose
+          });
+        },
+        logEventNoHandlers: (_name, target) => {
+          sequence.push({
+            outcome: 'no-handlers-left',
+            target
+          });
+        },
+        logEventResponse: (_name, target, purpose) => {
+          sequence.push({
+            outcome: 'response',
+            purpose,
+            target
+          });
+        },
+        write: () => {
+          const finishTime = new Date().getTime();
+          if (contains$2([
+              'mousemove',
+              'mouseover',
+              'mouseout',
+              systemInit()
+            ], eventName)) {
+            return;
+          }
+          console.log(eventName, {
+            event: eventName,
+            time: finishTime - startTime,
+            target: initialTarget.dom,
+            sequence: map$2(sequence, s => {
+              if (!contains$2([
+                  'cut',
+                  'stopped',
+                  'response'
+                ], s.outcome)) {
+                return s.outcome;
+              } else {
+                return '{' + s.purpose + '} ' + s.outcome + ' at (' + element(s.target) + ')';
+              }
+            })
+          });
+        }
+      };
+    };
+    const processEvent = (eventName, initialTarget, f) => {
+      const status = get$g(eventConfig.get(), eventName).orThunk(() => {
+        const patterns = keys(eventConfig.get());
+        return findMap(patterns, p => eventName.indexOf(p) > -1 ? Optional.some(eventConfig.get()[p]) : Optional.none());
+      }).getOr(EventConfiguration.NORMAL);
+      switch (status) {
+      case EventConfiguration.NORMAL:
+        return f(noLogger());
+      case EventConfiguration.LOGGING: {
+          const logger = makeEventLogger(eventName, initialTarget);
+          const output = f(logger);
+          logger.write();
+          return output;
+        }
+      case EventConfiguration.STOP:
+        return true;
+      }
+    };
+    const path = [
+      'alloy/data/Fields',
+      'alloy/debugging/Debugging'
+    ];
+    const getTrace = () => {
+      const err = new Error();
+      if (err.stack !== undefined) {
+        const lines = err.stack.split('\n');
+        return find$5(lines, line => line.indexOf('alloy') > 0 && !exists(path, p => line.indexOf(p) > -1)).getOr(unknown);
+      } else {
+        return unknown;
+      }
+    };
+    const ignoreEvent = {
+      logEventCut: noop,
+      logEventStopped: noop,
+      logNoParent: noop,
+      logEventNoHandlers: noop,
+      logEventResponse: noop,
+      write: noop
+    };
+    const monitorEvent = (eventName, initialTarget, f) => processEvent(eventName, initialTarget, f);
+    const noLogger = constant$1(ignoreEvent);
+
+    const menuFields = constant$1([
+      required$1('menu'),
+      required$1('selectedMenu')
+    ]);
+    const itemFields = constant$1([
+      required$1('item'),
+      required$1('selectedItem')
+    ]);
+    constant$1(objOf(itemFields().concat(menuFields())));
+    const itemSchema$3 = constant$1(objOf(itemFields()));
+
+    const _initSize = requiredObjOf('initSize', [
+      required$1('numColumns'),
+      required$1('numRows')
+    ]);
+    const itemMarkers = () => requiredOf('markers', itemSchema$3());
+    const tieredMenuMarkers = () => requiredObjOf('markers', [required$1('backgroundMenu')].concat(menuFields()).concat(itemFields()));
+    const markers$1 = required => requiredObjOf('markers', map$2(required, required$1));
+    const onPresenceHandler = (label, fieldName, presence) => {
+      getTrace();
+      return field$1(fieldName, fieldName, presence, valueOf(f => Result.value((...args) => {
+        return f.apply(undefined, args);
+      })));
+    };
+    const onHandler = fieldName => onPresenceHandler('onHandler', fieldName, defaulted$1(noop));
+    const onKeyboardHandler = fieldName => onPresenceHandler('onKeyboardHandler', fieldName, defaulted$1(Optional.none));
+    const onStrictHandler = fieldName => onPresenceHandler('onHandler', fieldName, required$2());
+    const onStrictKeyboardHandler = fieldName => onPresenceHandler('onKeyboardHandler', fieldName, required$2());
+    const output$1 = (name, value) => customField(name, constant$1(value));
+    const snapshot = name => customField(name, identity);
+    const initSize = constant$1(_initSize);
 
     const nu$6 = (x, y, bubble, direction, placement, boundsRestriction, labelPrefix, alwaysFit = false) => ({
       x,
@@ -4009,6 +3424,18 @@
     const east$3 = adt$a.east;
     const west$3 = adt$a.west;
 
+    const cycleBy = (value, delta, min, max) => {
+      const r = value + delta;
+      if (r > max) {
+        return min;
+      } else if (r < min) {
+        return max;
+      } else {
+        return r;
+      }
+    };
+    const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
     const getRestriction = (anchor, restriction) => {
       switch (restriction) {
       case 1:
@@ -4026,7 +3453,7 @@
       'right',
       'top',
       'bottom'
-    ], dir => get$h(restrictions, dir).map(restriction => getRestriction(anchor, restriction)));
+    ], dir => get$g(restrictions, dir).map(restriction => getRestriction(anchor, restriction)));
     const adjustBounds = (bounds$1, restriction, bubbleOffset) => {
       const applyRestriction = (dir, current) => restriction[dir].map(pos => {
         const isVerticalAxis = dir === 'top' || dir === 'bottom';
@@ -4125,7 +3552,7 @@
     ];
 
     const chooseChannels = (channels, message) => message.universal ? channels : filter$2(channels, ch => contains$2(message.channels, ch));
-    const events$g = receiveConfig => derive$2([run$1(receive(), (component, message) => {
+    const events$h = receiveConfig => derive$2([run$1(receive(), (component, message) => {
         const channelMap = receiveConfig.channels;
         const channels = keys(channelMap);
         const receivingData = message;
@@ -4140,7 +3567,7 @@
 
     var ActiveReceiving = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        events: events$g
+        events: events$h
     });
 
     var ReceivingSchema = [requiredOf('channels', setOf(Result.value, objOfOnly([
@@ -4148,13 +3575,115 @@
         defaulted('schema', anyValue())
       ])))];
 
+    const executeEvent = (bConfig, bState, executor) => runOnExecute$1(component => {
+      executor(component, bConfig, bState);
+    });
+    const loadEvent = (bConfig, bState, f) => runOnInit((component, _simulatedEvent) => {
+      f(component, bConfig, bState);
+    });
+    const create$5 = (schema, name, active, apis, extra, state) => {
+      const configSchema = objOfOnly(schema);
+      const schemaSchema = optionObjOf(name, [optionObjOfOnly('config', schema)]);
+      return doCreate(configSchema, schemaSchema, name, active, apis, extra, state);
+    };
+    const createModes$1 = (modes, name, active, apis, extra, state) => {
+      const configSchema = modes;
+      const schemaSchema = optionObjOf(name, [optionOf('config', modes)]);
+      return doCreate(configSchema, schemaSchema, name, active, apis, extra, state);
+    };
+    const wrapApi = (bName, apiFunction, apiName) => {
+      const f = (component, ...rest) => {
+        const args = [component].concat(rest);
+        return component.config({ name: constant$1(bName) }).fold(() => {
+          throw new Error('We could not find any behaviour configuration for: ' + bName + '. Using API: ' + apiName);
+        }, info => {
+          const rest = Array.prototype.slice.call(args, 1);
+          return apiFunction.apply(undefined, [
+            component,
+            info.config,
+            info.state
+          ].concat(rest));
+        });
+      };
+      return markAsBehaviourApi(f, apiName, apiFunction);
+    };
+    const revokeBehaviour = name => ({
+      key: name,
+      value: undefined
+    });
+    const doCreate = (configSchema, schemaSchema, name, active, apis, extra, state) => {
+      const getConfig = info => hasNonNullableKey(info, name) ? info[name]() : Optional.none();
+      const wrappedApis = map$1(apis, (apiF, apiName) => wrapApi(name, apiF, apiName));
+      const wrappedExtra = map$1(extra, (extraF, extraName) => markAsExtraApi(extraF, extraName));
+      const me = {
+        ...wrappedExtra,
+        ...wrappedApis,
+        revoke: curry(revokeBehaviour, name),
+        config: spec => {
+          const prepared = asRawOrDie$1(name + '-config', configSchema, spec);
+          return {
+            key: name,
+            value: {
+              config: prepared,
+              me,
+              configAsRaw: cached(() => asRawOrDie$1(name + '-config', configSchema, spec)),
+              initialConfig: spec,
+              state
+            }
+          };
+        },
+        schema: constant$1(schemaSchema),
+        exhibit: (info, base) => {
+          return lift2(getConfig(info), get$g(active, 'exhibit'), (behaviourInfo, exhibitor) => {
+            return exhibitor(base, behaviourInfo.config, behaviourInfo.state);
+          }).getOrThunk(() => nu$7({}));
+        },
+        name: constant$1(name),
+        handlers: info => {
+          return getConfig(info).map(behaviourInfo => {
+            const getEvents = get$g(active, 'events').getOr(() => ({}));
+            return getEvents(behaviourInfo.config, behaviourInfo.state);
+          }).getOr({});
+        }
+      };
+      return me;
+    };
+
+    const derive$1 = capabilities => wrapAll(capabilities);
+    const simpleSchema = objOfOnly([
+      required$1('fields'),
+      required$1('name'),
+      defaulted('active', {}),
+      defaulted('apis', {}),
+      defaulted('state', NoState),
+      defaulted('extra', {})
+    ]);
+    const create$4 = data => {
+      const value = asRawOrDie$1('Creating behaviour: ' + data.name, simpleSchema, data);
+      return create$5(value.fields, value.name, value.active, value.apis, value.extra, value.state);
+    };
+    const modeSchema = objOfOnly([
+      required$1('branchKey'),
+      required$1('branches'),
+      required$1('name'),
+      defaulted('active', {}),
+      defaulted('apis', {}),
+      defaulted('state', NoState),
+      defaulted('extra', {})
+    ]);
+    const createModes = data => {
+      const value = asRawOrDie$1('Creating behaviour: ' + data.name, modeSchema, data);
+      return createModes$1(choose$1(value.branchKey, value.branches), value.name, value.active, value.apis, value.extra, value.state);
+    };
+    const revoke = constant$1(undefined);
+
     const Receiving = create$4({
       fields: ReceivingSchema,
       name: 'receiving',
       active: ActiveReceiving
     });
 
-    const exhibit$6 = (base, posConfig) => nu$8({
+    const exhibit$6 = (base, posConfig) => nu$7({
       classes: [],
       styles: posConfig.useFixed() ? {} : { position: 'relative' }
     });
@@ -4164,7 +3693,7 @@
         exhibit: exhibit$6
     });
 
-    const focus$3 = (element, preventScroll = false) => element.dom.focus({ preventScroll });
+    const focus$3 = element => element.dom.focus();
     const blur$1 = element => element.dom.blur();
     const hasFocus = element => {
       const root = getRootNode(element).dom;
@@ -4186,6 +3715,24 @@
         }, noop);
       });
       return result;
+    };
+
+    const NuPositionCss = (position, left, top, right, bottom) => {
+      const toPx = num => num + 'px';
+      return {
+        position,
+        left: left.map(toPx),
+        top: top.map(toPx),
+        right: right.map(toPx),
+        bottom: bottom.map(toPx)
+      };
+    };
+    const toOptions = position => ({
+      ...position,
+      position: Optional.some(position.position)
+    });
+    const applyPositionCss = (element, position) => {
+      setOptions(element, toOptions(position));
     };
 
     const adt$9 = Adt.generate([
@@ -4233,7 +3780,7 @@
     const toBox = (origin, element) => {
       const rel = curry(find$2, element);
       const position = origin.fold(rel, rel, () => {
-        const scroll = get$c();
+        const scroll = get$b();
         return find$2(element).translate(-scroll.left, -scroll.top);
       });
       const width = getOuter$1(element);
@@ -4247,7 +3794,7 @@
     const translate$2 = (origin, x, y) => {
       const pos = SugarPosition(x, y);
       const removeScroll = () => {
-        const outerScroll = get$c();
+        const outerScroll = get$b();
         return pos.translate(-outerScroll.left, -outerScroll.top);
       };
       return origin.fold(constant$1(pos), constant$1(pos), removeScroll);
@@ -4268,7 +3815,7 @@
       set$9(element, placementAttribute, placement);
     };
     const getPlacement = element => getOpt(element, placementAttribute);
-    const reset$1 = element => remove$8(element, placementAttribute);
+    const reset$2 = element => remove$7(element, placementAttribute);
 
     const adt$8 = Adt.generate([
       { fit: ['reposition'] },
@@ -4389,6 +3936,37 @@
       return abc.fold(identity, identity);
     };
 
+    const singleton = doRevoke => {
+      const subject = Cell(Optional.none());
+      const revoke = () => subject.get().each(doRevoke);
+      const clear = () => {
+        revoke();
+        subject.set(Optional.none());
+      };
+      const isSet = () => subject.get().isSome();
+      const get = () => subject.get();
+      const set = s => {
+        revoke();
+        subject.set(Optional.some(s));
+      };
+      return {
+        clear,
+        isSet,
+        get,
+        set
+      };
+    };
+    const destroyable = () => singleton(s => s.destroy());
+    const unbindable = () => singleton(s => s.unbind());
+    const value$2 = () => {
+      const subject = singleton(noop);
+      const on = f => subject.get().each(f);
+      return {
+        ...subject,
+        on
+      };
+    };
+
     const filter = always;
     const bind = (element, event, handler) => bind$2(element, event, filter, handler);
     const capture = (element, event, handler) => capture$1(element, event, filter, handler);
@@ -4418,7 +3996,7 @@
     };
     const getTransitionDuration = element => {
       const get = name => {
-        const style = get$f(element, name);
+        const style = get$e(element, name);
         const times = style.split(/\s*,\s*/);
         return filter$2(times, isNotEmpty);
       };
@@ -4453,8 +4031,8 @@
           const type = e === null || e === void 0 ? void 0 : e.raw.type;
           if (isNullable(type) || type === transitionend()) {
             clearTimeout(timer);
-            remove$8(element, timerAttr);
-            remove$2(element, transition.classes);
+            remove$7(element, timerAttr);
+            remove$1(element, transition.classes);
           }
         }
       };
@@ -4475,7 +4053,7 @@
       add$1(element, transition.classes);
       getOpt(element, timerAttr).each(timerId => {
         clearTimeout(parseInt(timerId, 10));
-        remove$8(element, timerAttr);
+        remove$7(element, timerAttr);
       });
       setupTransitionListeners(element, transition);
     };
@@ -4497,7 +4075,7 @@
           reflow(element);
         }
       } else {
-        remove$2(element, transition.classes);
+        remove$1(element, transition.classes);
       }
     };
 
@@ -4506,14 +4084,14 @@
       height: getOuter$2(p)
     });
     const layout = (anchorBox, element, bubbles, options) => {
-      remove$7(element, 'max-height');
-      remove$7(element, 'max-width');
+      remove$6(element, 'max-height');
+      remove$6(element, 'max-width');
       const elementBox = elementSize(element);
       return attempts(element, options.preference, anchorBox, elementBox, bubbles, options.bounds);
     };
     const setClasses = (element, decision) => {
       const classInfo = decision.classes;
-      remove$2(element, classInfo.off);
+      remove$1(element, classInfo.off);
       add$1(element, classInfo.on);
     };
     const setHeight = (element, decision, options) => {
@@ -4593,7 +4171,7 @@
     const nu$5 = (xOffset, yOffset, classes, insetModifier = 1) => {
       const insetXOffset = xOffset * insetModifier;
       const insetYOffset = yOffset * insetModifier;
-      const getClasses = prop => get$h(classes, prop).getOr([]);
+      const getClasses = prop => get$g(classes, prop).getOr([]);
       const make = (xDelta, yDelta, alignmentsOn) => {
         const alignmentsOff = difference(allAlignments, alignmentsOn);
         return {
@@ -4682,7 +4260,7 @@
     const nu$4 = identity;
 
     const onDirection = (isLtr, isRtl) => element => getDirection(element) === 'rtl' ? isRtl : isLtr;
-    const getDirection = element => get$f(element, 'direction') === 'rtl' ? 'rtl' : 'ltr';
+    const getDirection = element => get$e(element, 'direction') === 'rtl' ? 'rtl' : 'ltr';
 
     var AttributeValue;
     (function (AttributeValue) {
@@ -4690,7 +4268,7 @@
       AttributeValue['BottomToTop'] = 'bottomtotop';
     }(AttributeValue || (AttributeValue = {})));
     const Attribute = 'data-alloy-vertical-dir';
-    const isBottomToTopDir = el => closest$1(el, current => isElement$1(current) && get$g(current, 'data-alloy-vertical-dir') === AttributeValue.BottomToTop);
+    const isBottomToTopDir = el => closest$2(el, current => isElement$1(current) && get$f(current, 'data-alloy-vertical-dir') === AttributeValue.BottomToTop);
 
     const schema$y = () => optionObjOf('layouts', [
       required$1('onLtr'),
@@ -4698,7 +4276,7 @@
       option$3('onBottomLtr'),
       option$3('onBottomRtl')
     ]);
-    const get$6 = (elem, info, defaultLtr, defaultRtl, defaultBottomLtr, defaultBottomRtl, dirElement) => {
+    const get$5 = (elem, info, defaultLtr, defaultRtl, defaultBottomLtr, defaultBottomRtl, dirElement) => {
       const isBottomToTop = dirElement.map(isBottomToTopDir).getOr(false);
       const customLtr = info.layouts.map(ls => ls.onLtr(elem));
       const customRtl = info.layouts.map(ls => ls.onRtl(elem));
@@ -4711,7 +4289,7 @@
     const placement$4 = (component, anchorInfo, origin) => {
       const hotspot = anchorInfo.hotspot;
       const anchorBox = toBox(origin, hotspot.element);
-      const layouts = get$6(component.element, anchorInfo, belowOrAbove(), belowOrAboveRtl(), aboveOrBelow(), aboveOrBelowRtl(), Optional.some(anchorInfo.hotspot.element));
+      const layouts = get$5(component.element, anchorInfo, belowOrAbove(), belowOrAboveRtl(), aboveOrBelow(), aboveOrBelowRtl(), Optional.some(anchorInfo.hotspot.element));
       return Optional.some(nu$4({
         anchorBox,
         bubble: anchorInfo.bubble.getOr(fallback()),
@@ -4730,7 +4308,7 @@
     const placement$3 = (component, anchorInfo, origin) => {
       const pos = translate$2(origin, anchorInfo.x, anchorInfo.y);
       const anchorBox = bounds(pos.left, pos.top, anchorInfo.width, anchorInfo.height);
-      const layouts = get$6(component.element, anchorInfo, all$1(), allRtl$1(), all$1(), allRtl$1(), Optional.none());
+      const layouts = get$5(component.element, anchorInfo, all$1(), allRtl$1(), all$1(), allRtl$1(), Optional.none());
       return Optional.some(nu$4({
         anchorBox,
         bubble: anchorInfo.bubble,
@@ -4784,7 +4362,7 @@
     };
     const getRootPoint = (component, origin, anchorInfo) => {
       const doc = owner$4(component.element);
-      const outerScroll = get$c(doc);
+      const outerScroll = get$b(doc);
       const offset = getOffset(component, origin, anchorInfo).getOr(outerScroll);
       return absolute$1(offset, outerScroll.left, outerScroll.top);
     };
@@ -4802,7 +4380,7 @@
       const anchorBox = rect(topLeft.left, topLeft.top, box.width, box.height);
       const layoutsLtr = anchorInfo.showAbove ? aboveOrBelow() : belowOrAbove();
       const layoutsRtl = anchorInfo.showAbove ? aboveOrBelowRtl() : belowOrAboveRtl();
-      const layouts = get$6(elem, anchorInfo, layoutsLtr, layoutsRtl, layoutsLtr, layoutsRtl, Optional.none());
+      const layouts = get$5(elem, anchorInfo, layoutsLtr, layoutsRtl, layoutsLtr, layoutsRtl, Optional.none());
       return nu$4({
         anchorBox,
         bubble: anchorInfo.bubble.getOr(fallback()),
@@ -5092,7 +4670,7 @@
     };
 
     const api = NodeValue(isText, 'text');
-    const get$5 = element => api.get(element);
+    const get$4 = element => api.get(element);
 
     const point = (element, offset) => ({
       element,
@@ -5106,7 +4684,7 @@
         return point(children$1[offset], 0);
       } else {
         const last = children$1[children$1.length - 1];
-        const len = isText(last) ? get$5(last).length : children(last).length;
+        const len = isText(last) ? get$4(last).length : children(last).length;
         return point(last, len);
       }
     };
@@ -5134,7 +4712,7 @@
             const zeroWidth$1 = SugarElement.fromText(zeroWidth);
             before$1(sel.start, zeroWidth$1);
             const rect = getFirstRect(win, SimSelection.exact(zeroWidth$1, 0, zeroWidth$1, 1));
-            remove$6(zeroWidth$1);
+            remove$5(zeroWidth$1);
             return rect;
           });
           return optRect.bind(rawRect => {
@@ -5207,7 +4785,7 @@
 
     const placement = (component, submenuInfo, origin) => {
       const anchorBox = toBox(origin, submenuInfo.item.element);
-      const layouts = get$6(component.element, submenuInfo, all(), allRtl(), all(), allRtl(), Optional.none());
+      const layouts = get$5(component.element, submenuInfo, all(), allRtl(), all(), allRtl(), Optional.none());
       return Optional.some(nu$4({
         anchorBox,
         bubble: fallback(),
@@ -5280,17 +4858,17 @@
           posState.set(placee.uid, newState);
         });
         oldVisibility.fold(() => {
-          remove$7(element, 'visibility');
+          remove$6(element, 'visibility');
         }, vis => {
           set$8(element, 'visibility', vis);
         });
         if (getRaw(element, 'left').isNone() && getRaw(element, 'top').isNone() && getRaw(element, 'right').isNone() && getRaw(element, 'bottom').isNone() && is$1(getRaw(element, 'position'), 'fixed')) {
-          remove$7(element, 'position');
+          remove$6(element, 'position');
         }
       }, element);
     };
     const getMode = (component, pConfig, _pState) => pConfig.useFixed() ? 'fixed' : 'absolute';
-    const reset = (component, pConfig, posState, placee) => {
+    const reset$1 = (component, pConfig, posState, placee) => {
       const element = placee.element;
       each$1([
         'position',
@@ -5298,8 +4876,8 @@
         'right',
         'top',
         'bottom'
-      ], prop => remove$7(element, prop));
-      reset$1(element);
+      ], prop => remove$6(element, prop));
+      reset$2(element);
       posState.clear(placee.uid);
     };
 
@@ -5308,15 +4886,15 @@
         position: position$1,
         positionWithinBounds: positionWithinBounds,
         getMode: getMode,
-        reset: reset
+        reset: reset$1
     });
 
-    const init$f = () => {
+    const init$g = () => {
       let state = {};
       const set = (id, data) => {
         state[id] = data;
       };
-      const get = id => get$h(state, id);
+      const get = id => get$g(state, id);
       const clear = id => {
         if (isNonNullable(id)) {
           delete state[id];
@@ -5324,7 +4902,7 @@
           state = {};
         }
       };
-      return nu$7({
+      return nu$8({
         readState: () => state,
         clear,
         set,
@@ -5334,7 +4912,7 @@
 
     var PositioningState = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        init: init$f
+        init: init$g
     });
 
     const Positioning = create$4({
@@ -5370,7 +4948,7 @@
       append$2(parent.element, child.element);
     };
     const detachChildren$1 = component => {
-      each$1(component.components(), childComp => remove$6(childComp.element));
+      each$1(component.components(), childComp => remove$5(childComp.element));
       empty(component.element);
       component.syncComponents();
     };
@@ -5432,7 +5010,7 @@
     };
     const doDetach = component => {
       fireDetaching(component);
-      remove$6(component.element);
+      remove$5(component.element);
       component.getSystem().removeFromWorld(component);
     };
     const detach = component => {
@@ -5466,7 +5044,7 @@
       each$1(children$1, child => {
         guiSystem.getByDom(child).each(fireDetaching);
       });
-      remove$6(guiSystem.element);
+      remove$5(guiSystem.element);
     };
 
     const rebuild = (sandbox, sConfig, sState, data) => {
@@ -5505,14 +5083,14 @@
     const getState$2 = (_sandbox, _sConfig, sState) => sState.get();
     const store = (sandbox, cssKey, attr, newValue) => {
       getRaw(sandbox.element, cssKey).fold(() => {
-        remove$8(sandbox.element, attr);
+        remove$7(sandbox.element, attr);
       }, v => {
         set$9(sandbox.element, attr, v);
       });
       set$8(sandbox.element, cssKey, newValue);
     };
     const restore = (sandbox, cssKey, attr) => {
-      getOpt(sandbox.element, attr).fold(() => remove$7(sandbox.element, cssKey), oldValue => set$8(sandbox.element, cssKey, oldValue));
+      getOpt(sandbox.element, attr).fold(() => remove$6(sandbox.element, cssKey), oldValue => set$8(sandbox.element, cssKey, oldValue));
     };
     const cloak = (sandbox, sConfig, _sState) => {
       const sink = sConfig.getAttachPoint(sandbox);
@@ -5527,7 +5105,7 @@
     ], pos => getRaw(element, pos).isSome());
     const decloak = (sandbox, sConfig, _sState) => {
       if (!hasPosition(sandbox.element)) {
-        remove$7(sandbox.element, 'position');
+        remove$6(sandbox.element, 'position');
       }
       restore(sandbox, 'visibility', sConfig.cloakVisibilityAttr);
     };
@@ -5545,13 +5123,13 @@
         setContent: setContent
     });
 
-    const events$f = (sandboxConfig, sandboxState) => derive$2([run$1(sandboxClose(), (sandbox, _simulatedEvent) => {
+    const events$g = (sandboxConfig, sandboxState) => derive$2([run$1(sandboxClose(), (sandbox, _simulatedEvent) => {
         close$1(sandbox, sandboxConfig, sandboxState);
       })]);
 
     var ActiveSandbox = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        events: events$f
+        events: events$g
     });
 
     var SandboxSchema = [
@@ -5562,10 +5140,10 @@
       defaulted('cloakVisibilityAttr', 'data-precloak-visibility')
     ];
 
-    const init$e = () => {
-      const contents = value$4();
+    const init$f = () => {
+      const contents = value$2();
       const readState = constant$1('not-implemented');
-      return nu$7({
+      return nu$8({
         readState,
         isOpen: contents.isSet,
         clear: contents.clear,
@@ -5576,7 +5154,7 @@
 
     var SandboxState = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        init: init$e
+        init: init$f
     });
 
     const Sandboxing = create$4({
@@ -5650,7 +5228,7 @@
         getState: getState$1
     });
 
-    const events$e = (repConfig, repState) => {
+    const events$f = (repConfig, repState) => {
       const es = repConfig.resetOnDom ? [
         runOnAttached((comp, _se) => {
           onLoad$5(comp, repConfig, repState);
@@ -5664,7 +5242,7 @@
 
     var ActiveRepresenting = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        events: events$e
+        events: events$f
     });
 
     const memory$1 = () => {
@@ -5677,7 +5255,7 @@
       const clear = () => {
         data.set(null);
       };
-      return nu$7({
+      return nu$8({
         set: data.set,
         get: data.get,
         isNotSet,
@@ -5687,7 +5265,7 @@
     };
     const manual = () => {
       const readState = noop;
-      return nu$7({ readState });
+      return nu$8({ readState });
     };
     const dataset = () => {
       const dataByValue = Cell({});
@@ -5701,7 +5279,7 @@
         dataByValue.set({});
         dataByText.set({});
       };
-      const lookup = itemString => get$h(dataByValue.get(), itemString).orThunk(() => get$h(dataByText.get(), itemString));
+      const lookup = itemString => get$g(dataByValue.get(), itemString).orThunk(() => get$g(dataByText.get(), itemString));
       const update = items => {
         const currentDataByValue = dataByValue.get();
         const currentDataByText = dataByText.get();
@@ -5709,8 +5287,8 @@
         const newDataByText = {};
         each$1(items, item => {
           newDataByValue[item.value] = item;
-          get$h(item, 'meta').each(meta => {
-            get$h(meta, 'text').each(text => {
+          get$g(item, 'meta').each(meta => {
+            get$g(meta, 'text').each(text => {
               newDataByText[text] = item;
             });
           });
@@ -5724,21 +5302,21 @@
           ...newDataByText
         });
       };
-      return nu$7({
+      return nu$8({
         readState,
         lookup,
         update,
         clear
       });
     };
-    const init$d = spec => spec.store.manager.state(spec);
+    const init$e = spec => spec.store.manager.state(spec);
 
     var RepresentState = /*#__PURE__*/Object.freeze({
         __proto__: null,
         memory: memory$1,
         dataset: dataset,
         manual: manual,
-        init: init$d
+        init: init$e
     });
 
     const setValue$2 = (component, repConfig, repState, data) => {
@@ -5849,7 +5427,7 @@
     });
 
     const field = (name, forbidden) => defaultedObjOf(name, {}, map$2(forbidden, f => forbid(f.name(), 'Cannot configure ' + f.name() + ' for ' + name)).concat([customField('dump', identity)]));
-    const get$4 = data => data.dump;
+    const get$3 = data => data.dump;
     const augment = (data, original) => ({
       ...derive$1(original),
       ...data.dump
@@ -5857,7 +5435,7 @@
     const SketchBehaviours = {
       field,
       augment,
-      get: get$4
+      get: get$3
     };
 
     const _placeholder = 'placeholder';
@@ -5880,7 +5458,7 @@
       if (owner.exists(o => o !== compSpec.owner)) {
         return adt$3.single(true, constant$1(compSpec));
       }
-      return get$h(placeholders, compSpec.name).fold(() => {
+      return get$g(placeholders, compSpec.name).fold(() => {
         throw new Error('Unknown placeholder component: ' + compSpec.name + '\nKnown: [' + keys(placeholders) + ']\nNamespace: ' + owner.getOr('none') + '\nSpec: ' + JSON.stringify(compSpec, null, 2));
       }, newSpec => newSpec.replace());
     };
@@ -5895,7 +5473,7 @@
       const base = scan(owner, detail, compSpec, placeholders);
       return base.fold((req, valueThunk) => {
         const value = isSubstituted(compSpec) ? valueThunk(detail, compSpec.config, compSpec.validated) : valueThunk(detail);
-        const childSpecs = get$h(value, 'components').getOr([]);
+        const childSpecs = get$g(value, 'components').getOr([]);
         const substituted = bind$3(childSpecs, c => substitute(owner, detail, c, placeholders));
         return [{
             ...value,
@@ -6219,7 +5797,7 @@
       };
     };
 
-    const inside = target => isTag('input')(target) && get$g(target, 'type') !== 'radio' || isTag('textarea')(target);
+    const inside = target => isTag('input')(target) && get$f(target, 'type') !== 'radio' || isTag('textarea')(target);
 
     const getCurrent = (component, composeConfig, _composeState) => composeConfig.find(component);
 
@@ -6252,9 +5830,9 @@
       set$9(component.element, 'disabled', 'disabled');
     };
     const nativeEnable = component => {
-      remove$8(component.element, 'disabled');
+      remove$7(component.element, 'disabled');
     };
-    const ariaIsDisabled = component => get$g(component.element, 'aria-disabled') === 'true';
+    const ariaIsDisabled = component => get$f(component.element, 'aria-disabled') === 'true';
     const ariaDisable = component => {
       set$9(component.element, 'aria-disabled', 'true');
     };
@@ -6271,13 +5849,13 @@
     };
     const enable = (component, disableConfig, _disableState) => {
       disableConfig.disableClass.each(disableClass => {
-        remove$3(component.element, disableClass);
+        remove$2(component.element, disableClass);
       });
       const f = hasNative(component, disableConfig) ? nativeEnable : ariaEnable;
       f(component);
       disableConfig.onEnabled(component);
     };
-    const isDisabled$1 = (component, disableConfig) => hasNative(component, disableConfig) ? nativeIsDisabled(component) : ariaIsDisabled(component);
+    const isDisabled = (component, disableConfig) => hasNative(component, disableConfig) ? nativeIsDisabled(component) : ariaIsDisabled(component);
     const set$4 = (component, disableConfig, disableState, disabled) => {
       const f = disabled ? disable : enable;
       f(component, disableConfig);
@@ -6287,21 +5865,21 @@
         __proto__: null,
         enable: enable,
         disable: disable,
-        isDisabled: isDisabled$1,
+        isDisabled: isDisabled,
         onLoad: onLoad$1,
         set: set$4
     });
 
-    const exhibit$5 = (base, disableConfig) => nu$8({ classes: disableConfig.disabled() ? disableConfig.disableClass.toArray() : [] });
-    const events$d = (disableConfig, disableState) => derive$2([
-      abort(execute$5(), (component, _simulatedEvent) => isDisabled$1(component, disableConfig)),
+    const exhibit$5 = (base, disableConfig) => nu$7({ classes: disableConfig.disabled() ? disableConfig.disableClass.toArray() : [] });
+    const events$e = (disableConfig, disableState) => derive$2([
+      abort(execute$5(), (component, _simulatedEvent) => isDisabled(component, disableConfig)),
       loadEvent(disableConfig, disableState, onLoad$1)
     ]);
 
     var ActiveDisable = /*#__PURE__*/Object.freeze({
         __proto__: null,
         exhibit: exhibit$5,
-        events: events$d
+        events: events$e
     });
 
     var DisableSchema = [
@@ -6324,7 +5902,7 @@
       each$1(highlighted, h => {
         const shouldSkip = exists(skip, skipComp => eq(skipComp.element, h));
         if (!shouldSkip) {
-          remove$3(h, hConfig.highlightClass);
+          remove$2(h, hConfig.highlightClass);
           component.getSystem().getByDom(h).each(target => {
             hConfig.onDehighlight(component, target);
             emit(target, dehighlight$1());
@@ -6335,7 +5913,7 @@
     const dehighlightAll = (component, hConfig, hState) => dehighlightAllExcept(component, hConfig, hState, []);
     const dehighlight = (component, hConfig, hState, target) => {
       if (isHighlighted(component, hConfig, hState, target)) {
-        remove$3(target.element, hConfig.highlightClass);
+        remove$2(target.element, hConfig.highlightClass);
         hConfig.onDehighlight(component, target);
         emit(target, dehighlight$1());
       }
@@ -6464,7 +6042,7 @@
       return contains$2(keys, raw.which);
     };
     const and = preds => event => forall(preds, pred => pred(event));
-    const isShift$1 = event => {
+    const isShift = event => {
       const raw = event.raw;
       return raw.shiftKey === true;
     };
@@ -6472,7 +6050,7 @@
       const raw = event.raw;
       return raw.ctrlKey === true;
     };
-    const isNotShift = not(isShift$1);
+    const isNotShift = not(isShift);
 
     const rule = (matches, action) => ({
       matches,
@@ -6592,15 +6170,15 @@
         option$3('visibilitySelector')
       ].concat([cyclicField]);
       const isVisible = (tabbingConfig, element) => {
-        const target = tabbingConfig.visibilitySelector.bind(sel => closest$3(element, sel)).getOr(element);
-        return get$e(target) > 0;
+        const target = tabbingConfig.visibilitySelector.bind(sel => closest$1(element, sel)).getOr(element);
+        return get$d(target) > 0;
       };
       const findInitial = (component, tabbingConfig) => {
         const tabstops = descendants(component.element, tabbingConfig.selector);
         const visibles = filter$2(tabstops, elem => isVisible(tabbingConfig, elem));
         return Optional.from(visibles[tabbingConfig.firstTabstop]);
       };
-      const findCurrent = (component, tabbingConfig) => tabbingConfig.focusManager.get(component).bind(elem => closest$3(elem, tabbingConfig.selector));
+      const findCurrent = (component, tabbingConfig) => tabbingConfig.focusManager.get(component).bind(elem => closest$1(elem, tabbingConfig.selector));
       const isTabstop = (tabbingConfig, element) => isVisible(tabbingConfig, element) && tabbingConfig.useTabstopAt(element);
       const focusIn = (component, tabbingConfig, _tabbingState) => {
         findInitial(component, tabbingConfig).each(target => {
@@ -6612,7 +6190,7 @@
         return Optional.some(true);
       });
       const go = (component, _simulatedEvent, tabbingConfig, cycle) => {
-        const tabstops = filter$2(descendants(component.element, tabbingConfig.selector), element => isVisible(tabbingConfig, element));
+        const tabstops = descendants(component.element, tabbingConfig.selector);
         return findCurrent(component, tabbingConfig).bind(tabstop => {
           const optStopIndex = findIndex$1(tabstops, curry(eq, tabstop));
           return optStopIndex.bind(stopIndex => goFromTabstop(component, tabstops, stopIndex, tabbingConfig, cycle));
@@ -6632,7 +6210,7 @@
       const exit = (component, simulatedEvent, tabbingConfig) => tabbingConfig.onEscape.bind(f => f(component, simulatedEvent));
       const getKeydownRules = constant$1([
         rule(and([
-          isShift$1,
+          isShift,
           inSet(TAB)
         ]), goBackwards),
         rule(inSet(TAB), goForwards),
@@ -6684,7 +6262,7 @@
     var ExecutionType = typical(schema$v, NoState.init, getKeydownRules$5, getKeyupRules$5, () => Optional.none());
 
     const flatgrid$1 = () => {
-      const dimensions = value$4();
+      const dimensions = value$2();
       const setGridSize = (numRows, numColumns) => {
         dimensions.set({
           numRows,
@@ -6693,7 +6271,7 @@
       };
       const getNumRows = () => dimensions.get().map(d => d.numRows);
       const getNumColumns = () => dimensions.get().map(d => d.numColumns);
-      return nu$7({
+      return nu$8({
         readState: () => dimensions.get().map(d => ({
           numRows: String(d.numRows),
           numColumns: String(d.numColumns)
@@ -6706,12 +6284,12 @@
         getNumColumns
       });
     };
-    const init$c = spec => spec.state(spec);
+    const init$d = spec => spec.state(spec);
 
     var KeyingState = /*#__PURE__*/Object.freeze({
         __proto__: null,
         flatgrid: flatgrid$1,
-        init: init$c
+        init: init$d
     });
 
     const useH = movement => (component, simulatedEvent, config, state) => {
@@ -6793,12 +6371,12 @@
       defaulted('captureTab', false),
       initSize()
     ];
-    const focusIn$4 = (component, gridConfig, _gridState) => {
+    const focusIn$3 = (component, gridConfig, _gridState) => {
       descendant(component.element, gridConfig.selector).each(first => {
         gridConfig.focusManager.set(component, first);
       });
     };
-    const findCurrent$1 = (component, gridConfig) => gridConfig.focusManager.get(component).bind(elem => closest$3(elem, gridConfig.selector));
+    const findCurrent$1 = (component, gridConfig) => gridConfig.focusManager.get(component).bind(elem => closest$1(elem, gridConfig.selector));
     const execute$3 = (component, simulatedEvent, gridConfig, _gridState) => findCurrent$1(component, gridConfig).bind(focused => gridConfig.execute(component, simulatedEvent, focused));
     const doMove$2 = cycle => (element, focused, gridConfig, gridState) => locateVisible(element, focused, gridConfig.selector).bind(identified => cycle(identified.candidates, identified.index, gridState.getNumRows().getOr(gridConfig.initSize.numRows), gridState.getNumColumns().getOr(gridConfig.initSize.numColumns)));
     const handleTab = (_component, _simulatedEvent, gridConfig) => gridConfig.captureTab ? Optional.some(true) : Optional.none();
@@ -6813,7 +6391,7 @@
       rule(inSet(UP), north$1(moveNorth$1)),
       rule(inSet(DOWN), south$1(moveSouth$1)),
       rule(and([
-        isShift$1,
+        isShift,
         inSet(TAB)
       ]), handleTab),
       rule(and([
@@ -6826,10 +6404,10 @@
       rule(inSet(ESCAPE), doEscape$1),
       rule(inSet(SPACE), stopEventForFirefox)
     ]);
-    var FlatgridType = typical(schema$u, flatgrid$1, getKeydownRules$4, getKeyupRules$4, () => Optional.some(focusIn$4));
+    var FlatgridType = typical(schema$u, flatgrid$1, getKeydownRules$4, getKeyupRules$4, () => Optional.some(focusIn$3));
 
     const f = (container, selector, current, delta, getNewIndex) => {
-      const isDisabledButton = candidate => name$3(candidate) === 'button' && get$g(candidate, 'disabled') === 'disabled';
+      const isDisabledButton = candidate => name$3(candidate) === 'button' && get$f(candidate, 'disabled') === 'disabled';
       const tryNewIndex = (initial, index, candidates) => getNewIndex(initial, index, delta, 0, candidates.length - 1, candidates[index], newIndex => isDisabledButton(candidates[newIndex]) ? tryNewIndex(initial, newIndex, candidates) : Optional.from(candidates[newIndex]));
       return locateVisible(container, current, selector).bind(identified => {
         const index = identified.index;
@@ -6856,9 +6434,9 @@
       defaulted('allowHorizontal', true),
       defaulted('cycles', true)
     ];
-    const findCurrent = (component, flowConfig) => flowConfig.focusManager.get(component).bind(elem => closest$3(elem, flowConfig.selector));
+    const findCurrent = (component, flowConfig) => flowConfig.focusManager.get(component).bind(elem => closest$1(elem, flowConfig.selector));
     const execute$2 = (component, simulatedEvent, flowConfig) => findCurrent(component, flowConfig).bind(focused => flowConfig.execute(component, simulatedEvent, focused));
-    const focusIn$3 = (component, flowConfig, _state) => {
+    const focusIn$2 = (component, flowConfig, _state) => {
       flowConfig.getInitial(component).orThunk(() => descendant(component.element, flowConfig.selector)).each(first => {
         flowConfig.focusManager.set(component, first);
       });
@@ -6881,7 +6459,7 @@
       rule(inSet(SPACE), stopEventForFirefox),
       rule(inSet(ESCAPE), doEscape)
     ]);
-    var FlowType = typical(schema$t, NoState.init, getKeydownRules$3, getKeyupRules$3, () => Optional.some(focusIn$3));
+    var FlowType = typical(schema$t, NoState.init, getKeydownRules$3, getKeyupRules$3, () => Optional.some(focusIn$2));
 
     const toCell = (matrix, rowIndex, columnIndex) => Optional.from(matrix[rowIndex]).bind(row => Optional.from(row[columnIndex]).map(cell => ({
       rowIndex,
@@ -6930,7 +6508,7 @@
       defaulted('previousSelector', Optional.none),
       defaulted('execute', defaultExecute)
     ];
-    const focusIn$2 = (component, matrixConfig, _state) => {
+    const focusIn$1 = (component, matrixConfig, _state) => {
       const focused = matrixConfig.previousSelector(component).orThunk(() => {
         const selectors = matrixConfig.selectors;
         return descendant(component.element, selectors.cell);
@@ -6943,7 +6521,7 @@
     const toMatrix = (rows, matrixConfig) => map$2(rows, row => descendants(row, matrixConfig.selectors.cell));
     const doMove = (ifCycle, ifMove) => (element, focused, matrixConfig) => {
       const move = matrixConfig.cycles ? ifCycle : ifMove;
-      return closest$3(focused, matrixConfig.selectors.row).bind(inRow => {
+      return closest$1(focused, matrixConfig.selectors.row).bind(inRow => {
         const cellsInRow = descendants(inRow, matrixConfig.selectors.cell);
         return findIndex(cellsInRow, focused).bind(colIndex => {
           const allRows = descendants(element, matrixConfig.selectors.row);
@@ -6966,7 +6544,7 @@
       rule(inSet(SPACE.concat(ENTER)), execute$1)
     ]);
     const getKeyupRules$2 = constant$1([rule(inSet(SPACE), stopEventForFirefox)]);
-    var MatrixType = typical(schema$s, NoState.init, getKeydownRules$2, getKeyupRules$2, () => Optional.some(focusIn$2));
+    var MatrixType = typical(schema$s, NoState.init, getKeydownRules$2, getKeyupRules$2, () => Optional.some(focusIn$1));
 
     const schema$r = [
       required$1('selector'),
@@ -6974,7 +6552,7 @@
       defaulted('moveOnTab', false)
     ];
     const execute = (component, simulatedEvent, menuConfig) => menuConfig.focusManager.get(component).bind(focused => menuConfig.execute(component, simulatedEvent, focused));
-    const focusIn$1 = (component, menuConfig, _state) => {
+    const focusIn = (component, menuConfig, _state) => {
       descendant(component.element, menuConfig.selector).each(first => {
         menuConfig.focusManager.set(component, first);
       });
@@ -6987,7 +6565,7 @@
       rule(inSet(UP), move$1(moveUp)),
       rule(inSet(DOWN), move$1(moveDown)),
       rule(and([
-        isShift$1,
+        isShift,
         inSet(TAB)
       ]), fireShiftTab),
       rule(and([
@@ -6998,7 +6576,7 @@
       rule(inSet(SPACE), execute)
     ]);
     const getKeyupRules$1 = constant$1([rule(inSet(SPACE), stopEventForFirefox)]);
-    var MenuType = typical(schema$r, NoState.init, getKeydownRules$1, getKeyupRules$1, () => Optional.some(focusIn$1));
+    var MenuType = typical(schema$r, NoState.init, getKeydownRules$1, getKeyupRules$1, () => Optional.some(focusIn));
 
     const schema$q = [
       onKeyboardHandler('onSpace'),
@@ -7021,11 +6599,11 @@
         inSet(ENTER)
       ]), specialInfo.onEnter),
       rule(and([
-        isShift$1,
+        isShift,
         inSet(ENTER)
       ]), specialInfo.onShiftEnter),
       rule(and([
-        isShift$1,
+        isShift,
         inSet(TAB)
       ]), specialInfo.onShiftTab),
       rule(and([
@@ -7132,7 +6710,7 @@
     const prepend = (component, replaceConfig, replaceState, prependee) => {
       insert(component, prepend$1, prependee);
     };
-    const remove$1 = (component, replaceConfig, replaceState, removee) => {
+    const remove = (component, replaceConfig, replaceState, removee) => {
       const children = contents(component);
       const foundChild = find$5(children, child => eq(removee.element, child.element));
       foundChild.each(detach);
@@ -7157,7 +6735,7 @@
         __proto__: null,
         append: append,
         prepend: prepend,
-        remove: remove$1,
+        remove: remove,
         replaceAt: replaceAt,
         replaceBy: replaceBy,
         set: set$3,
@@ -7170,7 +6748,7 @@
       apis: ReplaceApis
     });
 
-    const events$c = (name, eventHandlers) => {
+    const events$d = (name, eventHandlers) => {
       const events = derive$2(eventHandlers);
       return create$4({
         fields: [required$1('enabled')],
@@ -7179,7 +6757,7 @@
       });
     };
     const config = (name, eventHandlers) => {
-      const me = events$c(name, eventHandlers);
+      const me = events$d(name, eventHandlers);
       return {
         key: name,
         value: {
@@ -7214,9 +6792,9 @@
 
     const exhibit$4 = (base, focusConfig) => {
       const mod = focusConfig.ignore ? {} : { attributes: { tabindex: '-1' } };
-      return nu$8(mod);
+      return nu$7(mod);
     };
-    const events$b = focusConfig => derive$2([run$1(focus$4(), (component, simulatedEvent) => {
+    const events$c = focusConfig => derive$2([run$1(focus$4(), (component, simulatedEvent) => {
         focus$2(component, focusConfig);
         simulatedEvent.stop();
       })].concat(focusConfig.stopMousedown ? [run$1(mousedown(), (_, simulatedEvent) => {
@@ -7226,7 +6804,7 @@
     var ActiveFocus = /*#__PURE__*/Object.freeze({
         __proto__: null,
         exhibit: exhibit$4,
-        events: events$b
+        events: events$c
     });
 
     var FocusSchema = [
@@ -7268,7 +6846,7 @@
         if (toggleState.get()) {
           add$2(component.element, toggleClass);
         } else {
-          remove$3(component.element, toggleClass);
+          remove$2(component.element, toggleClass);
         }
       });
     };
@@ -7305,8 +6883,8 @@
         set: set$2
     });
 
-    const exhibit$3 = () => nu$8({});
-    const events$a = (toggleConfig, toggleState) => {
+    const exhibit$3 = () => nu$7({});
+    const events$b = (toggleConfig, toggleState) => {
       const execute = executeEvent(toggleConfig, toggleState, toggle$2);
       const load = loadEvent(toggleConfig, toggleState, onLoad);
       return derive$2(flatten([
@@ -7318,7 +6896,7 @@
     var ActiveToggle = /*#__PURE__*/Object.freeze({
         __proto__: null,
         exhibit: exhibit$3,
-        events: events$a
+        events: events$b
     });
 
     const updatePressed = (component, ariaInfo, status) => {
@@ -7374,7 +6952,7 @@
         cutter(mousedown())
       ];
     };
-    const events$9 = optAction => {
+    const events$a = optAction => {
       const executeHandler = action => runOnExecute$1((component, simulatedEvent) => {
         action(component);
         simulatedEvent.stop();
@@ -7409,9 +6987,9 @@
     const focus$1 = constant$1(focusEvent);
     const toggled = constant$1(toggledEvent);
 
-    const getItemRole = detail => detail.role.fold(() => detail.toggling.map(toggling => toggling.exclusive ? 'menuitemradio' : 'menuitemcheckbox').getOr('menuitem'), identity);
-    const getTogglingSpec = (tConfig, isOption) => ({
-      aria: { mode: isOption ? 'selected' : 'checked' },
+    const getItemRole = detail => detail.toggling.map(toggling => toggling.exclusive ? 'menuitemradio' : 'menuitemcheckbox').getOr('menuitem');
+    const getTogglingSpec = tConfig => ({
+      aria: { mode: 'checked' },
       ...filter$1(tConfig, (_value, name) => name !== 'exclusive'),
       onToggled: (component, state) => {
         if (isFunction(tConfig.onToggled)) {
@@ -7432,7 +7010,7 @@
         }
       },
       behaviours: SketchBehaviours.augment(detail.itemBehaviours, [
-        detail.toggling.fold(Toggling.revoke, tConfig => Toggling.config(getTogglingSpec(tConfig, detail.role.exists(role => role === 'option')))),
+        detail.toggling.fold(Toggling.revoke, tConfig => Toggling.config(getTogglingSpec(tConfig))),
         Focusing.config({
           ignore: detail.ignoreFocus,
           stopMousedown: detail.ignoreFocus,
@@ -7462,7 +7040,6 @@
       required$1('dom'),
       defaulted('hasSubmenu', false),
       option$3('toggling'),
-      option$3('role'),
       SketchBehaviours.field('itemBehaviours', [
         Toggling,
         Focusing,
@@ -7643,7 +7220,6 @@
         }
       })]);
     const schema$m = constant$1([
-      optionString('role'),
       required$1('value'),
       required$1('items'),
       required$1('dom'),
@@ -7677,8 +7253,7 @@
       defaulted('fakeFocus', false),
       defaulted('focusManager', dom$2()),
       onHandler('onHighlight'),
-      onHandler('onDehighlight'),
-      defaulted('showMenuRole', true)
+      onHandler('onDehighlight')
     ]);
 
     const focus = constant$1('alloy.menu-focus');
@@ -7731,14 +7306,14 @@
         }),
         run$1(toggled(), (menu, simulatedEvent) => {
           const {item, state} = simulatedEvent.event;
-          if (state && get$g(item.element, 'role') === 'menuitemradio') {
+          if (state && get$f(item.element, 'role') === 'menuitemradio') {
             deselectOtherRadioItems(menu, item);
           }
         })
       ]),
       components,
       eventOrder: detail.eventOrder,
-      ...detail.showMenuRole ? { domModification: { attributes: { role: detail.role.getOr('menu') } } } : {}
+      domModification: { attributes: { role: 'menu' } }
     });
 
     const Menu = composite({
@@ -7752,7 +7327,7 @@
       k: v,
       v: k
     }));
-    const trace = (items, byItem, byMenu, finish) => get$h(byMenu, finish).bind(triggerItem => get$h(items, triggerItem).bind(triggerMenu => {
+    const trace = (items, byItem, byMenu, finish) => get$g(byMenu, finish).bind(triggerItem => get$g(items, triggerItem).bind(triggerMenu => {
       const rest = trace(items, byItem, byMenu, triggerMenu);
       return Optional.some([triggerMenu].concat(rest));
     })).getOr([]);
@@ -7766,14 +7341,14 @@
       const byItem = expansions;
       const byMenu = transpose$1(expansions);
       const menuPaths = map$1(byMenu, (_triggerItem, submenu) => [submenu].concat(trace(items, byItem, byMenu, submenu)));
-      return map$1(items, menu => get$h(menuPaths, menu).getOr([menu]));
+      return map$1(items, menu => get$g(menuPaths, menu).getOr([menu]));
     };
 
-    const init$b = () => {
+    const init$c = () => {
       const expansions = Cell({});
       const menus = Cell({});
       const paths = Cell({});
-      const primary = value$4();
+      const primary = value$2();
       const directory = Cell({});
       const clear = () => {
         expansions.set({});
@@ -7807,21 +7382,21 @@
       }))));
       const getTriggeringPath = (itemValue, getItemByValue) => {
         const extraPath = filter$2(lookupItem(itemValue).toArray(), menuValue => getPreparedMenu(menuValue).isSome());
-        return get$h(paths.get(), itemValue).bind(path => {
+        return get$g(paths.get(), itemValue).bind(path => {
           const revPath = reverse(extraPath.concat(path));
           const triggers = bind$3(revPath, (menuValue, menuIndex) => getTriggerData(menuValue, getItemByValue, revPath.slice(0, menuIndex + 1)).fold(() => is$1(primary.get(), menuValue) ? [] : [Optional.none()], data => [Optional.some(data)]));
           return sequence(triggers);
         });
       };
-      const expand = itemValue => get$h(expansions.get(), itemValue).map(menu => {
-        const current = get$h(paths.get(), itemValue).getOr([]);
+      const expand = itemValue => get$g(expansions.get(), itemValue).map(menu => {
+        const current = get$g(paths.get(), itemValue).getOr([]);
         return [menu].concat(current);
       });
-      const collapse = itemValue => get$h(paths.get(), itemValue).bind(path => path.length > 1 ? Optional.some(path.slice(1)) : Optional.none());
-      const refresh = itemValue => get$h(paths.get(), itemValue);
+      const collapse = itemValue => get$g(paths.get(), itemValue).bind(path => path.length > 1 ? Optional.some(path.slice(1)) : Optional.none());
+      const refresh = itemValue => get$g(paths.get(), itemValue);
       const getPreparedMenu = menuValue => lookupMenu(menuValue).bind(extractPreparedMenu);
-      const lookupMenu = menuValue => get$h(menus.get(), menuValue);
-      const lookupItem = itemValue => get$h(expansions.get(), itemValue);
+      const lookupMenu = menuValue => get$g(menus.get(), menuValue);
+      const lookupItem = itemValue => get$g(expansions.get(), itemValue);
       const otherMenus = path => {
         const menuValues = directory.get();
         return difference(keys(menuValues), path);
@@ -7846,7 +7421,7 @@
     };
     const extractPreparedMenu = prep => prep.type === 'prepared' ? Optional.some(prep.menu) : Optional.none();
     const LayeredState = {
-      init: init$b,
+      init: init$c,
       extractPreparedMenu
     };
 
@@ -7861,7 +7436,7 @@
     }(HighlightOnOpen || (HighlightOnOpen = {})));
 
     const make$6 = (detail, _rawUiSpec) => {
-      const submenuParentItems = value$4();
+      const submenuParentItems = value$2();
       const buildMenus = (container, primaryName, menus) => map$1(menus, (spec, name) => {
         const makeSketch = () => Menu.sketch({
           ...spec,
@@ -7923,7 +7498,7 @@
       const closeOthers = (container, state, path) => {
         const others = getMenus(state, state.otherMenus(path));
         each$1(others, o => {
-          remove$2(o.element, [detail.markers.backgroundMenu]);
+          remove$1(o.element, [detail.markers.backgroundMenu]);
           if (!detail.stayInDom) {
             Replacing.remove(container, o);
           }
@@ -7932,7 +7507,7 @@
       const getSubmenuParents = container => submenuParentItems.get().getOrThunk(() => {
         const r = {};
         const items = descendants(container.element, `.${ detail.markers.item }`);
-        const parentItems = filter$2(items, i => get$g(i, 'aria-haspopup') === 'true');
+        const parentItems = filter$2(items, i => get$f(i, 'aria-haspopup') === 'true');
         each$1(parentItems, i => {
           container.getSystem().getByDom(i).each(itemComp => {
             const key = getItemValue(itemComp);
@@ -7961,7 +7536,7 @@
           if (!inBody(activeMenu.element)) {
             Replacing.append(container, premade(activeMenu));
           }
-          remove$2(activeMenu.element, [detail.markers.backgroundMenu]);
+          remove$1(activeMenu.element, [detail.markers.backgroundMenu]);
           setActiveMenuAndItem(container, activeMenu);
           closeOthers(container, state, path);
           return Optional.some(activeMenu);
@@ -8026,7 +7601,7 @@
       const onLeft = (container, item) => inside(item.element) ? Optional.none() : collapseLeft(container, item);
       const onEscape = (container, item) => collapseLeft(container, item).orThunk(() => detail.onEscape(container, item).map(() => container));
       const keyOnItem = f => (container, simulatedEvent) => {
-        return closest$3(simulatedEvent.getSource(), `.${ detail.markers.item }`).bind(target => container.getSystem().getByDom(target).toOptional().bind(item => f(container, item).map(always)));
+        return closest$1(simulatedEvent.getSource(), `.${ detail.markers.item }`).bind(target => container.getSystem().getByDom(target).toOptional().bind(item => f(container, item).map(always)));
       };
       const events = derive$2([
         run$1(focus(), (tmenu, simulatedEvent) => {
@@ -8085,7 +7660,7 @@
           setActiveMenuAndItem(container, primary);
         });
       };
-      const extractMenuFromContainer = container => Optional.from(container.components()[0]).filter(comp => get$g(comp.element, 'role') === 'menu');
+      const extractMenuFromContainer = container => Optional.from(container.components()[0]).filter(comp => get$f(comp.element, 'role') === 'menu');
       const repositionMenus = container => {
         const maybeActivePrimary = layeredState.getPrimary().bind(primary => getActiveItem(container).bind(currentItem => {
           const itemValue = getItemValue(currentItem);
@@ -8412,13 +7987,407 @@
       }
     });
 
-    var global$a = tinymce.util.Tools.resolve('tinymce.util.Delay');
+    var global$9 = tinymce.util.Tools.resolve('tinymce.util.Delay');
 
-    var global$9 = tinymce.util.Tools.resolve('tinymce.dom.DOMUtils');
+    const factory$n = detail => {
+      const events = events$a(detail.action);
+      const tag = detail.dom.tag;
+      const lookupAttr = attr => get$g(detail.dom, 'attributes').bind(attrs => get$g(attrs, attr));
+      const getModAttributes = () => {
+        if (tag === 'button') {
+          const type = lookupAttr('type').getOr('button');
+          const roleAttrs = lookupAttr('role').map(role => ({ role })).getOr({});
+          return {
+            type,
+            ...roleAttrs
+          };
+        } else {
+          const role = detail.role.getOr(lookupAttr('role').getOr('button'));
+          return { role };
+        }
+      };
+      return {
+        uid: detail.uid,
+        dom: detail.dom,
+        components: detail.components,
+        events,
+        behaviours: SketchBehaviours.augment(detail.buttonBehaviours, [
+          Focusing.config({}),
+          Keying.config({
+            mode: 'execution',
+            useSpace: true,
+            useEnter: true
+          })
+        ]),
+        domModification: { attributes: getModAttributes() },
+        eventOrder: detail.eventOrder
+      };
+    };
+    const Button = single({
+      name: 'Button',
+      factory: factory$n,
+      configFields: [
+        defaulted('uid', undefined),
+        required$1('dom'),
+        defaulted('components', []),
+        SketchBehaviours.field('buttonBehaviours', [
+          Focusing,
+          Keying
+        ]),
+        option$3('action'),
+        option$3('role'),
+        defaulted('eventOrder', {})
+      ]
+    });
 
-    var global$8 = tinymce.util.Tools.resolve('tinymce.EditorManager');
+    const record = spec => {
+      const uid = isSketchSpec(spec) && hasNonNullableKey(spec, 'uid') ? spec.uid : generate$5('memento');
+      const get = anyInSystem => anyInSystem.getSystem().getByUid(uid).getOrDie();
+      const getOpt = anyInSystem => anyInSystem.getSystem().getByUid(uid).toOptional();
+      const asSpec = () => ({
+        ...spec,
+        uid
+      });
+      return {
+        get,
+        getOpt,
+        asSpec
+      };
+    };
 
-    var global$7 = tinymce.util.Tools.resolve('tinymce.Env');
+    var global$8 = tinymce.util.Tools.resolve('tinymce.util.I18n');
+
+    const rtlTransform = {
+      'indent': true,
+      'outdent': true,
+      'table-insert-column-after': true,
+      'table-insert-column-before': true,
+      'paste-column-after': true,
+      'paste-column-before': true,
+      'unordered-list': true,
+      'list-bull-circle': true,
+      'list-bull-default': true,
+      'list-bull-square': true
+    };
+    const defaultIconName = 'temporary-placeholder';
+    const defaultIcon = icons => () => get$g(icons, defaultIconName).getOr('!not found!');
+    const getIconName = (name, icons) => {
+      const lcName = name.toLowerCase();
+      if (global$8.isRtl()) {
+        const rtlName = ensureTrailing(lcName, '-rtl');
+        return has$2(icons, rtlName) ? rtlName : lcName;
+      } else {
+        return lcName;
+      }
+    };
+    const lookupIcon = (name, icons) => get$g(icons, getIconName(name, icons));
+    const get$2 = (name, iconProvider) => {
+      const icons = iconProvider();
+      return lookupIcon(name, icons).getOrThunk(defaultIcon(icons));
+    };
+    const getOr = (name, iconProvider, fallbackIcon) => {
+      const icons = iconProvider();
+      return lookupIcon(name, icons).or(fallbackIcon).getOrThunk(defaultIcon(icons));
+    };
+    const needsRtlTransform = iconName => global$8.isRtl() ? has$2(rtlTransform, iconName) : false;
+    const addFocusableBehaviour = () => config('add-focusable', [runOnAttached(comp => {
+        child(comp.element, 'svg').each(svg => set$9(svg, 'focusable', 'false'));
+      })]);
+    const renderIcon$3 = (spec, iconName, icons, fallbackIcon) => {
+      var _a, _b;
+      const rtlIconClasses = needsRtlTransform(iconName) ? ['tox-icon--flip'] : [];
+      const iconHtml = get$g(icons, getIconName(iconName, icons)).or(fallbackIcon).getOrThunk(defaultIcon(icons));
+      return {
+        dom: {
+          tag: spec.tag,
+          attributes: (_a = spec.attributes) !== null && _a !== void 0 ? _a : {},
+          classes: spec.classes.concat(rtlIconClasses),
+          innerHtml: iconHtml
+        },
+        behaviours: derive$1([
+          ...(_b = spec.behaviours) !== null && _b !== void 0 ? _b : [],
+          addFocusableBehaviour()
+        ])
+      };
+    };
+    const render$3 = (iconName, spec, iconProvider, fallbackIcon = Optional.none()) => renderIcon$3(spec, iconName, iconProvider(), fallbackIcon);
+    const renderFirst = (iconNames, spec, iconProvider) => {
+      const icons = iconProvider();
+      const iconName = find$5(iconNames, name => has$2(icons, getIconName(name, icons)));
+      return renderIcon$3(spec, iconName.getOr(defaultIconName), icons, Optional.none());
+    };
+
+    const notificationIconMap = {
+      success: 'checkmark',
+      error: 'warning',
+      err: 'error',
+      warning: 'warning',
+      warn: 'warning',
+      info: 'info'
+    };
+    const factory$m = detail => {
+      const memBannerText = record({
+        dom: {
+          tag: 'p',
+          innerHtml: detail.translationProvider(detail.text)
+        },
+        behaviours: derive$1([Replacing.config({})])
+      });
+      const renderPercentBar = percent => ({
+        dom: {
+          tag: 'div',
+          classes: ['tox-bar'],
+          styles: { width: `${ percent }%` }
+        }
+      });
+      const renderPercentText = percent => ({
+        dom: {
+          tag: 'div',
+          classes: ['tox-text'],
+          innerHtml: `${ percent }%`
+        }
+      });
+      const memBannerProgress = record({
+        dom: {
+          tag: 'div',
+          classes: detail.progress ? [
+            'tox-progress-bar',
+            'tox-progress-indicator'
+          ] : ['tox-progress-bar']
+        },
+        components: [
+          {
+            dom: {
+              tag: 'div',
+              classes: ['tox-bar-container']
+            },
+            components: [renderPercentBar(0)]
+          },
+          renderPercentText(0)
+        ],
+        behaviours: derive$1([Replacing.config({})])
+      });
+      const updateProgress = (comp, percent) => {
+        if (comp.getSystem().isConnected()) {
+          memBannerProgress.getOpt(comp).each(progress => {
+            Replacing.set(progress, [
+              {
+                dom: {
+                  tag: 'div',
+                  classes: ['tox-bar-container']
+                },
+                components: [renderPercentBar(percent)]
+              },
+              renderPercentText(percent)
+            ]);
+          });
+        }
+      };
+      const updateText = (comp, text) => {
+        if (comp.getSystem().isConnected()) {
+          const banner = memBannerText.get(comp);
+          Replacing.set(banner, [text$2(text)]);
+        }
+      };
+      const apis = {
+        updateProgress,
+        updateText
+      };
+      const iconChoices = flatten([
+        detail.icon.toArray(),
+        detail.level.toArray(),
+        detail.level.bind(level => Optional.from(notificationIconMap[level])).toArray()
+      ]);
+      const memButton = record(Button.sketch({
+        dom: {
+          tag: 'button',
+          classes: [
+            'tox-notification__dismiss',
+            'tox-button',
+            'tox-button--naked',
+            'tox-button--icon'
+          ]
+        },
+        components: [render$3('close', {
+            tag: 'span',
+            classes: ['tox-icon'],
+            attributes: { 'aria-label': detail.translationProvider('Close') }
+          }, detail.iconProvider)],
+        action: comp => {
+          detail.onAction(comp);
+        }
+      }));
+      const notificationIconSpec = renderFirst(iconChoices, {
+        tag: 'div',
+        classes: ['tox-notification__icon']
+      }, detail.iconProvider);
+      const notificationBodySpec = {
+        dom: {
+          tag: 'div',
+          classes: ['tox-notification__body']
+        },
+        components: [memBannerText.asSpec()],
+        behaviours: derive$1([Replacing.config({})])
+      };
+      const components = [
+        notificationIconSpec,
+        notificationBodySpec
+      ];
+      return {
+        uid: detail.uid,
+        dom: {
+          tag: 'div',
+          attributes: { role: 'alert' },
+          classes: detail.level.map(level => [
+            'tox-notification',
+            'tox-notification--in',
+            `tox-notification--${ level }`
+          ]).getOr([
+            'tox-notification',
+            'tox-notification--in'
+          ])
+        },
+        behaviours: derive$1([
+          Focusing.config({}),
+          config('notification-events', [run$1(focusin(), comp => {
+              memButton.getOpt(comp).each(Focusing.focus);
+            })])
+        ]),
+        components: components.concat(detail.progress ? [memBannerProgress.asSpec()] : []).concat(!detail.closeButton ? [] : [memButton.asSpec()]),
+        apis
+      };
+    };
+    const Notification = single({
+      name: 'Notification',
+      factory: factory$m,
+      configFields: [
+        option$3('level'),
+        required$1('progress'),
+        option$3('icon'),
+        required$1('onAction'),
+        required$1('text'),
+        required$1('iconProvider'),
+        required$1('translationProvider'),
+        defaultedBoolean('closeButton', true)
+      ],
+      apis: {
+        updateProgress: (apis, comp, percent) => {
+          apis.updateProgress(comp, percent);
+        },
+        updateText: (apis, comp, text) => {
+          apis.updateText(comp, text);
+        }
+      }
+    });
+
+    var NotificationManagerImpl = (editor, extras, uiMothership) => {
+      const sharedBackstage = extras.backstage.shared;
+      const getBounds = () => {
+        const contentArea = box$1(SugarElement.fromDom(editor.getContentAreaContainer()));
+        const win$1 = win();
+        const x = clamp(win$1.x, contentArea.x, contentArea.right);
+        const y = clamp(win$1.y, contentArea.y, contentArea.bottom);
+        const right = Math.max(contentArea.right, win$1.right);
+        const bottom = Math.max(contentArea.bottom, win$1.bottom);
+        return Optional.some(bounds(x, y, right - x, bottom - y));
+      };
+      const open = (settings, closeCallback) => {
+        const close = () => {
+          closeCallback();
+          InlineView.hide(notificationWrapper);
+        };
+        const notification = build$1(Notification.sketch({
+          text: settings.text,
+          level: contains$2([
+            'success',
+            'error',
+            'warning',
+            'warn',
+            'info'
+          ], settings.type) ? settings.type : undefined,
+          progress: settings.progressBar === true,
+          icon: settings.icon,
+          closeButton: settings.closeButton,
+          onAction: close,
+          iconProvider: sharedBackstage.providers.icons,
+          translationProvider: sharedBackstage.providers.translate
+        }));
+        const notificationWrapper = build$1(InlineView.sketch({
+          dom: {
+            tag: 'div',
+            classes: ['tox-notifications-container']
+          },
+          lazySink: sharedBackstage.getSink,
+          fireDismissalEventInstead: {},
+          ...sharedBackstage.header.isPositionedAtTop() ? {} : { fireRepositionEventInstead: {} }
+        }));
+        uiMothership.add(notificationWrapper);
+        if (isNumber(settings.timeout) && settings.timeout > 0) {
+          global$9.setEditorTimeout(editor, () => {
+            close();
+          }, settings.timeout);
+        }
+        const reposition = () => {
+          const notificationSpec = premade(notification);
+          const anchorOverrides = { maxHeightFunction: expandable$1() };
+          const allNotifications = editor.notificationManager.getNotifications();
+          if (allNotifications[0] === thisNotification) {
+            const anchor = {
+              ...sharedBackstage.anchors.banner(),
+              overrides: anchorOverrides
+            };
+            InlineView.showWithinBounds(notificationWrapper, notificationSpec, { anchor }, getBounds);
+          } else {
+            indexOf(allNotifications, thisNotification).each(idx => {
+              const previousNotification = allNotifications[idx - 1].getEl();
+              const nodeAnchor = {
+                type: 'node',
+                root: body(),
+                node: Optional.some(SugarElement.fromDom(previousNotification)),
+                overrides: anchorOverrides,
+                layouts: {
+                  onRtl: () => [south$2],
+                  onLtr: () => [south$2]
+                }
+              };
+              InlineView.showWithinBounds(notificationWrapper, notificationSpec, { anchor: nodeAnchor }, getBounds);
+            });
+          }
+        };
+        const thisNotification = {
+          close,
+          reposition,
+          text: nuText => {
+            Notification.updateText(notification, nuText);
+          },
+          settings,
+          getEl: () => notification.element.dom,
+          progressBar: {
+            value: percent => {
+              Notification.updateProgress(notification, percent);
+            }
+          }
+        };
+        return thisNotification;
+      };
+      const close = notification => {
+        notification.close();
+      };
+      const getArgs = notification => {
+        return notification.settings;
+      };
+      return {
+        open,
+        close,
+        getArgs
+      };
+    };
+
+    var global$7 = tinymce.util.Tools.resolve('tinymce.dom.DOMUtils');
+
+    var global$6 = tinymce.util.Tools.resolve('tinymce.EditorManager');
+
+    var global$5 = tinymce.util.Tools.resolve('tinymce.Env');
 
     var ToolbarMode$1;
     (function (ToolbarMode) {
@@ -8435,9 +8404,9 @@
     }(ToolbarLocation$1 || (ToolbarLocation$1 = {})));
     const option$2 = name => editor => editor.options.get(name);
     const wrapOptional = fn => editor => Optional.from(fn(editor));
-    const register$f = editor => {
-      const isPhone = global$7.deviceType.isPhone();
-      const isMobile = global$7.deviceType.isTablet() || isPhone;
+    const register$e = editor => {
+      const isPhone = global$5.deviceType.isPhone();
+      const isMobile = global$5.deviceType.isTablet() || isPhone;
       const registerOption = editor.options.register;
       const stringOrFalseProcessor = value => isString(value) || value === false;
       const stringOrNumberProcessor = value => isString(value) || isNumber(value);
@@ -8452,7 +8421,7 @@
       });
       registerOption('width', {
         processor: stringOrNumberProcessor,
-        default: global$9.DOM.getStyle(editor.getElement(), 'width')
+        default: global$7.DOM.getStyle(editor.getElement(), 'width')
       });
       registerOption('min_height', {
         processor: 'number',
@@ -8592,20 +8561,15 @@
       });
       registerOption('resize', {
         processor: value => value === 'both' || isBoolean(value),
-        default: !global$7.deviceType.isTouch()
+        default: !global$5.deviceType.isTouch()
       });
       registerOption('sidebar_show', { processor: 'string' });
       registerOption('help_accessibility', {
         processor: 'boolean',
         default: editor.hasPlugin('help')
       });
-      registerOption('default_font_stack', {
-        processor: 'string[]',
-        default: []
-      });
     };
     const isReadOnly = option$2('readonly');
-    const isDisabled = option$2('disabled');
     const getHeightOption = option$2('height');
     const getWidthOption = option$2('width');
     const getMinWidthOption = wrapOptional(option$2('min_width'));
@@ -8642,8 +8606,6 @@
     const getSidebarShow = option$2('sidebar_show');
     const promotionEnabled = option$2('promotion');
     const useHelpAccessibility = option$2('help_accessibility');
-    const getDefaultFontStack = option$2('default_font_stack');
-    const getSkin = option$2('skin');
     const isSkinDisabled = editor => editor.options.get('skin') === false;
     const isMenubarEnabled = editor => editor.options.get('menubar') !== false;
     const getSkinUrl = editor => {
@@ -8655,11 +8617,10 @@
           return editor.documentBaseURI.toAbsolute(skinUrl);
         } else {
           const skin = editor.options.get('skin');
-          return global$8.baseURL + '/skins/ui/' + skin;
+          return global$6.baseURL + '/skins/ui/' + skin;
         }
       }
     };
-    const getSkinUrlOption = editor => Optional.from(editor.options.get('skin_url'));
     const getLineHeightFormats = editor => editor.options.get('line_height_formats').split(' ');
     const isToolbarEnabled = editor => {
       const toolbar = getToolbar(editor);
@@ -8715,12 +8676,9 @@
         __proto__: null,
         get ToolbarMode () { return ToolbarMode$1; },
         get ToolbarLocation () { return ToolbarLocation$1; },
-        register: register$f,
+        register: register$e,
         getSkinUrl: getSkinUrl,
-        getSkinUrlOption: getSkinUrlOption,
         isReadOnly: isReadOnly,
-        isDisabled: isDisabled,
-        getSkin: getSkin,
         isSkinDisabled: isSkinDisabled,
         getHeightOption: getHeightOption,
         getWidthOption: getWidthOption,
@@ -8767,2193 +8725,12 @@
         getResize: getResize,
         getPasteAsText: getPasteAsText,
         getSidebarShow: getSidebarShow,
-        useHelpAccessibility: useHelpAccessibility,
-        getDefaultFontStack: getDefaultFontStack
+        useHelpAccessibility: useHelpAccessibility
     });
 
-    const nonScrollingOverflows = [
-      'visible',
-      'hidden',
-      'clip'
-    ];
-    const isScrollingOverflowValue = value => trim$1(value).length > 0 && !contains$2(nonScrollingOverflows, value);
-    const isScroller = elem => {
-      if (isHTMLElement(elem)) {
-        const overflowX = get$f(elem, 'overflow-x');
-        const overflowY = get$f(elem, 'overflow-y');
-        return isScrollingOverflowValue(overflowX) || isScrollingOverflowValue(overflowY);
-      } else {
-        return false;
-      }
-    };
-    const isFullscreen = editor => editor.plugins.fullscreen && editor.plugins.fullscreen.isFullscreen();
-    const detect = (editor, popupSinkElem) => {
-      const ancestorsScrollers = ancestors(popupSinkElem, isScroller);
-      const scrollers = ancestorsScrollers.length === 0 ? getShadowRoot(popupSinkElem).map(getShadowHost).map(x => ancestors(x, isScroller)).getOr([]) : ancestorsScrollers;
-      return head(scrollers).map(element => ({
-        element,
-        others: scrollers.slice(1),
-        isFullscreen: () => isFullscreen(editor)
-      }));
-    };
-    const detectWhenSplitUiMode = (editor, popupSinkElem) => isSplitUiMode(editor) ? detect(editor, popupSinkElem) : Optional.none();
-    const getBoundsFrom = sc => {
-      const scrollableBoxes = [
-        ...map$2(sc.others, box$1),
-        win()
-      ];
-      return sc.isFullscreen() ? win() : constrainByMany(box$1(sc.element), scrollableBoxes);
-    };
-
-    const factory$n = detail => {
-      const events = events$9(detail.action);
-      const tag = detail.dom.tag;
-      const lookupAttr = attr => get$h(detail.dom, 'attributes').bind(attrs => get$h(attrs, attr));
-      const getModAttributes = () => {
-        if (tag === 'button') {
-          const type = lookupAttr('type').getOr('button');
-          const roleAttrs = lookupAttr('role').map(role => ({ role })).getOr({});
-          return {
-            type,
-            ...roleAttrs
-          };
-        } else {
-          const role = detail.role.getOr(lookupAttr('role').getOr('button'));
-          return { role };
-        }
-      };
-      return {
-        uid: detail.uid,
-        dom: detail.dom,
-        components: detail.components,
-        events,
-        behaviours: SketchBehaviours.augment(detail.buttonBehaviours, [
-          Focusing.config({}),
-          Keying.config({
-            mode: 'execution',
-            useSpace: true,
-            useEnter: true
-          })
-        ]),
-        domModification: { attributes: getModAttributes() },
-        eventOrder: detail.eventOrder
-      };
-    };
-    const Button = single({
-      name: 'Button',
-      factory: factory$n,
-      configFields: [
-        defaulted('uid', undefined),
-        required$1('dom'),
-        defaulted('components', []),
-        SketchBehaviours.field('buttonBehaviours', [
-          Focusing,
-          Keying
-        ]),
-        option$3('action'),
-        option$3('role'),
-        defaulted('eventOrder', {})
-      ]
-    });
-
-    const getAttrs = elem => {
-      const attributes = elem.dom.attributes !== undefined ? elem.dom.attributes : [];
-      return foldl(attributes, (b, attr) => {
-        if (attr.name === 'class') {
-          return b;
-        } else {
-          return {
-            ...b,
-            [attr.name]: attr.value
-          };
-        }
-      }, {});
-    };
-    const getClasses = elem => Array.prototype.slice.call(elem.dom.classList, 0);
-    const fromHtml = html => {
-      const elem = SugarElement.fromHtml(html);
-      const children$1 = children(elem);
-      const attrs = getAttrs(elem);
-      const classes = getClasses(elem);
-      const contents = children$1.length === 0 ? {} : { innerHtml: get$8(elem) };
-      return {
-        tag: name$3(elem),
-        classes,
-        attributes: attrs,
-        ...contents
-      };
-    };
-
-    const record = spec => {
-      const uid = isSketchSpec(spec) && hasNonNullableKey(spec, 'uid') ? spec.uid : generate$5('memento');
-      const get = anyInSystem => anyInSystem.getSystem().getByUid(uid).getOrDie();
-      const getOpt = anyInSystem => anyInSystem.getSystem().getByUid(uid).toOptional();
-      const asSpec = () => ({
-        ...spec,
-        uid
-      });
-      return {
-        get,
-        getOpt,
-        asSpec
-      };
-    };
-
-    const exhibit$2 = (base, tabConfig) => nu$8({
-      attributes: wrapAll([{
-          key: tabConfig.tabAttr,
-          value: 'true'
-        }])
-    });
-
-    var ActiveTabstopping = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        exhibit: exhibit$2
-    });
-
-    var TabstopSchema = [defaulted('tabAttr', 'data-alloy-tabstop')];
-
-    const Tabstopping = create$4({
-      fields: TabstopSchema,
-      name: 'tabstopping',
-      active: ActiveTabstopping
-    });
-
-    const ExclusivityChannel = generate$6('tooltip.exclusive');
-    const ShowTooltipEvent = generate$6('tooltip.show');
-    const HideTooltipEvent = generate$6('tooltip.hide');
-    const ImmediateHideTooltipEvent = generate$6('tooltip.immediateHide');
-    const ImmediateShowTooltipEvent = generate$6('tooltip.immediateShow');
-
-    const hideAllExclusive = (component, _tConfig, _tState) => {
-      component.getSystem().broadcastOn([ExclusivityChannel], {});
-    };
-    const setComponents = (_component, _tConfig, tState, specs) => {
-      tState.getTooltip().each(tooltip => {
-        if (tooltip.getSystem().isConnected()) {
-          Replacing.set(tooltip, specs);
-        }
-      });
-    };
-    const isEnabled = (_component, _tConfig, tState) => tState.isEnabled();
-    const setEnabled = (_component, _tConfig, tState, enabled) => tState.setEnabled(enabled);
-    const immediateOpenClose = (component, _tConfig, _tState, open) => emit(component, open ? ImmediateShowTooltipEvent : ImmediateHideTooltipEvent);
-
-    var TooltippingApis = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        hideAllExclusive: hideAllExclusive,
-        immediateOpenClose: immediateOpenClose,
-        isEnabled: isEnabled,
-        setComponents: setComponents,
-        setEnabled: setEnabled
-    });
-
-    const events$8 = (tooltipConfig, state) => {
-      const hide = comp => {
-        state.getTooltip().each(p => {
-          if (p.getSystem().isConnected()) {
-            detach(p);
-            tooltipConfig.onHide(comp, p);
-            state.clearTooltip();
-          }
-        });
-        state.clearTimer();
-      };
-      const show = comp => {
-        if (!state.isShowing() && state.isEnabled()) {
-          hideAllExclusive(comp);
-          const sink = tooltipConfig.lazySink(comp).getOrDie();
-          const popup = comp.getSystem().build({
-            dom: tooltipConfig.tooltipDom,
-            components: tooltipConfig.tooltipComponents,
-            events: derive$2(tooltipConfig.mode === 'normal' ? [
-              run$1(mouseover(), _ => {
-                emit(comp, ShowTooltipEvent);
-              }),
-              run$1(mouseout(), _ => {
-                emit(comp, HideTooltipEvent);
-              })
-            ] : []),
-            behaviours: derive$1([Replacing.config({})])
-          });
-          state.setTooltip(popup);
-          attach(sink, popup);
-          tooltipConfig.onShow(comp, popup);
-          Positioning.position(sink, popup, { anchor: tooltipConfig.anchor(comp) });
-        }
-      };
-      const reposition = comp => {
-        state.getTooltip().each(tooltip => {
-          const sink = tooltipConfig.lazySink(comp).getOrDie();
-          Positioning.position(sink, tooltip, { anchor: tooltipConfig.anchor(comp) });
-        });
-      };
-      const getEvents = () => {
-        switch (tooltipConfig.mode) {
-        case 'normal':
-          return [
-            run$1(focusin(), comp => {
-              emit(comp, ImmediateShowTooltipEvent);
-            }),
-            run$1(postBlur(), comp => {
-              emit(comp, ImmediateHideTooltipEvent);
-            }),
-            run$1(mouseover(), comp => {
-              emit(comp, ShowTooltipEvent);
-            }),
-            run$1(mouseout(), comp => {
-              emit(comp, HideTooltipEvent);
-            })
-          ];
-        case 'follow-highlight':
-          return [
-            run$1(highlight$1(), (comp, _se) => {
-              emit(comp, ShowTooltipEvent);
-            }),
-            run$1(dehighlight$1(), comp => {
-              emit(comp, HideTooltipEvent);
-            })
-          ];
-        case 'children-normal':
-          return [
-            run$1(focusin(), (comp, se) => {
-              search(comp.element).each(_ => {
-                if (is(se.event.target, '[data-mce-tooltip]')) {
-                  state.getTooltip().fold(() => {
-                    emit(comp, ImmediateShowTooltipEvent);
-                  }, tooltip => {
-                    if (state.isShowing()) {
-                      tooltipConfig.onShow(comp, tooltip);
-                      reposition(comp);
-                    }
-                  });
-                }
-              });
-            }),
-            run$1(postBlur(), comp => {
-              search(comp.element).fold(() => {
-                emit(comp, ImmediateHideTooltipEvent);
-              }, noop);
-            }),
-            run$1(mouseover(), comp => {
-              descendant(comp.element, '[data-mce-tooltip]:hover').each(_ => {
-                state.getTooltip().fold(() => {
-                  emit(comp, ShowTooltipEvent);
-                }, tooltip => {
-                  if (state.isShowing()) {
-                    tooltipConfig.onShow(comp, tooltip);
-                    reposition(comp);
-                  }
-                });
-              });
-            }),
-            run$1(mouseout(), comp => {
-              descendant(comp.element, '[data-mce-tooltip]:hover').fold(() => {
-                emit(comp, HideTooltipEvent);
-              }, noop);
-            })
-          ];
-        default:
-          return [
-            run$1(focusin(), (comp, se) => {
-              search(comp.element).each(_ => {
-                if (is(se.event.target, '[data-mce-tooltip]')) {
-                  state.getTooltip().fold(() => {
-                    emit(comp, ImmediateShowTooltipEvent);
-                  }, tooltip => {
-                    if (state.isShowing()) {
-                      tooltipConfig.onShow(comp, tooltip);
-                      reposition(comp);
-                    }
-                  });
-                }
-              });
-            }),
-            run$1(postBlur(), comp => {
-              search(comp.element).fold(() => {
-                emit(comp, ImmediateHideTooltipEvent);
-              }, noop);
-            })
-          ];
-        }
-      };
-      return derive$2(flatten([
-        [
-          runOnInit(component => {
-            tooltipConfig.onSetup(component);
-          }),
-          run$1(ShowTooltipEvent, comp => {
-            state.resetTimer(() => {
-              show(comp);
-            }, tooltipConfig.delayForShow());
-          }),
-          run$1(HideTooltipEvent, comp => {
-            state.resetTimer(() => {
-              hide(comp);
-            }, tooltipConfig.delayForHide());
-          }),
-          run$1(ImmediateShowTooltipEvent, comp => {
-            state.resetTimer(() => {
-              show(comp);
-            }, 0);
-          }),
-          run$1(ImmediateHideTooltipEvent, comp => {
-            state.resetTimer(() => {
-              hide(comp);
-            }, 0);
-          }),
-          run$1(receive(), (comp, message) => {
-            const receivingData = message;
-            if (!receivingData.universal) {
-              if (contains$2(receivingData.channels, ExclusivityChannel)) {
-                hide(comp);
-              }
-            }
-          }),
-          runOnDetached(comp => {
-            hide(comp);
-          })
-        ],
-        getEvents()
-      ]));
-    };
-
-    var ActiveTooltipping = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        events: events$8
-    });
-
-    var TooltippingSchema = [
-      required$1('lazySink'),
-      required$1('tooltipDom'),
-      defaulted('exclusive', true),
-      defaulted('tooltipComponents', []),
-      defaultedFunction('delayForShow', constant$1(300)),
-      defaultedFunction('delayForHide', constant$1(100)),
-      defaultedFunction('onSetup', noop),
-      defaultedStringEnum('mode', 'normal', [
-        'normal',
-        'follow-highlight',
-        'children-keyboard-focus',
-        'children-normal'
-      ]),
-      defaulted('anchor', comp => ({
-        type: 'hotspot',
-        hotspot: comp,
-        layouts: {
-          onLtr: constant$1([
-            south$2,
-            north$2,
-            southeast$2,
-            northeast$2,
-            southwest$2,
-            northwest$2
-          ]),
-          onRtl: constant$1([
-            south$2,
-            north$2,
-            southeast$2,
-            northeast$2,
-            southwest$2,
-            northwest$2
-          ])
-        },
-        bubble: nu$5(0, -2, {})
-      })),
-      onHandler('onHide'),
-      onHandler('onShow')
-    ];
-
-    const init$a = () => {
-      const enabled = Cell(true);
-      const timer = value$4();
-      const popup = value$4();
-      const clearTimer = () => {
-        timer.on(clearTimeout);
-      };
-      const resetTimer = (f, delay) => {
-        clearTimer();
-        timer.set(setTimeout(f, delay));
-      };
-      const readState = constant$1('not-implemented');
-      return nu$7({
-        getTooltip: popup.get,
-        isShowing: popup.isSet,
-        setTooltip: popup.set,
-        clearTooltip: popup.clear,
-        clearTimer,
-        resetTimer,
-        readState,
-        isEnabled: () => enabled.get(),
-        setEnabled: setToEnabled => enabled.set(setToEnabled)
-      });
-    };
-
-    var TooltippingState = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        init: init$a
-    });
-
-    const Tooltipping = create$4({
-      fields: TooltippingSchema,
-      name: 'tooltipping',
-      active: ActiveTooltipping,
-      state: TooltippingState,
-      apis: TooltippingApis
-    });
-
-    /*! @license DOMPurify 3.2.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.4/LICENSE */
-
-    const {
-      entries,
-      setPrototypeOf,
-      isFrozen,
-      getPrototypeOf,
-      getOwnPropertyDescriptor
-    } = Object;
-    let {
-      freeze,
-      seal,
-      create: create$1
-    } = Object; // eslint-disable-line import/no-mutable-exports
-    let {
-      apply,
-      construct
-    } = typeof Reflect !== 'undefined' && Reflect;
-    if (!freeze) {
-      freeze = function freeze(x) {
-        return x;
-      };
-    }
-    if (!seal) {
-      seal = function seal(x) {
-        return x;
-      };
-    }
-    if (!apply) {
-      apply = function apply(fun, thisValue, args) {
-        return fun.apply(thisValue, args);
-      };
-    }
-    if (!construct) {
-      construct = function construct(Func, args) {
-        return new Func(...args);
-      };
-    }
-    const arrayForEach = unapply(Array.prototype.forEach);
-    const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
-    const arrayPop = unapply(Array.prototype.pop);
-    const arrayPush = unapply(Array.prototype.push);
-    const arraySplice = unapply(Array.prototype.splice);
-    const stringToLowerCase = unapply(String.prototype.toLowerCase);
-    const stringToString = unapply(String.prototype.toString);
-    const stringMatch = unapply(String.prototype.match);
-    const stringReplace = unapply(String.prototype.replace);
-    const stringIndexOf = unapply(String.prototype.indexOf);
-    const stringTrim = unapply(String.prototype.trim);
-    const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
-    const regExpTest = unapply(RegExp.prototype.test);
-    const typeErrorCreate = unconstruct(TypeError);
-    /**
-     * Creates a new function that calls the given function with a specified thisArg and arguments.
-     *
-     * @param func - The function to be wrapped and called.
-     * @returns A new function that calls the given function with a specified thisArg and arguments.
-     */
-    function unapply(func) {
-      return function (thisArg) {
-        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
-        }
-        return apply(func, thisArg, args);
-      };
-    }
-    /**
-     * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
-     *
-     * @param func - The constructor function to be wrapped and called.
-     * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
-     */
-    function unconstruct(func) {
-      return function () {
-        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
-        }
-        return construct(func, args);
-      };
-    }
-    /**
-     * Add properties to a lookup table
-     *
-     * @param set - The set to which elements will be added.
-     * @param array - The array containing elements to be added to the set.
-     * @param transformCaseFunc - An optional function to transform the case of each element before adding to the set.
-     * @returns The modified set with added elements.
-     */
-    function addToSet(set, array) {
-      let transformCaseFunc = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : stringToLowerCase;
-      if (setPrototypeOf) {
-        // Make 'in' and truthy checks like Boolean(set.constructor)
-        // independent of any properties defined on Object.prototype.
-        // Prevent prototype setters from intercepting set as a this value.
-        setPrototypeOf(set, null);
-      }
-      let l = array.length;
-      while (l--) {
-        let element = array[l];
-        if (typeof element === 'string') {
-          const lcElement = transformCaseFunc(element);
-          if (lcElement !== element) {
-            // Config presets (e.g. tags.js, attrs.js) are immutable.
-            if (!isFrozen(array)) {
-              array[l] = lcElement;
-            }
-            element = lcElement;
-          }
-        }
-        set[element] = true;
-      }
-      return set;
-    }
-    /**
-     * Clean up an array to harden against CSPP
-     *
-     * @param array - The array to be cleaned.
-     * @returns The cleaned version of the array
-     */
-    function cleanArray(array) {
-      for (let index = 0; index < array.length; index++) {
-        const isPropertyExist = objectHasOwnProperty(array, index);
-        if (!isPropertyExist) {
-          array[index] = null;
-        }
-      }
-      return array;
-    }
-    /**
-     * Shallow clone an object
-     *
-     * @param object - The object to be cloned.
-     * @returns A new object that copies the original.
-     */
-    function clone(object) {
-      const newObject = create$1(null);
-      for (const [property, value] of entries(object)) {
-        const isPropertyExist = objectHasOwnProperty(object, property);
-        if (isPropertyExist) {
-          if (Array.isArray(value)) {
-            newObject[property] = cleanArray(value);
-          } else if (value && typeof value === 'object' && value.constructor === Object) {
-            newObject[property] = clone(value);
-          } else {
-            newObject[property] = value;
-          }
-        }
-      }
-      return newObject;
-    }
-    /**
-     * This method automatically checks if the prop is function or getter and behaves accordingly.
-     *
-     * @param object - The object to look up the getter function in its prototype chain.
-     * @param prop - The property name for which to find the getter function.
-     * @returns The getter function found in the prototype chain or a fallback function.
-     */
-    function lookupGetter(object, prop) {
-      while (object !== null) {
-        const desc = getOwnPropertyDescriptor(object, prop);
-        if (desc) {
-          if (desc.get) {
-            return unapply(desc.get);
-          }
-          if (typeof desc.value === 'function') {
-            return unapply(desc.value);
-          }
-        }
-        object = getPrototypeOf(object);
-      }
-      function fallbackValue() {
-        return null;
-      }
-      return fallbackValue;
-    }
-
-    const html$1 = freeze(['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr']);
-    const svg$1 = freeze(['svg', 'a', 'altglyph', 'altglyphdef', 'altglyphitem', 'animatecolor', 'animatemotion', 'animatetransform', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'filter', 'font', 'g', 'glyph', 'glyphref', 'hkern', 'image', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'mpath', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'style', 'switch', 'symbol', 'text', 'textpath', 'title', 'tref', 'tspan', 'view', 'vkern']);
-    const svgFilters = freeze(['feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feDropShadow', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feImage', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence']);
-    // List of SVG elements that are disallowed by default.
-    // We still need to know them so that we can do namespace
-    // checks properly in case one wants to add them to
-    // allow-list.
-    const svgDisallowed = freeze(['animate', 'color-profile', 'cursor', 'discard', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignobject', 'hatch', 'hatchpath', 'mesh', 'meshgradient', 'meshpatch', 'meshrow', 'missing-glyph', 'script', 'set', 'solidcolor', 'unknown', 'use']);
-    const mathMl$1 = freeze(['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'ms', 'mspace', 'msqrt', 'mstyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover', 'mprescripts']);
-    // Similarly to SVG, we want to know all MathML elements,
-    // even those that we disallow by default.
-    const mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongdiv', 'mscarries', 'mscarry', 'msgroup', 'mstack', 'msline', 'msrow', 'semantics', 'annotation', 'annotation-xml', 'mprescripts', 'none']);
-    const text$1 = freeze(['#text']);
-
-    const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'playsinline', 'popover', 'popovertarget', 'popovertargetaction', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'wrap', 'xmlns', 'slot']);
-    const svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'amplitude', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'exponent', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'intercept', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'slope', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'tablevalues', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
-    const mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
-    const xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
-
-    // eslint-disable-next-line unicorn/better-regex
-    const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
-    const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
-    const TMPLIT_EXPR = seal(/\$\{[\w\W]*/gm); // eslint-disable-line unicorn/better-regex
-    const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
-    const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
-    const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
-    );
-    const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
-    const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
-    );
-    const DOCTYPE_NAME = seal(/^html$/i);
-    const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
-
-    var EXPRESSIONS = /*#__PURE__*/Object.freeze({
-      __proto__: null,
-      ARIA_ATTR: ARIA_ATTR,
-      ATTR_WHITESPACE: ATTR_WHITESPACE,
-      CUSTOM_ELEMENT: CUSTOM_ELEMENT,
-      DATA_ATTR: DATA_ATTR,
-      DOCTYPE_NAME: DOCTYPE_NAME,
-      ERB_EXPR: ERB_EXPR,
-      IS_ALLOWED_URI: IS_ALLOWED_URI,
-      IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
-      MUSTACHE_EXPR: MUSTACHE_EXPR,
-      TMPLIT_EXPR: TMPLIT_EXPR
-    });
-
-    /* eslint-disable @typescript-eslint/indent */
-    // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
-    const NODE_TYPE = {
-      element: 1,
-      attribute: 2,
-      text: 3,
-      cdataSection: 4,
-      entityReference: 5,
-      // Deprecated
-      entityNode: 6,
-      // Deprecated
-      progressingInstruction: 7,
-      comment: 8,
-      document: 9,
-      documentType: 10,
-      documentFragment: 11,
-      notation: 12 // Deprecated
-    };
-    const getGlobal = function getGlobal() {
-      return typeof window === 'undefined' ? null : window;
-    };
-    /**
-     * Creates a no-op policy for internal use only.
-     * Don't export this function outside this module!
-     * @param trustedTypes The policy factory.
-     * @param purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
-     * @return The policy created (or null, if Trusted Types
-     * are not supported or creating the policy failed).
-     */
-    const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement) {
-      if (typeof trustedTypes !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
-        return null;
-      }
-      // Allow the callers to control the unique policy name
-      // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
-      // Policy creation with duplicate names throws in Trusted Types.
-      let suffix = null;
-      const ATTR_NAME = 'data-tt-policy-suffix';
-      if (purifyHostElement && purifyHostElement.hasAttribute(ATTR_NAME)) {
-        suffix = purifyHostElement.getAttribute(ATTR_NAME);
-      }
-      const policyName = 'dompurify' + (suffix ? '#' + suffix : '');
-      try {
-        return trustedTypes.createPolicy(policyName, {
-          createHTML(html) {
-            return html;
-          },
-          createScriptURL(scriptUrl) {
-            return scriptUrl;
-          }
-        });
-      } catch (_) {
-        // Policy creation failed (most likely another DOMPurify script has
-        // already run). Skip creating the policy, as this will only cause errors
-        // if TT are enforced.
-        console.warn('TrustedTypes policy ' + policyName + ' could not be created.');
-        return null;
-      }
-    };
-    const _createHooksMap = function _createHooksMap() {
-      return {
-        afterSanitizeAttributes: [],
-        afterSanitizeElements: [],
-        afterSanitizeShadowDOM: [],
-        beforeSanitizeAttributes: [],
-        beforeSanitizeElements: [],
-        beforeSanitizeShadowDOM: [],
-        uponSanitizeAttribute: [],
-        uponSanitizeElement: [],
-        uponSanitizeShadowNode: []
-      };
-    };
-    function createDOMPurify() {
-      let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
-      const DOMPurify = root => createDOMPurify(root);
-      DOMPurify.version = '3.2.4';
-      DOMPurify.removed = [];
-      if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
-        // Not running in a browser, provide a factory function
-        // so that you can pass your own Window
-        DOMPurify.isSupported = false;
-        return DOMPurify;
-      }
-      let {
-        document
-      } = window;
-      const originalDocument = document;
-      const currentScript = originalDocument.currentScript;
-      const {
-        DocumentFragment,
-        HTMLTemplateElement,
-        Node,
-        Element,
-        NodeFilter,
-        NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
-        HTMLFormElement,
-        DOMParser,
-        trustedTypes
-      } = window;
-      const ElementPrototype = Element.prototype;
-      const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
-      const remove = lookupGetter(ElementPrototype, 'remove');
-      const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
-      const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
-      const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
-      // As per issue #47, the web-components registry is inherited by a
-      // new document created via createHTMLDocument. As per the spec
-      // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
-      // a new empty registry is used when creating a template contents owner
-      // document, so we use that as our parent document to ensure nothing
-      // is inherited.
-      if (typeof HTMLTemplateElement === 'function') {
-        const template = document.createElement('template');
-        if (template.content && template.content.ownerDocument) {
-          document = template.content.ownerDocument;
-        }
-      }
-      let trustedTypesPolicy;
-      let emptyHTML = '';
-      const {
-        implementation,
-        createNodeIterator,
-        createDocumentFragment,
-        getElementsByTagName
-      } = document;
-      const {
-        importNode
-      } = originalDocument;
-      let hooks = _createHooksMap();
-      /**
-       * Expose whether this browser supports running the full DOMPurify.
-       */
-      DOMPurify.isSupported = typeof entries === 'function' && typeof getParentNode === 'function' && implementation && implementation.createHTMLDocument !== undefined;
-      const {
-        MUSTACHE_EXPR,
-        ERB_EXPR,
-        TMPLIT_EXPR,
-        DATA_ATTR,
-        ARIA_ATTR,
-        IS_SCRIPT_OR_DATA,
-        ATTR_WHITESPACE,
-        CUSTOM_ELEMENT
-      } = EXPRESSIONS;
-      let {
-        IS_ALLOWED_URI: IS_ALLOWED_URI$1
-      } = EXPRESSIONS;
-      /**
-       * We consider the elements and attributes below to be safe. Ideally
-       * don't add any new ones but feel free to remove unwanted ones.
-       */
-      /* allowed element names */
-      let ALLOWED_TAGS = null;
-      const DEFAULT_ALLOWED_TAGS = addToSet({}, [...html$1, ...svg$1, ...svgFilters, ...mathMl$1, ...text$1]);
-      /* Allowed attribute names */
-      let ALLOWED_ATTR = null;
-      const DEFAULT_ALLOWED_ATTR = addToSet({}, [...html, ...svg, ...mathMl, ...xml]);
-      /*
-       * Configure how DOMPurify should handle custom elements and their attributes as well as customized built-in elements.
-       * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
-       * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
-       * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
-       */
-      let CUSTOM_ELEMENT_HANDLING = Object.seal(create$1(null, {
-        tagNameCheck: {
-          writable: true,
-          configurable: false,
-          enumerable: true,
-          value: null
-        },
-        attributeNameCheck: {
-          writable: true,
-          configurable: false,
-          enumerable: true,
-          value: null
-        },
-        allowCustomizedBuiltInElements: {
-          writable: true,
-          configurable: false,
-          enumerable: true,
-          value: false
-        }
-      }));
-      /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
-      let FORBID_TAGS = null;
-      /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
-      let FORBID_ATTR = null;
-      /* Decide if ARIA attributes are okay */
-      let ALLOW_ARIA_ATTR = true;
-      /* Decide if custom data attributes are okay */
-      let ALLOW_DATA_ATTR = true;
-      /* Decide if unknown protocols are okay */
-      let ALLOW_UNKNOWN_PROTOCOLS = false;
-      /* Decide if self-closing tags in attributes are allowed.
-       * Usually removed due to a mXSS issue in jQuery 3.0 */
-      let ALLOW_SELF_CLOSE_IN_ATTR = true;
-      /* Output should be safe for common template engines.
-       * This means, DOMPurify removes data attributes, mustaches and ERB
-       */
-      let SAFE_FOR_TEMPLATES = false;
-      /* Output should be safe even for XML used within HTML and alike.
-       * This means, DOMPurify removes comments when containing risky content.
-       */
-      let SAFE_FOR_XML = true;
-      /* Decide if document with <html>... should be returned */
-      let WHOLE_DOCUMENT = false;
-      /* Track whether config is already set on this instance of DOMPurify. */
-      let SET_CONFIG = false;
-      /* Decide if all elements (e.g. style, script) must be children of
-       * document.body. By default, browsers might move them to document.head */
-      let FORCE_BODY = false;
-      /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
-       * string (or a TrustedHTML object if Trusted Types are supported).
-       * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
-       */
-      let RETURN_DOM = false;
-      /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
-       * string  (or a TrustedHTML object if Trusted Types are supported) */
-      let RETURN_DOM_FRAGMENT = false;
-      /* Try to return a Trusted Type object instead of a string, return a string in
-       * case Trusted Types are not supported  */
-      let RETURN_TRUSTED_TYPE = false;
-      /* Output should be free from DOM clobbering attacks?
-       * This sanitizes markups named with colliding, clobberable built-in DOM APIs.
-       */
-      let SANITIZE_DOM = true;
-      /* Achieve full DOM Clobbering protection by isolating the namespace of named
-       * properties and JS variables, mitigating attacks that abuse the HTML/DOM spec rules.
-       *
-       * HTML/DOM spec rules that enable DOM Clobbering:
-       *   - Named Access on Window (§7.3.3)
-       *   - DOM Tree Accessors (§3.1.5)
-       *   - Form Element Parent-Child Relations (§4.10.3)
-       *   - Iframe srcdoc / Nested WindowProxies (§4.8.5)
-       *   - HTMLCollection (§4.2.10.2)
-       *
-       * Namespace isolation is implemented by prefixing `id` and `name` attributes
-       * with a constant string, i.e., `user-content-`
-       */
-      let SANITIZE_NAMED_PROPS = false;
-      const SANITIZE_NAMED_PROPS_PREFIX = 'user-content-';
-      /* Keep element content when removing element? */
-      let KEEP_CONTENT = true;
-      /* If a `Node` is passed to sanitize(), then performs sanitization in-place instead
-       * of importing it into a new Document and returning a sanitized copy */
-      let IN_PLACE = false;
-      /* Allow usage of profiles like html, svg and mathMl */
-      let USE_PROFILES = {};
-      /* Tags to ignore content of when KEEP_CONTENT is true */
-      let FORBID_CONTENTS = null;
-      const DEFAULT_FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'noscript', 'plaintext', 'script', 'style', 'svg', 'template', 'thead', 'title', 'video', 'xmp']);
-      /* Tags that are safe for data: URIs */
-      let DATA_URI_TAGS = null;
-      const DEFAULT_DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image', 'track']);
-      /* Attributes safe for values like "javascript:" */
-      let URI_SAFE_ATTRIBUTES = null;
-      const DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'role', 'summary', 'title', 'value', 'style', 'xmlns']);
-      const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
-      const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
-      const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
-      /* Document namespace */
-      let NAMESPACE = HTML_NAMESPACE;
-      let IS_EMPTY_INPUT = false;
-      /* Allowed XHTML+XML namespaces */
-      let ALLOWED_NAMESPACES = null;
-      const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
-      let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-      let HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
-      // Certain elements are allowed in both SVG and HTML
-      // namespace. We need to specify them explicitly
-      // so that they don't get erroneously deleted from
-      // HTML namespace.
-      const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
-      /* Parsing of strict XHTML documents */
-      let PARSER_MEDIA_TYPE = null;
-      const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
-      const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-      let transformCaseFunc = null;
-      /* Keep a reference to config to pass to hooks */
-      let CONFIG = null;
-      /* Ideally, do not touch anything below this line */
-      /* ______________________________________________ */
-      const formElement = document.createElement('form');
-      const isRegexOrFunction = function isRegexOrFunction(testValue) {
-        return testValue instanceof RegExp || testValue instanceof Function;
-      };
-      /**
-       * _parseConfig
-       *
-       * @param cfg optional config literal
-       */
-      // eslint-disable-next-line complexity
-      const _parseConfig = function _parseConfig() {
-        let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        if (CONFIG && CONFIG === cfg) {
-          return;
-        }
-        /* Shield configuration object from tampering */
-        if (!cfg || typeof cfg !== 'object') {
-          cfg = {};
-        }
-        /* Shield configuration object from prototype pollution */
-        cfg = clone(cfg);
-        PARSER_MEDIA_TYPE =
-        // eslint-disable-next-line unicorn/prefer-includes
-        SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? DEFAULT_PARSER_MEDIA_TYPE : cfg.PARSER_MEDIA_TYPE;
-        // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
-        transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
-        /* Set configuration parameters */
-        ALLOWED_TAGS = objectHasOwnProperty(cfg, 'ALLOWED_TAGS') ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
-        ALLOWED_ATTR = objectHasOwnProperty(cfg, 'ALLOWED_ATTR') ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
-        ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES') ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
-        URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
-        DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
-        FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS') ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
-        FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
-        FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
-        USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES') ? cfg.USE_PROFILES : false;
-        ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
-        ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
-        ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
-        ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
-        SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
-        SAFE_FOR_XML = cfg.SAFE_FOR_XML !== false; // Default true
-        WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
-        RETURN_DOM = cfg.RETURN_DOM || false; // Default false
-        RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
-        RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
-        FORCE_BODY = cfg.FORCE_BODY || false; // Default false
-        SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
-        SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
-        KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
-        IN_PLACE = cfg.IN_PLACE || false; // Default false
-        IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
-        NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
-        MATHML_TEXT_INTEGRATION_POINTS = cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
-        HTML_INTEGRATION_POINTS = cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
-        CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
-        if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
-        }
-        if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)) {
-          CUSTOM_ELEMENT_HANDLING.attributeNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
-        }
-        if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === 'boolean') {
-          CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
-        }
-        if (SAFE_FOR_TEMPLATES) {
-          ALLOW_DATA_ATTR = false;
-        }
-        if (RETURN_DOM_FRAGMENT) {
-          RETURN_DOM = true;
-        }
-        /* Parse profile info */
-        if (USE_PROFILES) {
-          ALLOWED_TAGS = addToSet({}, text$1);
-          ALLOWED_ATTR = [];
-          if (USE_PROFILES.html === true) {
-            addToSet(ALLOWED_TAGS, html$1);
-            addToSet(ALLOWED_ATTR, html);
-          }
-          if (USE_PROFILES.svg === true) {
-            addToSet(ALLOWED_TAGS, svg$1);
-            addToSet(ALLOWED_ATTR, svg);
-            addToSet(ALLOWED_ATTR, xml);
-          }
-          if (USE_PROFILES.svgFilters === true) {
-            addToSet(ALLOWED_TAGS, svgFilters);
-            addToSet(ALLOWED_ATTR, svg);
-            addToSet(ALLOWED_ATTR, xml);
-          }
-          if (USE_PROFILES.mathMl === true) {
-            addToSet(ALLOWED_TAGS, mathMl$1);
-            addToSet(ALLOWED_ATTR, mathMl);
-            addToSet(ALLOWED_ATTR, xml);
-          }
-        }
-        /* Merge configuration parameters */
-        if (cfg.ADD_TAGS) {
-          if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
-            ALLOWED_TAGS = clone(ALLOWED_TAGS);
-          }
-          addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
-        }
-        if (cfg.ADD_ATTR) {
-          if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
-            ALLOWED_ATTR = clone(ALLOWED_ATTR);
-          }
-          addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
-        }
-        if (cfg.ADD_URI_SAFE_ATTR) {
-          addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
-        }
-        if (cfg.FORBID_CONTENTS) {
-          if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
-            FORBID_CONTENTS = clone(FORBID_CONTENTS);
-          }
-          addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
-        }
-        /* Add #text in case KEEP_CONTENT is set to true */
-        if (KEEP_CONTENT) {
-          ALLOWED_TAGS['#text'] = true;
-        }
-        /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
-        if (WHOLE_DOCUMENT) {
-          addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
-        }
-        /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286, #365 */
-        if (ALLOWED_TAGS.table) {
-          addToSet(ALLOWED_TAGS, ['tbody']);
-          delete FORBID_TAGS.tbody;
-        }
-        if (cfg.TRUSTED_TYPES_POLICY) {
-          if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== 'function') {
-            throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.');
-          }
-          if (typeof cfg.TRUSTED_TYPES_POLICY.createScriptURL !== 'function') {
-            throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.');
-          }
-          // Overwrite existing TrustedTypes policy.
-          trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY;
-          // Sign local variables required by `sanitize`.
-          emptyHTML = trustedTypesPolicy.createHTML('');
-        } else {
-          // Uninitialized policy, attempt to initialize the internal dompurify policy.
-          if (trustedTypesPolicy === undefined) {
-            trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
-          }
-          // If creating the internal policy succeeded sign internal variables.
-          if (trustedTypesPolicy !== null && typeof emptyHTML === 'string') {
-            emptyHTML = trustedTypesPolicy.createHTML('');
-          }
-        }
-        // Prevent further manipulation of configuration.
-        // Not available in IE8, Safari 5, etc.
-        if (freeze) {
-          freeze(cfg);
-        }
-        CONFIG = cfg;
-      };
-      /* Keep track of all possible SVG and MathML tags
-       * so that we can perform the namespace checks
-       * correctly. */
-      const ALL_SVG_TAGS = addToSet({}, [...svg$1, ...svgFilters, ...svgDisallowed]);
-      const ALL_MATHML_TAGS = addToSet({}, [...mathMl$1, ...mathMlDisallowed]);
-      /**
-       * @param element a DOM element whose namespace is being checked
-       * @returns Return false if the element has a
-       *  namespace that a spec-compliant parser would never
-       *  return. Return true otherwise.
-       */
-      const _checkValidNamespace = function _checkValidNamespace(element) {
-        let parent = getParentNode(element);
-        // In JSDOM, if we're inside shadow DOM, then parentNode
-        // can be null. We just simulate parent in this case.
-        if (!parent || !parent.tagName) {
-          parent = {
-            namespaceURI: NAMESPACE,
-            tagName: 'template'
-          };
-        }
-        const tagName = stringToLowerCase(element.tagName);
-        const parentTagName = stringToLowerCase(parent.tagName);
-        if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
-          return false;
-        }
-        if (element.namespaceURI === SVG_NAMESPACE) {
-          // The only way to switch from HTML namespace to SVG
-          // is via <svg>. If it happens via any other tag, then
-          // it should be killed.
-          if (parent.namespaceURI === HTML_NAMESPACE) {
-            return tagName === 'svg';
-          }
-          // The only way to switch from MathML to SVG is via`
-          // svg if parent is either <annotation-xml> or MathML
-          // text integration points.
-          if (parent.namespaceURI === MATHML_NAMESPACE) {
-            return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
-          }
-          // We only allow elements that are defined in SVG
-          // spec. All others are disallowed in SVG namespace.
-          return Boolean(ALL_SVG_TAGS[tagName]);
-        }
-        if (element.namespaceURI === MATHML_NAMESPACE) {
-          // The only way to switch from HTML namespace to MathML
-          // is via <math>. If it happens via any other tag, then
-          // it should be killed.
-          if (parent.namespaceURI === HTML_NAMESPACE) {
-            return tagName === 'math';
-          }
-          // The only way to switch from SVG to MathML is via
-          // <math> and HTML integration points
-          if (parent.namespaceURI === SVG_NAMESPACE) {
-            return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
-          }
-          // We only allow elements that are defined in MathML
-          // spec. All others are disallowed in MathML namespace.
-          return Boolean(ALL_MATHML_TAGS[tagName]);
-        }
-        if (element.namespaceURI === HTML_NAMESPACE) {
-          // The only way to switch from SVG to HTML is via
-          // HTML integration points, and from MathML to HTML
-          // is via MathML text integration points
-          if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) {
-            return false;
-          }
-          if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) {
-            return false;
-          }
-          // We disallow tags that are specific for MathML
-          // or SVG and should never appear in HTML namespace
-          return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
-        }
-        // For XHTML and XML documents that support custom namespaces
-        if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ALLOWED_NAMESPACES[element.namespaceURI]) {
-          return true;
-        }
-        // The code should never reach this place (this means
-        // that the element somehow got namespace that is not
-        // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
-        // Return false just in case.
-        return false;
-      };
-      /**
-       * _forceRemove
-       *
-       * @param node a DOM node
-       */
-      const _forceRemove = function _forceRemove(node) {
-        arrayPush(DOMPurify.removed, {
-          element: node
-        });
-        try {
-          // eslint-disable-next-line unicorn/prefer-dom-node-remove
-          getParentNode(node).removeChild(node);
-        } catch (_) {
-          remove(node);
-        }
-      };
-      /**
-       * _removeAttribute
-       *
-       * @param name an Attribute name
-       * @param element a DOM node
-       */
-      const _removeAttribute = function _removeAttribute(name, element) {
-        try {
-          arrayPush(DOMPurify.removed, {
-            attribute: element.getAttributeNode(name),
-            from: element
-          });
-        } catch (_) {
-          arrayPush(DOMPurify.removed, {
-            attribute: null,
-            from: element
-          });
-        }
-        element.removeAttribute(name);
-        // We void attribute values for unremovable "is" attributes
-        if (name === 'is') {
-          if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
-            try {
-              _forceRemove(element);
-            } catch (_) {}
-          } else {
-            try {
-              element.setAttribute(name, '');
-            } catch (_) {}
-          }
-        }
-      };
-      /**
-       * _initDocument
-       *
-       * @param dirty - a string of dirty markup
-       * @return a DOM, filled with the dirty markup
-       */
-      const _initDocument = function _initDocument(dirty) {
-        /* Create a HTML document */
-        let doc = null;
-        let leadingWhitespace = null;
-        if (FORCE_BODY) {
-          dirty = '<remove></remove>' + dirty;
-        } else {
-          /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
-          const matches = stringMatch(dirty, /^[\r\n\t ]+/);
-          leadingWhitespace = matches && matches[0];
-        }
-        if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
-          // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
-          dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
-        }
-        const dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
-        /*
-         * Use the DOMParser API by default, fallback later if needs be
-         * DOMParser not work for svg when has multiple root element.
-         */
-        if (NAMESPACE === HTML_NAMESPACE) {
-          try {
-            doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
-          } catch (_) {}
-        }
-        /* Use createHTMLDocument in case DOMParser is not available */
-        if (!doc || !doc.documentElement) {
-          doc = implementation.createDocument(NAMESPACE, 'template', null);
-          try {
-            doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
-          } catch (_) {
-            // Syntax error if dirtyPayload is invalid xml
-          }
-        }
-        const body = doc.body || doc.documentElement;
-        if (dirty && leadingWhitespace) {
-          body.insertBefore(document.createTextNode(leadingWhitespace), body.childNodes[0] || null);
-        }
-        /* Work on whole document or just its body */
-        if (NAMESPACE === HTML_NAMESPACE) {
-          return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
-        }
-        return WHOLE_DOCUMENT ? doc.documentElement : body;
-      };
-      /**
-       * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
-       *
-       * @param root The root element or node to start traversing on.
-       * @return The created NodeIterator
-       */
-      const _createNodeIterator = function _createNodeIterator(root) {
-        return createNodeIterator.call(root.ownerDocument || root, root,
-        // eslint-disable-next-line no-bitwise
-        NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
-      };
-      /**
-       * _isClobbered
-       *
-       * @param element element to check for clobbering attacks
-       * @return true if clobbered, false if safe
-       */
-      const _isClobbered = function _isClobbered(element) {
-        return element instanceof HTMLFormElement && (typeof element.nodeName !== 'string' || typeof element.textContent !== 'string' || typeof element.removeChild !== 'function' || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function');
-      };
-      /**
-       * Checks whether the given object is a DOM node.
-       *
-       * @param value object to check whether it's a DOM node
-       * @return true is object is a DOM node
-       */
-      const _isNode = function _isNode(value) {
-        return typeof Node === 'function' && value instanceof Node;
-      };
-      function _executeHooks(hooks, currentNode, data) {
-        arrayForEach(hooks, hook => {
-          hook.call(DOMPurify, currentNode, data, CONFIG);
-        });
-      }
-      /**
-       * _sanitizeElements
-       *
-       * @protect nodeName
-       * @protect textContent
-       * @protect removeChild
-       * @param currentNode to check for permission to exist
-       * @return true if node was killed, false if left alive
-       */
-      const _sanitizeElements = function _sanitizeElements(currentNode) {
-        let content = null;
-        /* Execute a hook if present */
-        _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
-        /* Check if element is clobbered or can clobber */
-        if (_isClobbered(currentNode)) {
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Now let's check the element's type and name */
-        const tagName = transformCaseFunc(currentNode.nodeName);
-        /* Execute a hook if present */
-        _executeHooks(hooks.uponSanitizeElement, currentNode, {
-          tagName,
-          allowedTags: ALLOWED_TAGS
-        });
-        /* Detect mXSS attempts abusing namespace confusion */
-        if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Remove any occurrence of processing instructions */
-        if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Remove any kind of possibly harmful comments */
-        if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(/<[/\w]/g, currentNode.data)) {
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Remove element if anything forbids its presence */
-        if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-          /* Check if we have a custom element to handle */
-          if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
-            if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) {
-              return false;
-            }
-            if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) {
-              return false;
-            }
-          }
-          /* Keep content except for bad-listed elements */
-          if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-            const parentNode = getParentNode(currentNode) || currentNode.parentNode;
-            const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
-            if (childNodes && parentNode) {
-              const childCount = childNodes.length;
-              for (let i = childCount - 1; i >= 0; --i) {
-                const childClone = cloneNode(childNodes[i], true);
-                childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
-                parentNode.insertBefore(childClone, getNextSibling(currentNode));
-              }
-            }
-          }
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Check whether element has a valid namespace */
-        if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Make sure that older browsers don't get fallback-tag mXSS */
-        if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
-          _forceRemove(currentNode);
-          return true;
-        }
-        /* Sanitize element content to be template-safe */
-        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
-          /* Get the element's text content */
-          content = currentNode.textContent;
-          arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
-            content = stringReplace(content, expr, ' ');
-          });
-          if (currentNode.textContent !== content) {
-            arrayPush(DOMPurify.removed, {
-              element: currentNode.cloneNode()
-            });
-            currentNode.textContent = content;
-          }
-        }
-        /* Execute a hook if present */
-        _executeHooks(hooks.afterSanitizeElements, currentNode, null);
-        return false;
-      };
-      /**
-       * _isValidAttribute
-       *
-       * @param lcTag Lowercase tag name of containing element.
-       * @param lcName Lowercase attribute name.
-       * @param value Attribute value.
-       * @return Returns true if `value` is valid, otherwise false.
-       */
-      // eslint-disable-next-line complexity
-      const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
-        /* Make sure attribute cannot clobber */
-        if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
-          return false;
-        }
-        /* Allow valid data-* attributes: At least one character after "-"
-            (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
-            XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
-            We don't need to check the value; it's always URI safe. */
-        if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) ; else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-          if (
-          // First condition does a very basic check if a) it's basically a valid custom element tagname AND
-          // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
-          // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
-          _isBasicCustomElement(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) ||
-          // Alternative, second condition checks if it's an `is`-attribute, AND
-          // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
-          lcName === 'is' && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value))) ; else {
-            return false;
-          }
-          /* Check value is safe. First, is attr inert? If so, is safe */
-        } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA, stringReplace(value, ATTR_WHITESPACE, ''))) ; else if (value) {
-          return false;
-        } else ;
-        return true;
-      };
-      /**
-       * _isBasicCustomElement
-       * checks if at least one dash is included in tagName, and it's not the first char
-       * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
-       *
-       * @param tagName name of the tag of the node to sanitize
-       * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
-       */
-      const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
-        return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
-      };
-      /**
-       * _sanitizeAttributes
-       *
-       * @protect attributes
-       * @protect nodeName
-       * @protect removeAttribute
-       * @protect setAttribute
-       *
-       * @param currentNode to sanitize
-       */
-      const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
-        /* Execute a hook if present */
-        _executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
-        const {
-          attributes
-        } = currentNode;
-        /* Check if we have attributes; if not we might have a text node */
-        if (!attributes || _isClobbered(currentNode)) {
-          return;
-        }
-        const hookEvent = {
-          attrName: '',
-          attrValue: '',
-          keepAttr: true,
-          allowedAttributes: ALLOWED_ATTR,
-          forceKeepAttr: undefined
-        };
-        let l = attributes.length;
-        /* Go backwards over all attributes; safely remove bad ones */
-        while (l--) {
-          const attr = attributes[l];
-          const {
-            name,
-            namespaceURI,
-            value: attrValue
-          } = attr;
-          const lcName = transformCaseFunc(name);
-          let value = name === 'value' ? attrValue : stringTrim(attrValue);
-          const initValue = value;
-          /* Execute a hook if present */
-          hookEvent.attrName = lcName;
-          hookEvent.attrValue = value;
-          hookEvent.keepAttr = true;
-          hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
-          _executeHooks(hooks.uponSanitizeAttribute, currentNode, hookEvent);
-          value = hookEvent.attrValue;
-          /* Full DOM Clobbering protection via namespace isolation,
-           * Prefix id and name attributes with `user-content-`
-           */
-          if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
-            // Remove the attribute with this value
-            _removeAttribute(name, currentNode);
-            // Prefix the value and later re-create the attribute with the sanitized value
-            value = SANITIZE_NAMED_PROPS_PREFIX + value;
-          }
-          /* Work around a security issue with comments inside attributes */
-          if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
-            _removeAttribute(name, currentNode);
-            continue;
-          }
-          /* Did the hooks approve of the attribute? */
-          if (hookEvent.forceKeepAttr) {
-            continue;
-          }
-          /* Remove attribute */
-          /* Did the hooks approve of the attribute? */
-          if (!hookEvent.keepAttr) {
-            _removeAttribute(name, currentNode);
-            continue;
-          }
-          /* Work around a security issue in jQuery 3.0 */
-          if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
-            _removeAttribute(name, currentNode);
-            continue;
-          }
-          /* Sanitize attribute content to be template-safe */
-          if (SAFE_FOR_TEMPLATES) {
-            arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
-              value = stringReplace(value, expr, ' ');
-            });
-          }
-          /* Is `value` valid for this attribute? */
-          const lcTag = transformCaseFunc(currentNode.nodeName);
-          if (!_isValidAttribute(lcTag, lcName, value)) {
-            _removeAttribute(name, currentNode);
-            continue;
-          }
-          /* Handle attributes that require Trusted Types */
-          if (trustedTypesPolicy && typeof trustedTypes === 'object' && typeof trustedTypes.getAttributeType === 'function') {
-            if (namespaceURI) ; else {
-              switch (trustedTypes.getAttributeType(lcTag, lcName)) {
-                case 'TrustedHTML':
-                  {
-                    value = trustedTypesPolicy.createHTML(value);
-                    break;
-                  }
-                case 'TrustedScriptURL':
-                  {
-                    value = trustedTypesPolicy.createScriptURL(value);
-                    break;
-                  }
-              }
-            }
-          }
-          /* Handle invalid data-* attribute set by try-catching it */
-          if (value !== initValue) {
-            try {
-              if (namespaceURI) {
-                currentNode.setAttributeNS(namespaceURI, name, value);
-              } else {
-                /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-                currentNode.setAttribute(name, value);
-              }
-              if (_isClobbered(currentNode)) {
-                _forceRemove(currentNode);
-              } else {
-                arrayPop(DOMPurify.removed);
-              }
-            } catch (_) {}
-          }
-        }
-        /* Execute a hook if present */
-        _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
-      };
-      /**
-       * _sanitizeShadowDOM
-       *
-       * @param fragment to iterate over recursively
-       */
-      const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
-        let shadowNode = null;
-        const shadowIterator = _createNodeIterator(fragment);
-        /* Execute a hook if present */
-        _executeHooks(hooks.beforeSanitizeShadowDOM, fragment, null);
-        while (shadowNode = shadowIterator.nextNode()) {
-          /* Execute a hook if present */
-          _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
-          /* Sanitize tags and elements */
-          _sanitizeElements(shadowNode);
-          /* Check attributes next */
-          _sanitizeAttributes(shadowNode);
-          /* Deep shadow DOM detected */
-          if (shadowNode.content instanceof DocumentFragment) {
-            _sanitizeShadowDOM(shadowNode.content);
-          }
-        }
-        /* Execute a hook if present */
-        _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
-      };
-      // eslint-disable-next-line complexity
-      DOMPurify.sanitize = function (dirty) {
-        let cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-        let body = null;
-        let importedNode = null;
-        let currentNode = null;
-        let returnNode = null;
-        /* Make sure we have a string to sanitize.
-          DO NOT return early, as this will return the wrong type if
-          the user has requested a DOM object rather than a string */
-        IS_EMPTY_INPUT = !dirty;
-        if (IS_EMPTY_INPUT) {
-          dirty = '<!-->';
-        }
-        /* Stringify, in case dirty is an object */
-        if (typeof dirty !== 'string' && !_isNode(dirty)) {
-          if (typeof dirty.toString === 'function') {
-            dirty = dirty.toString();
-            if (typeof dirty !== 'string') {
-              throw typeErrorCreate('dirty is not a string, aborting');
-            }
-          } else {
-            throw typeErrorCreate('toString is not a function');
-          }
-        }
-        /* Return dirty HTML if DOMPurify cannot run */
-        if (!DOMPurify.isSupported) {
-          return dirty;
-        }
-        /* Assign config vars */
-        if (!SET_CONFIG) {
-          _parseConfig(cfg);
-        }
-        /* Clean up removed elements */
-        DOMPurify.removed = [];
-        /* Check if dirty is correctly typed for IN_PLACE */
-        if (typeof dirty === 'string') {
-          IN_PLACE = false;
-        }
-        if (IN_PLACE) {
-          /* Do some early pre-sanitization to avoid unsafe root nodes */
-          if (dirty.nodeName) {
-            const tagName = transformCaseFunc(dirty.nodeName);
-            if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-              throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
-            }
-          }
-        } else if (dirty instanceof Node) {
-          /* If dirty is a DOM element, append to an empty document to avoid
-             elements being stripped by the parser */
-          body = _initDocument('<!---->');
-          importedNode = body.ownerDocument.importNode(dirty, true);
-          if (importedNode.nodeType === NODE_TYPE.element && importedNode.nodeName === 'BODY') {
-            /* Node is already a body, use as is */
-            body = importedNode;
-          } else if (importedNode.nodeName === 'HTML') {
-            body = importedNode;
-          } else {
-            // eslint-disable-next-line unicorn/prefer-dom-node-append
-            body.appendChild(importedNode);
-          }
-        } else {
-          /* Exit directly if we have nothing to do */
-          if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT &&
-          // eslint-disable-next-line unicorn/prefer-includes
-          dirty.indexOf('<') === -1) {
-            return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(dirty) : dirty;
-          }
-          /* Initialize the document to work on */
-          body = _initDocument(dirty);
-          /* Check we have a DOM node from the data */
-          if (!body) {
-            return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
-          }
-        }
-        /* Remove first element node (ours) if FORCE_BODY is set */
-        if (body && FORCE_BODY) {
-          _forceRemove(body.firstChild);
-        }
-        /* Get node iterator */
-        const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
-        /* Now start iterating over the created document */
-        while (currentNode = nodeIterator.nextNode()) {
-          /* Sanitize tags and elements */
-          _sanitizeElements(currentNode);
-          /* Check attributes next */
-          _sanitizeAttributes(currentNode);
-          /* Shadow DOM detected, sanitize it */
-          if (currentNode.content instanceof DocumentFragment) {
-            _sanitizeShadowDOM(currentNode.content);
-          }
-        }
-        /* If we sanitized `dirty` in-place, return it. */
-        if (IN_PLACE) {
-          return dirty;
-        }
-        /* Return sanitized string or DOM */
-        if (RETURN_DOM) {
-          if (RETURN_DOM_FRAGMENT) {
-            returnNode = createDocumentFragment.call(body.ownerDocument);
-            while (body.firstChild) {
-              // eslint-disable-next-line unicorn/prefer-dom-node-append
-              returnNode.appendChild(body.firstChild);
-            }
-          } else {
-            returnNode = body;
-          }
-          if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) {
-            /*
-              AdoptNode() is not used because internal state is not reset
-              (e.g. the past names map of a HTMLFormElement), this is safe
-              in theory but we would rather not risk another attack vector.
-              The state that is cloned by importNode() is explicitly defined
-              by the specs.
-            */
-            returnNode = importNode.call(originalDocument, returnNode, true);
-          }
-          return returnNode;
-        }
-        let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-        /* Serialize doctype if allowed */
-        if (WHOLE_DOCUMENT && ALLOWED_TAGS['!doctype'] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) {
-          serializedHTML = '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
-        }
-        /* Sanitize final string template-safe */
-        if (SAFE_FOR_TEMPLATES) {
-          arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
-            serializedHTML = stringReplace(serializedHTML, expr, ' ');
-          });
-        }
-        return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
-      };
-      DOMPurify.setConfig = function () {
-        let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        _parseConfig(cfg);
-        SET_CONFIG = true;
-      };
-      DOMPurify.clearConfig = function () {
-        CONFIG = null;
-        SET_CONFIG = false;
-      };
-      DOMPurify.isValidAttribute = function (tag, attr, value) {
-        /* Initialize shared config vars if necessary. */
-        if (!CONFIG) {
-          _parseConfig({});
-        }
-        const lcTag = transformCaseFunc(tag);
-        const lcName = transformCaseFunc(attr);
-        return _isValidAttribute(lcTag, lcName, value);
-      };
-      DOMPurify.addHook = function (entryPoint, hookFunction) {
-        if (typeof hookFunction !== 'function') {
-          return;
-        }
-        arrayPush(hooks[entryPoint], hookFunction);
-      };
-      DOMPurify.removeHook = function (entryPoint, hookFunction) {
-        if (hookFunction !== undefined) {
-          const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
-          return index === -1 ? undefined : arraySplice(hooks[entryPoint], index, 1)[0];
-        }
-        return arrayPop(hooks[entryPoint]);
-      };
-      DOMPurify.removeHooks = function (entryPoint) {
-        hooks[entryPoint] = [];
-      };
-      DOMPurify.removeAllHooks = function () {
-        hooks = _createHooksMap();
-      };
-      return DOMPurify;
-    }
-    var purify = createDOMPurify();
-
-    const sanitizeHtmlString = html => purify().sanitize(html);
-
-    var global$6 = tinymce.util.Tools.resolve('tinymce.util.I18n');
-
-    const rtlTransform = {
-      'indent': true,
-      'outdent': true,
-      'table-insert-column-after': true,
-      'table-insert-column-before': true,
-      'paste-column-after': true,
-      'paste-column-before': true,
-      'unordered-list': true,
-      'list-bull-circle': true,
-      'list-bull-default': true,
-      'list-bull-square': true
-    };
-    const defaultIconName = 'temporary-placeholder';
-    const defaultIcon = icons => () => get$h(icons, defaultIconName).getOr('!not found!');
-    const getIconName = (name, icons) => {
-      const lcName = name.toLowerCase();
-      if (global$6.isRtl()) {
-        const rtlName = ensureTrailing(lcName, '-rtl');
-        return has$2(icons, rtlName) ? rtlName : lcName;
-      } else {
-        return lcName;
-      }
-    };
-    const lookupIcon = (name, icons) => get$h(icons, getIconName(name, icons));
-    const get$3 = (name, iconProvider) => {
-      const icons = iconProvider();
-      return lookupIcon(name, icons).getOrThunk(defaultIcon(icons));
-    };
-    const getOr = (name, iconProvider, fallbackIcon) => {
-      const icons = iconProvider();
-      return lookupIcon(name, icons).or(fallbackIcon).getOrThunk(defaultIcon(icons));
-    };
-    const needsRtlTransform = iconName => global$6.isRtl() ? has$2(rtlTransform, iconName) : false;
-    const addFocusableBehaviour = () => config('add-focusable', [runOnAttached(comp => {
-        child(comp.element, 'svg').each(svg => set$9(svg, 'focusable', 'false'));
-      })]);
-    const renderIcon$3 = (spec, iconName, icons, fallbackIcon) => {
-      var _a, _b;
-      const rtlIconClasses = needsRtlTransform(iconName) ? ['tox-icon--flip'] : [];
-      const iconHtml = get$h(icons, getIconName(iconName, icons)).or(fallbackIcon).getOrThunk(defaultIcon(icons));
-      return {
-        dom: {
-          tag: spec.tag,
-          attributes: (_a = spec.attributes) !== null && _a !== void 0 ? _a : {},
-          classes: spec.classes.concat(rtlIconClasses),
-          innerHtml: iconHtml
-        },
-        behaviours: derive$1([
-          ...(_b = spec.behaviours) !== null && _b !== void 0 ? _b : [],
-          addFocusableBehaviour()
-        ])
-      };
-    };
-    const render$4 = (iconName, spec, iconProvider, fallbackIcon = Optional.none()) => renderIcon$3(spec, iconName, iconProvider(), fallbackIcon);
-    const renderFirst = (iconNames, spec, iconProvider) => {
-      const icons = iconProvider();
-      const iconName = find$5(iconNames, name => has$2(icons, getIconName(name, icons)));
-      return renderIcon$3(spec, iconName.getOr(defaultIconName), icons, Optional.none());
-    };
-
-    const notificationIconMap = {
-      success: 'checkmark',
-      error: 'warning',
-      err: 'error',
-      warning: 'warning',
-      warn: 'warning',
-      info: 'info'
-    };
-    const factory$m = detail => {
-      const notificationTextId = generate$6('notification-text');
-      const memBannerText = record({
-        dom: fromHtml(`<p id=${ notificationTextId }>${ sanitizeHtmlString(detail.backstageProvider.translate(detail.text)) }</p>`),
-        behaviours: derive$1([Replacing.config({})])
-      });
-      const renderPercentBar = percent => ({
-        dom: {
-          tag: 'div',
-          classes: ['tox-bar'],
-          styles: { width: `${ percent }%` }
-        }
-      });
-      const renderPercentText = percent => ({
-        dom: {
-          tag: 'div',
-          classes: ['tox-text'],
-          innerHtml: `${ percent }%`
-        }
-      });
-      const memBannerProgress = record({
-        dom: {
-          tag: 'div',
-          classes: detail.progress ? [
-            'tox-progress-bar',
-            'tox-progress-indicator'
-          ] : ['tox-progress-bar']
-        },
-        components: [
-          {
-            dom: {
-              tag: 'div',
-              classes: ['tox-bar-container']
-            },
-            components: [renderPercentBar(0)]
-          },
-          renderPercentText(0)
-        ],
-        behaviours: derive$1([Replacing.config({})])
-      });
-      const updateProgress = (comp, percent) => {
-        if (comp.getSystem().isConnected()) {
-          memBannerProgress.getOpt(comp).each(progress => {
-            Replacing.set(progress, [
-              {
-                dom: {
-                  tag: 'div',
-                  classes: ['tox-bar-container']
-                },
-                components: [renderPercentBar(percent)]
-              },
-              renderPercentText(percent)
-            ]);
-          });
-        }
-      };
-      const updateText = (comp, text) => {
-        if (comp.getSystem().isConnected()) {
-          const banner = memBannerText.get(comp);
-          Replacing.set(banner, [text$2(text)]);
-        }
-      };
-      const apis = {
-        updateProgress,
-        updateText
-      };
-      const iconChoices = flatten([
-        detail.icon.toArray(),
-        [detail.level],
-        Optional.from(notificationIconMap[detail.level]).toArray()
-      ]);
-      const memButton = record(Button.sketch({
-        dom: {
-          tag: 'button',
-          classes: [
-            'tox-notification__dismiss',
-            'tox-button',
-            'tox-button--naked',
-            'tox-button--icon'
-          ],
-          attributes: { 'aria-label': detail.backstageProvider.translate('Close') }
-        },
-        components: [render$4('close', {
-            tag: 'span',
-            classes: ['tox-icon']
-          }, detail.iconProvider)],
-        buttonBehaviours: derive$1([
-          Tabstopping.config({}),
-          Tooltipping.config({ ...detail.backstageProvider.tooltips.getConfig({ tooltipText: detail.backstageProvider.translate('Close') }) })
-        ]),
-        action: comp => {
-          detail.onAction(comp);
-        }
-      }));
-      const notificationIconSpec = renderFirst(iconChoices, {
-        tag: 'div',
-        classes: ['tox-notification__icon']
-      }, detail.iconProvider);
-      const notificationBodySpec = {
-        dom: {
-          tag: 'div',
-          classes: ['tox-notification__body']
-        },
-        components: [memBannerText.asSpec()],
-        behaviours: derive$1([Replacing.config({})])
-      };
-      const components = [
-        notificationIconSpec,
-        notificationBodySpec
-      ];
-      return {
-        uid: detail.uid,
-        dom: {
-          tag: 'div',
-          attributes: {
-            'role': 'alert',
-            'aria-labelledby': notificationTextId
-          },
-          classes: [
-            'tox-notification',
-            'tox-notification--in',
-            `tox-notification--${ detail.level }`
-          ]
-        },
-        behaviours: derive$1([
-          Tabstopping.config({}),
-          Focusing.config({}),
-          Keying.config({
-            mode: 'special',
-            onEscape: comp => {
-              detail.onAction(comp);
-              return Optional.some(true);
-            }
-          })
-        ]),
-        components: components.concat(detail.progress ? [memBannerProgress.asSpec()] : []).concat([memButton.asSpec()]),
-        apis
-      };
-    };
-    const Notification = single({
-      name: 'Notification',
-      factory: factory$m,
-      configFields: [
-        defaultedStringEnum('level', 'info', [
-          'success',
-          'error',
-          'warning',
-          'warn',
-          'info'
-        ]),
-        required$1('progress'),
-        option$3('icon'),
-        required$1('onAction'),
-        required$1('text'),
-        required$1('iconProvider'),
-        required$1('backstageProvider')
-      ],
-      apis: {
-        updateProgress: (apis, comp, percent) => {
-          apis.updateProgress(comp, percent);
-        },
-        updateText: (apis, comp, text) => {
-          apis.updateText(comp, text);
-        }
-      }
-    });
-
-    var NotificationManagerImpl = (editor, extras, uiMothership, notificationRegion) => {
-      const sharedBackstage = extras.backstage.shared;
-      const getBoundsContainer = () => SugarElement.fromDom(editor.queryCommandValue('ToggleView') === '' ? editor.getContentAreaContainer() : editor.getContainer());
-      const getBounds = () => {
-        const contentArea = box$1(getBoundsContainer());
-        return Optional.some(contentArea);
-      };
-      const clampComponentsToBounds = components => {
-        getBounds().each(bounds => {
-          each$1(components, comp => {
-            remove$7(comp.element, 'width');
-            if (get$d(comp.element) > bounds.width) {
-              set$8(comp.element, 'width', bounds.width + 'px');
-            }
-          });
-        });
-      };
-      const open = (settings, closeCallback, isEditorOrUIFocused) => {
-        const close = () => {
-          const removeNotificationAndReposition = region => {
-            Replacing.remove(region, notification);
-            reposition();
-          };
-          const manageRegionVisibility = (region, editorOrUiFocused) => {
-            if (children(region.element).length === 0) {
-              handleEmptyRegion(region, editorOrUiFocused);
-            } else {
-              handleRegionWithChildren(region, editorOrUiFocused);
-            }
-          };
-          const handleEmptyRegion = (region, editorOrUIFocused) => {
-            InlineView.hide(region);
-            notificationRegion.clear();
-            if (editorOrUIFocused) {
-              editor.focus();
-            }
-          };
-          const handleRegionWithChildren = (region, editorOrUIFocused) => {
-            if (editorOrUIFocused) {
-              Keying.focusIn(region);
-            }
-          };
-          notificationRegion.on(region => {
-            closeCallback();
-            const editorOrUIFocused = isEditorOrUIFocused();
-            removeNotificationAndReposition(region);
-            manageRegionVisibility(region, editorOrUIFocused);
-          });
-        };
-        const shouldApplyDocking = () => !isStickyToolbar(editor) || !sharedBackstage.header.isPositionedAtTop();
-        const notification = build$1(Notification.sketch({
-          text: settings.text,
-          level: contains$2([
-            'success',
-            'error',
-            'warning',
-            'warn',
-            'info'
-          ], settings.type) ? settings.type : undefined,
-          progress: settings.progressBar === true,
-          icon: settings.icon,
-          onAction: close,
-          iconProvider: sharedBackstage.providers.icons,
-          backstageProvider: sharedBackstage.providers
-        }));
-        if (!notificationRegion.isSet()) {
-          const notificationWrapper = build$1(InlineView.sketch({
-            dom: {
-              tag: 'div',
-              classes: ['tox-notifications-container'],
-              attributes: {
-                'aria-label': 'Notifications',
-                'role': 'region'
-              }
-            },
-            lazySink: sharedBackstage.getSink,
-            fireDismissalEventInstead: {},
-            ...sharedBackstage.header.isPositionedAtTop() ? {} : { fireRepositionEventInstead: {} },
-            inlineBehaviours: derive$1([
-              Keying.config({
-                mode: 'cyclic',
-                selector: '.tox-notification, .tox-notification a, .tox-notification button'
-              }),
-              Replacing.config({}),
-              ...shouldApplyDocking() ? [Docking.config({
-                  contextual: {
-                    lazyContext: () => Optional.some(box$1(getBoundsContainer())),
-                    fadeInClass: 'tox-notification-container-dock-fadein',
-                    fadeOutClass: 'tox-notification-container-dock-fadeout',
-                    transitionClass: 'tox-notification-container-dock-transition'
-                  },
-                  modes: ['top'],
-                  lazyViewport: comp => {
-                    const optScrollingContext = detectWhenSplitUiMode(editor, comp.element);
-                    return optScrollingContext.map(sc => {
-                      const combinedBounds = getBoundsFrom(sc);
-                      return {
-                        bounds: combinedBounds,
-                        optScrollEnv: Optional.some({
-                          currentScrollTop: sc.element.dom.scrollTop,
-                          scrollElmTop: absolute$3(sc.element).top
-                        })
-                      };
-                    }).getOrThunk(() => ({
-                      bounds: win(),
-                      optScrollEnv: Optional.none()
-                    }));
-                  }
-                })] : []
-            ])
-          }));
-          const notificationSpec = premade(notification);
-          const anchorOverrides = { maxHeightFunction: expandable$1() };
-          const anchor = {
-            ...sharedBackstage.anchors.banner(),
-            overrides: anchorOverrides
-          };
-          notificationRegion.set(notificationWrapper);
-          uiMothership.add(notificationWrapper);
-          InlineView.showWithinBounds(notificationWrapper, notificationSpec, { anchor }, getBounds);
-        } else {
-          const notificationSpec = premade(notification);
-          notificationRegion.on(notificationWrapper => {
-            Replacing.append(notificationWrapper, notificationSpec);
-            InlineView.reposition(notificationWrapper);
-            if (notification.hasConfigured(Docking)) {
-              Docking.refresh(notificationWrapper);
-            }
-            clampComponentsToBounds(notificationWrapper.components());
-          });
-        }
-        if (isNumber(settings.timeout) && settings.timeout > 0) {
-          global$a.setEditorTimeout(editor, () => {
-            close();
-          }, settings.timeout);
-        }
-        const reposition = () => {
-          notificationRegion.on(region => {
-            InlineView.reposition(region);
-            if (region.hasConfigured(Docking)) {
-              Docking.refresh(region);
-            }
-            clampComponentsToBounds(region.components());
-          });
-        };
-        const thisNotification = {
-          close,
-          reposition,
-          text: nuText => {
-            Notification.updateText(notification, nuText);
-          },
-          settings,
-          getEl: () => notification.element.dom,
-          progressBar: {
-            value: percent => {
-              Notification.updateProgress(notification, percent);
-            }
-          }
-        };
-        return thisNotification;
-      };
-      const close = notification => {
-        notification.close();
-      };
-      const getArgs = notification => {
-        return notification.settings;
-      };
-      return {
-        open,
-        close,
-        getArgs
-      };
-    };
+    const autocompleteSelector = '[data-mce-autocompleter]';
+    const detect$1 = elm => closest$1(elm, autocompleteSelector);
+    const findIn = elm => descendant(elm, autocompleteSelector);
 
     const setup$e = (api, editor) => {
       const redirectKeyToItem = (item, e) => {
@@ -10990,8 +8767,8 @@
           }
         }
       });
-      editor.on('NodeChange', () => {
-        if (api.isActive() && !api.isProcessingAction() && !editor.queryCommandState('mceAutoCompleterInRange')) {
+      editor.on('NodeChange', e => {
+        if (api.isActive() && !api.isProcessingAction() && detect$1(SugarElement.fromDom(e.element)).isNone()) {
           api.cancelIfNecessary();
         }
       });
@@ -11015,8 +8792,6 @@
     const tickedClass = 'tox-collection__item--enabled';
     const groupHeadingClass = 'tox-collection__group-heading';
     const iconClass = 'tox-collection__item-icon';
-    const imageClass = 'tox-collection__item-image';
-    const imageSelectorClasll = 'tox-collection__item-image-selector';
     const textClass = 'tox-collection__item-label';
     const accessoryClass = 'tox-collection__item-accessory';
     const caretClass = 'tox-collection__item-caret';
@@ -11030,7 +8805,7 @@
     const containerValignTopClass = 'tox-collection__item-container--valign-top';
     const containerValignMiddleClass = 'tox-collection__item-container--valign-middle';
     const containerValignBottomClass = 'tox-collection__item-container--valign-bottom';
-    const classForPreset = presets => get$h(presetClasses, presets).getOr(navClass);
+    const classForPreset = presets => get$g(presetClasses, presets).getOr(navClass);
 
     const forMenu = presets => {
       if (presets === 'color') {
@@ -11085,15 +8860,12 @@
     };
 
     const schema$l = constant$1([
-      defaultedString('type', 'text'),
       option$3('data'),
       defaulted('inputAttributes', {}),
       defaulted('inputStyles', {}),
       defaulted('tag', 'input'),
       defaulted('inputClasses', []),
       onHandler('onSetValue'),
-      defaultedFunction('fromInputValue', identity),
-      defaultedFunction('toInputValue', identity),
       defaulted('styles', {}),
       defaulted('eventOrder', {}),
       field('inputBehaviours', [
@@ -11105,10 +8877,8 @@
     const focusBehaviours = detail => derive$1([Focusing.config({
         onFocus: !detail.selectOnFocus ? noop : component => {
           const input = component.element;
-          const value = get$7(input);
-          if (detail.type !== 'range') {
-            input.dom.setSelectionRange(0, value.length);
-          }
+          const value = get$6(input);
+          input.dom.setSelectionRange(0, value.length);
         }
       })]);
     const behaviours = detail => ({
@@ -11118,12 +8888,12 @@
             mode: 'manual',
             ...detail.data.map(data => ({ initialValue: data })).getOr({}),
             getValue: input => {
-              return detail.fromInputValue(get$7(input.element));
+              return get$6(input.element);
             },
             setValue: (input, data) => {
-              const current = get$7(input.element);
+              const current = get$6(input.element);
               if (current !== data) {
-                set$5(input.element, detail.toInputValue(data));
+                set$5(input.element, data);
               }
             }
           },
@@ -11133,7 +8903,7 @@
     const dom = detail => ({
       tag: detail.tag,
       attributes: {
-        type: detail.type,
+        type: 'text',
         ...detail.inputAttributes
       },
       styles: detail.inputStyles,
@@ -11288,27 +9058,6 @@
             })]
         }]
     });
-    const forImageSelector = columns => ({
-      dom: {
-        tag: 'div',
-        classes: [
-          'tox-menu',
-          'tox-image-selector-menu'
-        ]
-      },
-      components: [{
-          dom: {
-            tag: 'div',
-            classes: ['tox-image-selector']
-          },
-          components: [Menu.parts.items({
-              preprocess: columns !== 'auto' ? chunk({
-                tag: 'div',
-                classes: ['tox-image-selector__row']
-              }, columns) : identity
-            })]
-        }]
-    });
     const forToolbar = columns => ({
       dom: {
         tag: 'div',
@@ -11405,7 +9154,7 @@
         },
         components: [
           renderMenuSearcher({
-            i18n: global$6.translate,
+            i18n: global$8.translate,
             placeholder: searchField.placeholder
           }),
           {
@@ -11464,14 +9213,6 @@
           components: structure.components,
           items
         };
-      } else if (menuLayout.menuType === 'imageselector' && columns !== 'auto') {
-        const structure = forImageSelector(columns);
-        return {
-          value,
-          dom: structure.dom,
-          components: structure.components,
-          items
-        };
       } else if (menuLayout.menuType === 'normal' && columns === 'auto') {
         const structure = forCollection(columns, items);
         return {
@@ -11509,10 +9250,9 @@
     const type = requiredString('type');
     const name$1 = requiredString('name');
     const label = requiredString('label');
-    const text = requiredString('text');
+    const text$1 = requiredString('text');
     const title = requiredString('title');
     const icon = requiredString('icon');
-    const url = requiredString('url');
     const value$1 = requiredString('value');
     const fetch$1 = requiredFunction('fetch');
     const getSubmenuItems = requiredFunction('getSubmenuItems');
@@ -11521,7 +9261,6 @@
     const onSetup = defaultedFunction('onSetup', () => noop);
     const optionalName = optionString('name');
     const optionalText = optionString('text');
-    const optionalRole = optionString('role');
     const optionalIcon = optionString('icon');
     const optionalTooltip = optionString('tooltip');
     const optionalLabel = optionString('label');
@@ -11561,21 +9300,18 @@
       optionalTooltip,
       optionalIcon,
       optionalText,
-      onSetup,
-      defaultedString('context', 'mode:design')
+      onSetup
     ];
     const toolbarButtonSchema = objOf([
       type,
-      onAction,
-      optionalShortcut
+      onAction
     ].concat(baseToolbarButtonFields));
     const createToolbarButton = spec => asRaw('toolbarbutton', toolbarButtonSchema, spec);
 
     const baseToolbarToggleButtonFields = [active].concat(baseToolbarButtonFields);
     const toggleButtonSchema = objOf(baseToolbarToggleButtonFields.concat([
       type,
-      onAction,
-      optionalShortcut
+      onAction
     ]));
     const createToggleButton = spec => asRaw('ToggleButton', toggleButtonSchema, spec);
 
@@ -11594,88 +9330,38 @@
 
     const contextButtonFields = baseToolbarButtonFields.concat([
       defaultedType('contextformbutton'),
-      defaultedString('align', 'end'),
       primary,
       onAction,
       customField('original', identity)
     ]);
     const contextToggleButtonFields = baseToolbarToggleButtonFields.concat([
       defaultedType('contextformbutton'),
-      defaultedString('align', 'end'),
       primary,
       onAction,
       customField('original', identity)
     ]);
-    const launchButtonFields$1 = baseToolbarButtonFields.concat([defaultedType('contextformbutton')]);
+    const launchButtonFields = baseToolbarButtonFields.concat([defaultedType('contextformbutton')]);
     const launchToggleButtonFields = baseToolbarToggleButtonFields.concat([defaultedType('contextformtogglebutton')]);
     const toggleOrNormal = choose$1('type', {
       contextformbutton: contextButtonFields,
       contextformtogglebutton: contextToggleButtonFields
     });
-    const baseContextFormFields = [
+    const contextFormSchema = objOf([
+      defaultedType('contextform'),
+      defaultedFunction('initValue', constant$1('')),
       optionalLabel,
       requiredArrayOf('commands', toggleOrNormal),
       optionOf('launch', choose$1('type', {
-        contextformbutton: launchButtonFields$1,
+        contextformbutton: launchButtonFields,
         contextformtogglebutton: launchToggleButtonFields
-      })),
-      defaultedFunction('onInput', noop),
-      defaultedFunction('onSetup', noop)
-    ];
-    const contextFormFields = [
-      ...contextBarFields,
-      ...baseContextFormFields,
-      requiredStringEnum('type', ['contextform']),
-      defaultedFunction('initValue', constant$1('')),
-      optionString('placeholder')
-    ];
-    const contextSliderFormFields = [
-      ...contextBarFields,
-      ...baseContextFormFields,
-      requiredStringEnum('type', ['contextsliderform']),
-      defaultedFunction('initValue', constant$1(0)),
-      defaultedFunction('min', constant$1(0)),
-      defaultedFunction('max', constant$1(100))
-    ];
-    const contextSizeInputFormFields = [
-      ...contextBarFields,
-      ...baseContextFormFields,
-      requiredStringEnum('type', ['contextsizeinputform']),
-      defaultedFunction('initValue', constant$1({
-        width: '',
-        height: ''
       }))
-    ];
-    const contextFormSchema = choose$1('type', {
-      contextform: contextFormFields,
-      contextsliderform: contextSliderFormFields,
-      contextsizeinputform: contextSizeInputFormFields
-    });
+    ].concat(contextBarFields));
     const createContextForm = spec => asRaw('ContextForm', contextFormSchema, spec);
 
-    const launchButtonFields = baseToolbarButtonFields.concat([defaultedType('contexttoolbarbutton')]);
     const contextToolbarSchema = objOf([
       defaultedType('contexttoolbar'),
-      optionObjOf('launch', launchButtonFields),
-      requiredOf('items', oneOf([
-        string,
-        arrOfObj([
-          optionString('name'),
-          optionString('label'),
-          requiredArrayOf('items', string)
-        ])
-      ]))
+      requiredString('items')
     ].concat(contextBarFields));
-    const toolbarGroupBackToSpec = toolbarGroup => ({
-      name: toolbarGroup.name.getOrUndefined(),
-      label: toolbarGroup.label.getOrUndefined(),
-      items: toolbarGroup.items
-    });
-    const contextToolbarToSpec = contextToolbar => ({
-      ...contextToolbar,
-      launch: contextToolbar.launch.getOrUndefined(),
-      items: isString(contextToolbar.items) ? contextToolbar.items : map$2(contextToolbar.items, toolbarGroupBackToSpec)
-    });
     const createContextToolbar = spec => asRaw('ContextToolbar', contextToolbarSchema, spec);
 
     const cardImageFields = [
@@ -11688,7 +9374,7 @@
 
     const cardTextFields = [
       type,
-      text,
+      text$1,
       optionalName,
       defaultedArrayOf('classes', ['tox-collection__item-label'], string)
     ];
@@ -11710,11 +9396,9 @@
     const commonMenuItemFields = [
       enabled,
       optionalText,
-      optionalRole,
       optionalShortcut,
       generatedValue('menuitem'),
-      defaultedMeta,
-      defaultedString('context', 'mode:design')
+      defaultedMeta
     ];
 
     const cardMenuItemSchema = objOf([
@@ -11729,8 +9413,7 @@
     const choiceMenuItemSchema = objOf([
       type,
       active,
-      optionalIcon,
-      optionalLabel
+      optionalIcon
     ].concat(commonMenuItemFields));
     const createChoiceMenuItem = spec => asRaw('choicemenuitem', choiceMenuItemSchema, spec);
 
@@ -11748,37 +9431,11 @@
         optionArrayOf('colors', anyValue())
       ])
     ].concat(baseFields);
-    const imageSelectFields = [
-      optionFunction('select'),
-      requiredObjOf('initData', [
-        requiredNumber('columns'),
-        defaultedArrayOf('items', [], anyValue())
-      ])
-    ].concat(baseFields);
     const fancyMenuItemSchema = choose$1('fancytype', {
       inserttable: insertTableFields,
-      colorswatch: colorSwatchFields,
-      imageselect: imageSelectFields
+      colorswatch: colorSwatchFields
     });
     const createFancyMenuItem = spec => asRaw('fancymenuitem', fancyMenuItemSchema, spec);
-
-    const imageMenuItemSchema = objOf([
-      type,
-      active,
-      url,
-      optionalLabel,
-      optionalTooltip
-    ].concat(commonMenuItemFields));
-    const resetImageItemSchema = objOf([
-      type,
-      active,
-      icon,
-      label,
-      optionalTooltip,
-      value$1
-    ].concat(commonMenuItemFields));
-    const createImageMenuItem = spec => asRaw('imagemenuitem', imageMenuItemSchema, spec);
-    const createResetImageItem = spec => asRaw('resetimageitem', resetImageItemSchema, spec);
 
     const menuItemSchema = objOf([
       type,
@@ -11829,7 +9486,224 @@
       unnamedEvents
     };
 
+    const ExclusivityChannel = generate$6('tooltip.exclusive');
+    const ShowTooltipEvent = generate$6('tooltip.show');
+    const HideTooltipEvent = generate$6('tooltip.hide');
+
+    const hideAllExclusive = (component, _tConfig, _tState) => {
+      component.getSystem().broadcastOn([ExclusivityChannel], {});
+    };
+    const setComponents = (component, tConfig, tState, specs) => {
+      tState.getTooltip().each(tooltip => {
+        if (tooltip.getSystem().isConnected()) {
+          Replacing.set(tooltip, specs);
+        }
+      });
+    };
+
+    var TooltippingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        hideAllExclusive: hideAllExclusive,
+        setComponents: setComponents
+    });
+
+    const events$9 = (tooltipConfig, state) => {
+      const hide = comp => {
+        state.getTooltip().each(p => {
+          detach(p);
+          tooltipConfig.onHide(comp, p);
+          state.clearTooltip();
+        });
+        state.clearTimer();
+      };
+      const show = comp => {
+        if (!state.isShowing()) {
+          hideAllExclusive(comp);
+          const sink = tooltipConfig.lazySink(comp).getOrDie();
+          const popup = comp.getSystem().build({
+            dom: tooltipConfig.tooltipDom,
+            components: tooltipConfig.tooltipComponents,
+            events: derive$2(tooltipConfig.mode === 'normal' ? [
+              run$1(mouseover(), _ => {
+                emit(comp, ShowTooltipEvent);
+              }),
+              run$1(mouseout(), _ => {
+                emit(comp, HideTooltipEvent);
+              })
+            ] : []),
+            behaviours: derive$1([Replacing.config({})])
+          });
+          state.setTooltip(popup);
+          attach(sink, popup);
+          tooltipConfig.onShow(comp, popup);
+          Positioning.position(sink, popup, { anchor: tooltipConfig.anchor(comp) });
+        }
+      };
+      return derive$2(flatten([
+        [
+          run$1(ShowTooltipEvent, comp => {
+            state.resetTimer(() => {
+              show(comp);
+            }, tooltipConfig.delay);
+          }),
+          run$1(HideTooltipEvent, comp => {
+            state.resetTimer(() => {
+              hide(comp);
+            }, tooltipConfig.delay);
+          }),
+          run$1(receive(), (comp, message) => {
+            const receivingData = message;
+            if (!receivingData.universal) {
+              if (contains$2(receivingData.channels, ExclusivityChannel)) {
+                hide(comp);
+              }
+            }
+          }),
+          runOnDetached(comp => {
+            hide(comp);
+          })
+        ],
+        tooltipConfig.mode === 'normal' ? [
+          run$1(focusin(), comp => {
+            emit(comp, ShowTooltipEvent);
+          }),
+          run$1(postBlur(), comp => {
+            emit(comp, HideTooltipEvent);
+          }),
+          run$1(mouseover(), comp => {
+            emit(comp, ShowTooltipEvent);
+          }),
+          run$1(mouseout(), comp => {
+            emit(comp, HideTooltipEvent);
+          })
+        ] : [
+          run$1(highlight$1(), (comp, _se) => {
+            emit(comp, ShowTooltipEvent);
+          }),
+          run$1(dehighlight$1(), comp => {
+            emit(comp, HideTooltipEvent);
+          })
+        ]
+      ]));
+    };
+
+    var ActiveTooltipping = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        events: events$9
+    });
+
+    var TooltippingSchema = [
+      required$1('lazySink'),
+      required$1('tooltipDom'),
+      defaulted('exclusive', true),
+      defaulted('tooltipComponents', []),
+      defaulted('delay', 300),
+      defaultedStringEnum('mode', 'normal', [
+        'normal',
+        'follow-highlight'
+      ]),
+      defaulted('anchor', comp => ({
+        type: 'hotspot',
+        hotspot: comp,
+        layouts: {
+          onLtr: constant$1([
+            south$2,
+            north$2,
+            southeast$2,
+            northeast$2,
+            southwest$2,
+            northwest$2
+          ]),
+          onRtl: constant$1([
+            south$2,
+            north$2,
+            southeast$2,
+            northeast$2,
+            southwest$2,
+            northwest$2
+          ])
+        }
+      })),
+      onHandler('onHide'),
+      onHandler('onShow')
+    ];
+
+    const init$b = () => {
+      const timer = value$2();
+      const popup = value$2();
+      const clearTimer = () => {
+        timer.on(clearTimeout);
+      };
+      const resetTimer = (f, delay) => {
+        clearTimer();
+        timer.set(setTimeout(f, delay));
+      };
+      const readState = constant$1('not-implemented');
+      return nu$8({
+        getTooltip: popup.get,
+        isShowing: popup.isSet,
+        setTooltip: popup.set,
+        clearTooltip: popup.clear,
+        clearTimer,
+        resetTimer,
+        readState
+      });
+    };
+
+    var TooltippingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        init: init$b
+    });
+
+    const Tooltipping = create$4({
+      fields: TooltippingSchema,
+      name: 'tooltipping',
+      active: ActiveTooltipping,
+      state: TooltippingState,
+      apis: TooltippingApis
+    });
+
     const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const ReadOnlyChannel = 'silver.readonly';
+    const ReadOnlyDataSchema = objOf([requiredBoolean('readonly')]);
+    const broadcastReadonly = (uiRefs, readonly) => {
+      const outerContainer = uiRefs.mainUi.outerContainer;
+      const target = outerContainer.element;
+      const motherships = [
+        uiRefs.mainUi.mothership,
+        ...uiRefs.uiMotherships
+      ];
+      if (readonly) {
+        each$1(motherships, m => {
+          m.broadcastOn([dismissPopups()], { target });
+        });
+      }
+      each$1(motherships, m => {
+        m.broadcastOn([ReadOnlyChannel], { readonly });
+      });
+    };
+    const setupReadonlyModeSwitch = (editor, uiRefs) => {
+      editor.on('init', () => {
+        if (editor.mode.isReadOnly()) {
+          broadcastReadonly(uiRefs, true);
+        }
+      });
+      editor.on('SwitchMode', () => broadcastReadonly(uiRefs, editor.mode.isReadOnly()));
+      if (isReadOnly(editor)) {
+        editor.mode.set('readonly');
+      }
+    };
+    const receivingConfig = () => Receiving.config({
+      channels: {
+        [ReadOnlyChannel]: {
+          schema: ReadOnlyDataSchema,
+          onReceive: (comp, data) => {
+            Disabling.set(comp, data.readonly);
+          }
+        }
+      }
+    });
 
     const item = disabled => Disabling.config({
       disabled,
@@ -11859,9 +9733,6 @@
       };
     };
     const onControlAttached = (info, editorOffCell) => runOnAttached(comp => {
-      if (isFunction(info.onBeforeSetup)) {
-        info.onBeforeSetup(comp);
-      }
       const run = runWithApi(info, comp);
       run(api => {
         const onDestroy = info.onSetup(api);
@@ -11871,73 +9742,6 @@
       });
     });
     const onControlDetached = (getApi, editorOffCell) => runOnDetached(comp => runWithApi(getApi, comp)(editorOffCell.get()));
-    const onContextFormControlDetached = (getApi, editorOffCell, valueState) => runOnDetached(comp => {
-      valueState.set(Representing.getValue(comp));
-      return runWithApi(getApi, comp)(editorOffCell.get());
-    });
-
-    const UiStateChannel = 'silver.uistate';
-    const messageSetDisabled = 'setDisabled';
-    const messageSetEnabled = 'setEnabled';
-    const messageInit = 'init';
-    const messageSwitchMode = 'switchmode';
-    const modeContextMessages = [
-      messageSwitchMode,
-      messageInit
-    ];
-    const broadcastEvents = (uiRefs, messageType) => {
-      const outerContainer = uiRefs.mainUi.outerContainer;
-      const motherships = [
-        uiRefs.mainUi.mothership,
-        ...uiRefs.uiMotherships
-      ];
-      if (messageType === messageSetDisabled) {
-        each$1(motherships, m => {
-          m.broadcastOn([dismissPopups()], { target: outerContainer.element });
-        });
-      }
-      each$1(motherships, m => {
-        m.broadcastOn([UiStateChannel], messageType);
-      });
-    };
-    const setupEventsForUi = (editor, uiRefs) => {
-      editor.on('init SwitchMode', event => {
-        broadcastEvents(uiRefs, event.type);
-      });
-      editor.on('DisabledStateChange', event => {
-        if (!event.isDefaultPrevented()) {
-          const messageType = event.state ? messageSetDisabled : messageInit;
-          broadcastEvents(uiRefs, messageType);
-          if (!event.state) {
-            editor.nodeChanged();
-          }
-        }
-      });
-      editor.on('NodeChange', e => {
-        const messageType = editor.ui.isEnabled() ? e.type : messageSetDisabled;
-        broadcastEvents(uiRefs, messageType);
-      });
-      if (isReadOnly(editor)) {
-        editor.mode.set('readonly');
-      }
-    };
-    const toggleOnReceive = getContext => Receiving.config({
-      channels: {
-        [UiStateChannel]: {
-          onReceive: (comp, messageType) => {
-            if (messageType === messageSetDisabled || messageType === messageSetEnabled) {
-              Disabling.set(comp, messageType === messageSetDisabled);
-              return;
-            }
-            const {contextType, shouldDisable} = getContext();
-            if (contextType === 'mode' && !contains$2(modeContextMessages, messageType)) {
-              return;
-            }
-            Disabling.set(comp, shouldDisable);
-          }
-        }
-      }
-    });
 
     const onMenuItemExecute = (info, itemResponse) => runOnExecute$1((comp, simulatedEvent) => {
       runWithApi(info, comp)(info.onAction);
@@ -11973,8 +9777,8 @@
             onControlAttached(spec, editorOffCell),
             onControlDetached(spec, editorOffCell)
           ]),
-          DisablingConfigs.item(() => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context)),
+          DisablingConfigs.item(() => !spec.enabled || providersBackstage.isDisabled()),
+          receivingConfig(),
           Replacing.config({})
         ].concat(spec.itemBehaviours))
       };
@@ -11987,77 +9791,8 @@
       }
     });
 
-    const image = image => new Promise((resolve, reject) => {
-      const loaded = () => {
-        destroy();
-        resolve(image);
-      };
-      const listeners = [
-        bind(image, 'load', loaded),
-        bind(image, 'error', () => {
-          destroy();
-          reject('Unable to load data from image: ' + image.dom.src);
-        })
-      ];
-      const destroy = () => each$1(listeners, l => l.unbind());
-      if (image.dom.complete) {
-        loaded();
-      }
-    });
-
-    const renderImage$1 = (spec, imageUrl) => {
-      var _a, _b;
-      const spinnerElement = SugarElement.fromTag('div');
-      add$2(spinnerElement, 'tox-image-selector-loading-spinner');
-      const addSpinnerElement = loadingElement => {
-        add$2(loadingElement, 'tox-image-selector-loading-spinner-wrapper');
-        append$2(loadingElement, spinnerElement);
-      };
-      const removeSpinnerElement = loadingElement => {
-        remove$3(loadingElement, 'tox-image-selector-loading-spinner-wrapper');
-        remove$6(spinnerElement);
-      };
-      return {
-        dom: {
-          tag: spec.tag,
-          attributes: (_a = spec.attributes) !== null && _a !== void 0 ? _a : {},
-          classes: spec.classes
-        },
-        components: [
-          {
-            dom: {
-              tag: 'div',
-              classes: ['tox-image-selector-image-wrapper']
-            },
-            components: [{
-                dom: {
-                  tag: 'img',
-                  attributes: { src: imageUrl },
-                  classes: ['tox-image-selector-image-img']
-                }
-              }]
-          },
-          ...spec.checkMark.toArray()
-        ],
-        behaviours: derive$1([
-          ...(_b = spec.behaviours) !== null && _b !== void 0 ? _b : [],
-          config('render-image-events', [runOnAttached(component => {
-              addSpinnerElement(component.element);
-              descendant(component.element, 'img').each(image$1 => {
-                image(image$1).catch(e => {
-                  console.error(e);
-                }).finally(() => {
-                  removeSpinnerElement(component.element);
-                });
-              });
-            })])
-        ])
-      };
-    };
-    const render$3 = (imageUrl, spec) => renderImage$1(spec, imageUrl);
-
     const convertText = source => {
-      const isMac = global$7.os.isMacOS() || global$7.os.isiOS();
+      const isMac = global$5.os.isMacOS() || global$5.os.isiOS();
       const mac = {
         alt: '\u2325',
         ctrl: '\u2303',
@@ -12078,7 +9813,7 @@
       return isMac ? updated.join('') : updated.join('+');
     };
 
-    const renderIcon$2 = (name, icons, classes = [iconClass]) => render$4(name, {
+    const renderIcon$2 = (name, icons, classes = [iconClass]) => render$3(name, {
       tag: 'div',
       classes
     }, icons);
@@ -12087,7 +9822,7 @@
         tag: 'div',
         classes: [textClass]
       },
-      components: [text$2(global$6.translate(text))]
+      components: [text$2(global$8.translate(text))]
     });
     const renderHtml = (html, classes) => ({
       dom: {
@@ -12106,7 +9841,7 @@
             tag: style.tag,
             styles: style.styles
           },
-          components: [text$2(global$6.translate(text))]
+          components: [text$2(global$8.translate(text))]
         }]
     });
     const renderShortcut = shortcut => ({
@@ -12159,15 +9894,13 @@
     const renderColorStructure = (item, providerBackstage, fallbackIcon) => {
       const colorPickerCommand = 'custom';
       const removeColorCommand = 'remove';
+      const itemText = item.ariaLabel;
       const itemValue = item.value;
       const iconSvg = item.iconContent.map(name => getOr(name, providerBackstage.icons, fallbackIcon));
-      const attributes = item.ariaLabel.map(al => ({
-        'aria-label': providerBackstage.translate(al),
-        'data-mce-name': al
-      })).getOr({});
       const getDom = () => {
         const common = colorClass;
         const icon = iconSvg.getOr('');
+        const attributes = itemText.map(text => ({ title: providerBackstage.translate(text) })).getOr({});
         const baseDom = {
           tag: 'div',
           attributes,
@@ -12211,11 +9944,11 @@
         optComponents: []
       };
     };
-    const renderItemDomStructure = (ariaLabel, classes) => {
+    const renderItemDomStructure = ariaLabel => {
       const domTitle = ariaLabel.map(label => ({
         attributes: {
-          'id': generate$6('menu-item'),
-          'aria-label': global$6.translate(label)
+          title: global$8.translate(label),
+          id: generate$6('menu-item')
         }
       })).getOr({});
       return {
@@ -12223,14 +9956,8 @@
         classes: [
           navClass,
           selectableClass
-        ].concat(classes),
+        ],
         ...domTitle
-      };
-    };
-    const createLabel = label => {
-      return {
-        dom: { tag: 'label' },
-        components: [text$2(label)]
       };
     };
     const renderNormalItemStructure = (info, providersBackstage, renderIcons, fallbackIcon) => {
@@ -12238,35 +9965,20 @@
         tag: 'div',
         classes: [iconClass]
       };
-      const renderIcon = iconName => render$4(iconName, iconSpec, providersBackstage.icons, fallbackIcon);
+      const renderIcon = iconName => render$3(iconName, iconSpec, providersBackstage.icons, fallbackIcon);
       const renderEmptyIcon = () => Optional.some({ dom: iconSpec });
       const leftIcon = renderIcons ? info.iconContent.map(renderIcon).orThunk(renderEmptyIcon) : Optional.none();
       const checkmark = info.checkMark;
       const textRender = Optional.from(info.meta).fold(() => renderText, meta => has$2(meta, 'style') ? curry(renderStyledText, meta.style) : renderText);
       const content = info.htmlContent.fold(() => info.textContent.map(textRender), html => Optional.some(renderHtml(html, [textClass])));
       const menuItem = {
-        dom: renderItemDomStructure(info.ariaLabel, []),
+        dom: renderItemDomStructure(info.ariaLabel),
         optComponents: [
           leftIcon,
           content,
           info.shortcutContent.map(renderShortcut),
           checkmark,
-          info.caret,
-          info.labelContent.map(createLabel)
-        ]
-      };
-      return menuItem;
-    };
-    const renderImgItemStructure = info => {
-      const menuItem = {
-        dom: renderItemDomStructure(info.ariaLabel, [imageSelectorClasll]),
-        optComponents: [
-          Optional.some(render$3(info.iconContent.getOrDie(), {
-            tag: 'div',
-            classes: [imageClass],
-            checkMark: info.checkMark
-          })),
-          info.labelContent.map(createLabel)
+          info.caret
         ]
       };
       return menuItem;
@@ -12274,14 +9986,12 @@
     const renderItemStructure = (info, providersBackstage, renderIcons, fallbackIcon = Optional.none()) => {
       if (info.presets === 'color') {
         return renderColorStructure(info, providersBackstage, fallbackIcon);
-      } else if (info.presets === 'img') {
-        return renderImgItemStructure(info);
       } else {
         return renderNormalItemStructure(info, providersBackstage, renderIcons, fallbackIcon);
       }
     };
 
-    const tooltipBehaviour = (meta, sharedBackstage, tooltipText) => get$h(meta, 'tooltipWorker').map(tooltipWorker => [Tooltipping.config({
+    const tooltipBehaviour = (meta, sharedBackstage) => get$g(meta, 'tooltipWorker').map(tooltipWorker => [Tooltipping.config({
         lazySink: sharedBackstage.getSink,
         tooltipDom: {
           tag: 'div',
@@ -12299,15 +10009,10 @@
             Tooltipping.setComponents(component, [external$1({ element: SugarElement.fromDom(elm) })]);
           });
         }
-      })]).getOrThunk(() => {
-      return tooltipText.map(text => [Tooltipping.config({
-          ...sharedBackstage.providers.tooltips.getConfig({ tooltipText: text }),
-          mode: 'follow-highlight'
-        })]).getOr([]);
-    });
-    const encodeText = text => global$9.DOM.encode(text);
+      })]).getOr([]);
+    const encodeText = text => global$7.DOM.encode(text);
     const replaceText = (text, matchText) => {
-      const translated = global$6.translate(text);
+      const translated = global$8.translate(text);
       const encoded = encodeText(translated);
       if (matchText.length > 0) {
         const escapedMatchRegex = new RegExp(escape(matchText), 'gi');
@@ -12322,23 +10027,20 @@
         textContent: Optional.none(),
         htmlContent: useText ? spec.text.map(text => replaceText(text, matchText)) : Optional.none(),
         ariaLabel: spec.text,
-        labelContent: Optional.none(),
         iconContent: spec.icon,
         shortcutContent: Optional.none(),
         checkMark: Optional.none(),
         caret: Optional.none(),
         value: spec.value
       }, sharedBackstage.providers, renderIcons, spec.icon);
-      const tooltipString = spec.text.filter(text => !useText && text !== '');
       return renderCommonItem({
-        context: 'mode:design',
         data: buildData(spec),
         enabled: spec.enabled,
         getApi: constant$1({}),
         onAction: _api => onItemValueHandler(spec.value, spec.meta),
         onSetup: constant$1(noop),
         triggersSubmenu: false,
-        itemBehaviours: tooltipBehaviour(spec, sharedBackstage, tooltipString)
+        itemBehaviours: tooltipBehaviour(spec.meta, sharedBackstage)
       }, structure, itemResponse, sharedBackstage.providers);
     };
 
@@ -12369,7 +10071,7 @@
         }
       });
       const structure = {
-        dom: renderItemDomStructure(spec.label, []),
+        dom: renderItemDomStructure(spec.label),
         optComponents: [Optional.some({
             dom: {
               tag: 'div',
@@ -12382,7 +10084,6 @@
           })]
       };
       return renderCommonItem({
-        context: 'mode:design',
         data: buildData({
           text: Optional.none(),
           ...spec
@@ -12409,7 +10110,6 @@
         presets,
         textContent: useText ? spec.text : Optional.none(),
         htmlContent: Optional.none(),
-        labelContent: spec.label,
         ariaLabel: spec.text,
         iconContent: spec.icon,
         shortcutContent: useText ? spec.shortcut : Optional.none(),
@@ -12417,9 +10117,7 @@
         caret: Optional.none(),
         value: spec.value
       }, providersBackstage, renderIcons);
-      const optTooltipping = spec.text.filter(constant$1(!useText)).map(t => Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: providersBackstage.translate(t) })));
       return deepMerge(renderCommonItem({
-        context: spec.context,
         data: buildData(spec),
         enabled: spec.enabled,
         getApi,
@@ -12429,7 +10127,7 @@
           return noop;
         },
         triggersSubmenu: false,
-        itemBehaviours: [...optTooltipping.toArray()]
+        itemBehaviours: []
       }, structure, itemResponse, providersBackstage), {
         toggling: {
           toggleClass: tickedClass,
@@ -12474,8 +10172,8 @@
     const min = Math.min;
     const max = Math.max;
     const round$1 = Math.round;
-    const rgbRegex = /^\s*rgb\s*\(\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*(\d+)\s*\)\s*$/i;
-    const rgbaRegex = /^\s*rgba\s*\(\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*((?:\d?\.\d+|\d+)%?)\s*\)\s*$/i;
+    const rgbRegex = /^\s*rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i;
+    const rgbaRegex = /^\s*rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d?(?:\.\d+)?)\s*\)\s*$/i;
     const rgbaColour = (red, green, blue, alpha) => ({
       red,
       green,
@@ -12557,6 +10255,9 @@
       return rgbaColour(r, g, b, a);
     };
     const fromString = rgbaString => {
+      if (rgbaString === 'transparent') {
+        return Optional.some(rgbaColour(0, 0, 0, 0));
+      }
       const rgbMatch = rgbRegex.exec(rgbaString);
       if (rgbMatch !== null) {
         return Optional.some(fromStringValues(rgbMatch[1], rgbMatch[2], rgbMatch[3], '1'));
@@ -12597,36 +10298,6 @@
     });
     const fireToggleToolbarDrawer = (editor, state) => {
       editor.dispatch('ToggleToolbarDrawer', { state });
-    };
-    const fireStylesTextUpdate = (editor, data) => {
-      editor.dispatch('StylesTextUpdate', data);
-    };
-    const fireAlignTextUpdate = (editor, data) => {
-      editor.dispatch('AlignTextUpdate', data);
-    };
-    const fireFontSizeTextUpdate = (editor, data) => {
-      editor.dispatch('FontSizeTextUpdate', data);
-    };
-    const fireFontSizeInputTextUpdate = (editor, data) => {
-      editor.dispatch('FontSizeInputTextUpdate', data);
-    };
-    const fireBlocksTextUpdate = (editor, data) => {
-      editor.dispatch('BlocksTextUpdate', data);
-    };
-    const fireFontFamilyTextUpdate = (editor, data) => {
-      editor.dispatch('FontFamilyTextUpdate', data);
-    };
-    const fireToggleSidebar = editor => {
-      editor.dispatch('ToggleSidebar');
-    };
-    const fireToggleView = editor => {
-      editor.dispatch('ToggleView');
-    };
-    const fireContextToolbarClose = editor => {
-      editor.dispatch('ContextToolbarClose');
-    };
-    const fireContextFormSlideBack = editor => {
-      editor.dispatch('ContextFormSlideBack');
     };
 
     const composeUnbinders = (f, g) => () => {
@@ -12677,11 +10348,11 @@
     };
     const onActionExecCommand = (editor, command) => () => editor.execCommand(command);
 
-    var global$5 = tinymce.util.Tools.resolve('tinymce.util.LocalStorage');
+    var global$4 = tinymce.util.Tools.resolve('tinymce.util.LocalStorage');
 
     const cacheStorage = {};
     const ColorCache = (storageId, max = 10) => {
-      const storageString = global$5.getItem(storageId);
+      const storageString = global$4.getItem(storageId);
       const localstorage = isString(storageString) ? JSON.parse(storageString) : [];
       const prune = list => {
         const diff = max - list.length;
@@ -12694,7 +10365,7 @@
         if (cache.length > max) {
           cache.pop();
         }
-        global$5.setItem(storageId, JSON.stringify(cache));
+        global$4.setItem(storageId, JSON.stringify(cache));
       };
       const remove = idx => {
         cache.splice(idx, 1);
@@ -12705,12 +10376,12 @@
         state
       };
     };
-    const getCacheForId = id => get$h(cacheStorage, id).getOrThunk(() => {
+    const getCacheForId = id => get$g(cacheStorage, id).getOrThunk(() => {
       const storageId = `tinymce-custom-colors-${ id }`;
-      const currentData = global$5.getItem(storageId);
+      const currentData = global$4.getItem(storageId);
       if (isNullable(currentData)) {
-        const legacyDefault = global$5.getItem('tinymce-custom-colors');
-        global$5.setItem(storageId, isNonNullable(legacyDefault) ? legacyDefault : '[]');
+        const legacyDefault = global$4.getItem('tinymce-custom-colors');
+        global$4.setItem(storageId, isNonNullable(legacyDefault) ? legacyDefault : '[]');
       }
       const storage = ColorCache(storageId, 10);
       cacheStorage[id] = storage;
@@ -12774,18 +10445,12 @@
     const foregroundId = 'forecolor';
     const backgroundId = 'hilitecolor';
     const fallbackCols = 5;
-    const mapColors = colorMap => mapColorsRaw(colorMap.map((color, index) => {
-      if (index % 2 === 0) {
-        return '#' + anyToHex(color).value;
-      }
-      return color;
-    }));
-    const mapColorsRaw = colorMap => {
+    const mapColors = colorMap => {
       const colors = [];
       for (let i = 0; i < colorMap.length; i += 2) {
         colors.push({
           text: colorMap[i + 1],
-          value: colorMap[i],
+          value: '#' + anyToHex(colorMap[i]).value,
           icon: 'checkmark',
           type: 'choiceitem'
         });
@@ -12794,25 +10459,12 @@
     };
     const option$1 = name => editor => editor.options.get(name);
     const fallbackColor = '#000000';
-    const register$e = editor => {
+    const register$d = editor => {
       const registerOption = editor.options.register;
       const colorProcessor = value => {
         if (isArrayOf(value, isString)) {
           return {
             value: mapColors(value),
-            valid: true
-          };
-        } else {
-          return {
-            valid: false,
-            message: 'Must be an array of strings.'
-          };
-        }
-      };
-      const colorProcessorRaw = value => {
-        if (isArrayOf(value, isString)) {
-          return {
-            value: mapColorsRaw(value),
             valid: true
           };
         } else {
@@ -12884,7 +10536,6 @@
           'White'
         ]
       });
-      registerOption('color_map_raw', { processor: colorProcessorRaw });
       registerOption('color_map_background', { processor: colorProcessor });
       registerOption('color_map_foreground', { processor: colorProcessor });
       registerOption('color_cols', {
@@ -12917,8 +10568,6 @@
         return option$1('color_map_foreground')(editor);
       } else if (id === backgroundId && editor.options.isSet('color_map_background')) {
         return option$1('color_map_background')(editor);
-      } else if (editor.options.isSet('color_map_raw')) {
-        return option$1('color_map_raw')(editor);
       } else {
         return option$1('color_map')(editor);
       }
@@ -12952,9 +10601,9 @@
     const defaultBackgroundColor = 'rgba(0, 0, 0, 0)';
     const isValidBackgroundColor = value => fromString(value).exists(c => c.alpha !== 0);
     const getClosestCssBackgroundColorValue = scope => {
-      return closest$2(scope, node => {
+      return closest$4(scope, node => {
         if (isElement$1(node)) {
-          const color = get$f(node, 'background-color');
+          const color = get$e(node, 'background-color');
           return someIf(isValidBackgroundColor(color), color);
         } else {
           return Optional.none();
@@ -12963,7 +10612,7 @@
     };
     const getCurrentColor = (editor, format) => {
       const node = SugarElement.fromDom(editor.selection.getStart());
-      const cssRgbValue = format === 'hilitecolor' ? getClosestCssBackgroundColorValue(node) : get$f(node, 'color');
+      const cssRgbValue = format === 'hilitecolor' ? getClosestCssBackgroundColorValue(node) : get$e(node, 'color');
       return fromString(cssRgbValue).map(rgba => '#' + fromRgba(rgba).value);
     };
     const applyFormat = (editor, format, value) => {
@@ -13033,28 +10682,13 @@
       const id = name === 'forecolor' ? 'tox-icon-text-color__color' : 'tox-icon-highlight-bg-color__color';
       splitButtonApi.setIconFill(id, newColor);
     };
-    const setTooltip = (buttonApi, tooltip) => {
-      buttonApi.setTooltip(tooltip);
-    };
     const select$1 = (editor, format) => value => {
       const optCurrentHex = getCurrentColor(editor, format);
       return is$1(optCurrentHex, value.toUpperCase());
     };
-    const getToolTipText = (editor, format, lastColor) => {
-      if (isEmpty(lastColor)) {
-        return format === 'forecolor' ? 'Text color' : 'Background color';
-      }
-      const tooltipPrefix = format === 'forecolor' ? 'Text color {0}' : 'Background color {0}';
-      const colors = getColors$1(getColors$2(editor, format), format, false);
-      const colorText = find$5(colors, c => c.value === lastColor).getOr({ text: '' }).text;
-      return editor.translate([
-        tooltipPrefix,
-        editor.translate(colorText)
-      ]);
-    };
-    const registerTextColorButton = (editor, name, format, lastColor) => {
+    const registerTextColorButton = (editor, name, format, tooltip, lastColor) => {
       editor.ui.registry.addSplitButton(name, {
-        tooltip: getToolTipText(editor, format, lastColor.get()),
+        tooltip,
         presets: 'color',
         icon: name === 'forecolor' ? 'text-color' : 'highlight-bg-color',
         select: select$1(editor, format),
@@ -13077,7 +10711,6 @@
           const handler = e => {
             if (e.name === name) {
               setIconColor(splitButtonApi, e.name, e.color);
-              setTooltip(splitButtonApi, getToolTipText(editor, format, e.color));
             }
           };
           editor.on('TextColorChange', handler);
@@ -13092,7 +10725,6 @@
         text,
         icon: name === 'forecolor' ? 'text-color' : 'highlight-bg-color',
         onSetup: api => {
-          setTooltip(api, getToolTipText(editor, format, lastColor.get()));
           setIconColor(api, name, lastColor.get());
           return onSetupEditableToggle(editor)(api);
         },
@@ -13167,63 +10799,16 @@
         }
       });
     };
-    const register$d = editor => {
+    const register$c = editor => {
       registerCommands(editor);
       const fallbackColorForeground = getDefaultForegroundColor(editor);
       const fallbackColorBackground = getDefaultBackgroundColor(editor);
       const lastForeColor = Cell(fallbackColorForeground);
       const lastBackColor = Cell(fallbackColorBackground);
-      registerTextColorButton(editor, 'forecolor', 'forecolor', lastForeColor);
-      registerTextColorButton(editor, 'backcolor', 'hilitecolor', lastBackColor);
+      registerTextColorButton(editor, 'forecolor', 'forecolor', 'Text color', lastForeColor);
+      registerTextColorButton(editor, 'backcolor', 'hilitecolor', 'Background color', lastBackColor);
       registerTextColorMenuItem(editor, 'forecolor', 'forecolor', 'Text color', lastForeColor);
       registerTextColorMenuItem(editor, 'backcolor', 'hilitecolor', 'Background color', lastBackColor);
-    };
-
-    const renderImgItem = (spec, onItemValueHandler, isSelected, itemResponse, providersBackstage) => {
-      const getApi = component => ({
-        setActive: state => {
-          Toggling.set(component, state);
-        },
-        isActive: () => Toggling.isOn(component),
-        isEnabled: () => !Disabling.isDisabled(component),
-        setEnabled: state => Disabling.set(component, !state)
-      });
-      const structure = renderItemStructure({
-        presets: 'img',
-        textContent: Optional.none(),
-        htmlContent: Optional.none(),
-        ariaLabel: spec.tooltip,
-        iconContent: Optional.some(spec.url),
-        labelContent: spec.label,
-        shortcutContent: Optional.none(),
-        checkMark: Optional.some(renderCheckmark(providersBackstage.icons)),
-        caret: Optional.none(),
-        value: spec.value
-      }, providersBackstage, true);
-      const optTooltipping = spec.tooltip.map(t => Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: providersBackstage.translate(t) })));
-      return deepMerge(renderCommonItem({
-        context: spec.context,
-        data: buildData(spec),
-        enabled: spec.enabled,
-        getApi,
-        onAction: api => {
-          onItemValueHandler(spec.value);
-          api.setActive(true);
-        },
-        onSetup: api => {
-          api.setActive(isSelected);
-          return noop;
-        },
-        triggersSubmenu: false,
-        itemBehaviours: [...optTooltipping.toArray()]
-      }, structure, itemResponse, providersBackstage), {
-        toggling: {
-          toggleClass: tickedClass,
-          toggleOnExecute: false,
-          selected: spec.active,
-          exclusive: true
-        }
-      });
     };
 
     const createPartialChoiceMenu = (value, items, onItemValueHandler, columns, presets, itemResponse, select, providersBackstage) => {
@@ -13236,16 +10821,6 @@
     const createChoiceItems = (items, onItemValueHandler, columns, itemPresets, itemResponse, select, providersBackstage) => cat(map$2(items, item => {
       if (item.type === 'choiceitem') {
         return createChoiceMenuItem(item).fold(handleError, d => Optional.some(renderChoiceItem(d, columns === 1, itemPresets, onItemValueHandler, select(d.value), itemResponse, providersBackstage, menuHasIcons(items))));
-      } else if (item.type === 'imageitem') {
-        return createImageMenuItem(item).fold(handleError, d => Optional.some(renderImgItem(d, onItemValueHandler, select(d.value), itemResponse, providersBackstage)));
-      } else if (item.type === 'resetimage') {
-        return createResetImageItem(item).fold(handleError, d => Optional.some(renderChoiceItem({
-          ...d,
-          type: 'choiceitem',
-          text: d.tooltip,
-          icon: Optional.some(d.icon),
-          label: Optional.some(d.label)
-        }, columns === 1, itemPresets, onItemValueHandler, select(d.value), itemResponse, providersBackstage, menuHasIcons(items))));
       } else {
         return Optional.none();
       }
@@ -13268,12 +10843,7 @@
           }
         };
       } else {
-        const rowClass = {
-          color: 'tox-swatches__row',
-          imageselector: 'tox-image-selector__row',
-          listpreview: 'tox-collection__group',
-          normal: 'tox-collection__group'
-        }[presets];
+        const rowClass = presets === 'color' ? 'tox-swatches__row' : 'tox-collection__group';
         return {
           mode: 'matrix',
           rowSelector: '.' + rowClass,
@@ -13320,8 +10890,7 @@
       const widgetSpec = {
         ...menuSpec,
         markers: markers(presets),
-        movement: deriveMenuMovement(columns, presets),
-        showMenuRole: false
+        movement: deriveMenuMovement(columns, presets)
       };
       return {
         type: 'widget',
@@ -13339,40 +10908,9 @@
       return spec.initData.colors.fold(() => getColors$1(backstage.colorinput.getColors(spec.initData.storageKey), spec.initData.storageKey, useCustomColors), colors => colors.concat(getAdditionalColors(useCustomColors)));
     };
 
-    const renderImageSelector = (spec, backstage) => {
-      const presets = 'imageselector';
-      const columns = spec.initData.columns;
-      const menuSpec = createPartialChoiceMenu(generate$6('menu-value'), spec.initData.items, value => {
-        spec.onAction({ value });
-      }, columns, presets, ItemResponse$1.CLOSE_ON_EXECUTE, spec.select.getOr(never), backstage.shared.providers);
-      const widgetSpec = {
-        ...menuSpec,
-        markers: markers(presets),
-        movement: deriveMenuMovement(columns, presets),
-        showMenuRole: false
-      };
-      return {
-        type: 'widget',
-        data: { value: generate$6('widget-id') },
-        dom: {
-          tag: 'div',
-          classes: [
-            'tox-fancymenuitem',
-            'tox-collection--toolbar'
-          ]
-        },
-        autofocus: true,
-        components: [parts$f.widget(Menu.sketch(widgetSpec))]
-      };
-    };
-
     const cellOverEvent = generate$6('cell-over');
     const cellExecuteEvent = generate$6('cell-execute');
-    const makeAnnouncementText = backstage => (row, col) => backstage.shared.providers.translate([
-      '{0} columns, {1} rows',
-      col,
-      row
-    ]);
+    const makeAnnouncementText = backstage => (row, col) => backstage.shared.providers.translate(`${ col } columns, ${ row } rows`);
     const makeCell = (row, col, label) => {
       const emitCellOver = c => emitWith(c, cellOverEvent, {
         row,
@@ -13470,11 +11008,11 @@
                 }),
                 runWithTarget(cellExecuteEvent, (c, _, e) => {
                   const {row, col} = e.event;
-                  emit(c, sandboxClose());
                   spec.onAction({
                     numRows: row + 1,
                     numColumns: col + 1
                   });
+                  emit(c, sandboxClose());
                 })
               ]),
               Keying.config({
@@ -13492,10 +11030,9 @@
 
     const fancyMenuItems = {
       inserttable: renderInsertTableMenuItem,
-      colorswatch: renderColorSwatchItem,
-      imageselect: renderImageSelector
+      colorswatch: renderColorSwatchItem
     };
-    const renderFancyMenuItem = (spec, backstage) => get$h(fancyMenuItems, spec.fancytype).map(render => render(spec, backstage));
+    const renderFancyMenuItem = (spec, backstage) => get$g(fancyMenuItems, spec.fancytype).map(render => render(spec, backstage));
 
     const renderNestedItem = (spec, itemResponse, providersBackstage, renderIcons = true, downwardsCaret = false) => {
       const caret = downwardsCaret ? renderDownwardsCaret(providersBackstage.icons) : renderSubmenuCaret(providersBackstage.icons);
@@ -13506,10 +11043,6 @@
           descendant(component.element, `svg path[class="${ id }"], rect[class="${ id }"]`).each(underlinePath => {
             set$9(underlinePath, 'fill', value);
           });
-        },
-        setTooltip: tooltip => {
-          const translatedTooltip = providersBackstage.translate(tooltip);
-          set$9(component.element, 'aria-label', translatedTooltip);
         }
       });
       const structure = renderItemStructure({
@@ -13518,13 +11051,11 @@
         textContent: spec.text,
         htmlContent: Optional.none(),
         ariaLabel: spec.text,
-        labelContent: Optional.none(),
         caret: Optional.some(caret),
         checkMark: Optional.none(),
         shortcutContent: spec.shortcut
       }, providersBackstage, renderIcons);
       return renderCommonItem({
-        context: spec.context,
         data: buildData(spec),
         getApi,
         enabled: spec.enabled,
@@ -13545,14 +11076,12 @@
         iconContent: spec.icon,
         textContent: spec.text,
         htmlContent: Optional.none(),
-        labelContent: Optional.none(),
         ariaLabel: spec.text,
         caret: Optional.none(),
         checkMark: Optional.none(),
         shortcutContent: spec.shortcut
       }, providersBackstage, renderIcons);
       return renderCommonItem({
-        context: spec.context,
         data: buildData(spec),
         getApi,
         enabled: spec.enabled,
@@ -13588,7 +11117,6 @@
         iconContent: spec.icon,
         textContent: spec.text,
         htmlContent: Optional.none(),
-        labelContent: Optional.none(),
         ariaLabel: spec.text,
         checkMark: Optional.some(renderCheckmark(providersBackstage.icons)),
         caret: Optional.none(),
@@ -13597,7 +11125,6 @@
         meta: spec.meta
       }, providersBackstage, renderIcons);
       return deepMerge(renderCommonItem({
-        context: spec.context,
         data: buildData(spec),
         enabled: spec.enabled,
         getApi,
@@ -13610,8 +11137,7 @@
           toggleClass: tickedClass,
           toggleOnExecute: false,
           selected: spec.active
-        },
-        role: spec.role.getOrUndefined()
+        }
       });
     };
 
@@ -13634,19 +11160,19 @@
 
     var CouplingSchema = [requiredOf('others', setOf(Result.value, anyValue()))];
 
-    const init$9 = () => {
+    const init$a = () => {
       const coupled = {};
       const lookupCoupled = (coupleConfig, coupledName) => {
         const available = keys(coupleConfig.others);
         if (available.length === 0) {
           throw new Error('Cannot find any known coupled components');
         } else {
-          return get$h(coupled, coupledName);
+          return get$g(coupled, coupledName);
         }
       };
       const getOrCreate = (component, coupleConfig, name) => {
         return lookupCoupled(coupleConfig, name).getOrThunk(() => {
-          const builder = get$h(coupleConfig.others, name).getOrDie('No information found for coupled component: ' + name);
+          const builder = get$g(coupleConfig.others, name).getOrDie('No information found for coupled component: ' + name);
           const spec = builder(component);
           const built = component.getSystem().build(spec);
           coupled[name] = built;
@@ -13655,12 +11181,12 @@
       };
       const getExisting = (component, coupleConfig, name) => {
         return lookupCoupled(coupleConfig, name).orThunk(() => {
-          get$h(coupleConfig.others, name).getOrDie('No information found for coupled component: ' + name);
+          get$g(coupleConfig.others, name).getOrDie('No information found for coupled component: ' + name);
           return Optional.none();
         });
       };
       const readState = constant$1({});
-      return nu$7({
+      return nu$8({
         readState,
         getExisting,
         getOrCreate
@@ -13669,7 +11195,7 @@
 
     var CouplingState = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        init: init$9
+        init: init$a
     });
 
     const Coupling = create$4({
@@ -13815,52 +11341,44 @@
     const openF = (detail, mapFetch, anchor, component, sandbox, externals, highlightOnOpen) => {
       const futureData = fetch(detail, mapFetch, component);
       const getLazySink = getSink(component, detail);
-      return futureData.map(tdata => tdata.bind(data => {
-        const primaryMenu = data.menus[data.primary];
-        Optional.from(primaryMenu).each(menu => {
-          detail.listRole.each(listRole => {
-            menu.role = listRole;
+      return futureData.map(tdata => tdata.bind(data => Optional.from(tieredMenu.sketch({
+        ...externals.menu(),
+        uid: generate$5(''),
+        data,
+        highlightOnOpen,
+        onOpenMenu: (tmenu, menu) => {
+          const sink = getLazySink().getOrDie();
+          Positioning.position(sink, menu, { anchor });
+          Sandboxing.decloak(sandbox);
+        },
+        onOpenSubmenu: (tmenu, item, submenu) => {
+          const sink = getLazySink().getOrDie();
+          Positioning.position(sink, submenu, {
+            anchor: {
+              type: 'submenu',
+              item
+            }
           });
-        });
-        return Optional.from(tieredMenu.sketch({
-          ...externals.menu(),
-          uid: generate$5(''),
-          data,
-          highlightOnOpen,
-          onOpenMenu: (tmenu, menu) => {
-            const sink = getLazySink().getOrDie();
-            Positioning.position(sink, menu, { anchor });
-            Sandboxing.decloak(sandbox);
-          },
-          onOpenSubmenu: (tmenu, item, submenu) => {
-            const sink = getLazySink().getOrDie();
-            Positioning.position(sink, submenu, {
+          Sandboxing.decloak(sandbox);
+        },
+        onRepositionMenu: (tmenu, primaryMenu, submenuTriggers) => {
+          const sink = getLazySink().getOrDie();
+          Positioning.position(sink, primaryMenu, { anchor });
+          each$1(submenuTriggers, st => {
+            Positioning.position(sink, st.triggeredMenu, {
               anchor: {
                 type: 'submenu',
-                item
+                item: st.triggeringItem
               }
             });
-            Sandboxing.decloak(sandbox);
-          },
-          onRepositionMenu: (tmenu, primaryMenu, submenuTriggers) => {
-            const sink = getLazySink().getOrDie();
-            Positioning.position(sink, primaryMenu, { anchor });
-            each$1(submenuTriggers, st => {
-              Positioning.position(sink, st.triggeredMenu, {
-                anchor: {
-                  type: 'submenu',
-                  item: st.triggeringItem
-                }
-              });
-            });
-          },
-          onEscape: () => {
-            Focusing.focus(component);
-            Sandboxing.close(sandbox);
-            return Optional.some(true);
-          }
-        }));
-      }));
+          });
+        },
+        onEscape: () => {
+          Focusing.focus(component);
+          Sandboxing.close(sandbox);
+          return Optional.some(true);
+        }
+      }))));
     };
     const open = (detail, mapFetch, hotspot, sandbox, externals, onOpenSync, highlightOnOpen) => {
       const anchor = getAnchor(detail, hotspot);
@@ -13890,7 +11408,7 @@
     };
     const matchWidth = (hotspot, container, useMinWidth) => {
       const menu = Composing.getCurrent(container).getOr(container);
-      const buttonWidth = get$d(hotspot.element);
+      const buttonWidth = get$c(hotspot.element);
       if (useMinWidth) {
         set$8(menu.element, 'min-width', buttonWidth + 'px');
       } else {
@@ -13918,7 +11436,6 @@
       };
       const onClose = (component, menu) => {
         ariaControls.unlink(hotspot.element);
-        lazySink().getOr(menu).element.dom.dispatchEvent(new window.FocusEvent('focusout'));
         if (extras !== undefined && extras.onClose !== undefined) {
           extras.onClose(component, menu);
         }
@@ -13928,7 +11445,10 @@
         dom: {
           tag: 'div',
           classes: detail.sandboxClasses,
-          attributes: { id: ariaControls.id }
+          attributes: {
+            id: ariaControls.id,
+            role: 'listbox'
+          }
         },
         behaviours: SketchBehaviours.augment(detail.sandboxBehaviours, [
           Representing.config({
@@ -13995,8 +11515,7 @@
       option$3('lazySink'),
       defaulted('matchWidth', false),
       defaulted('useMinWidth', false),
-      option$3('role'),
-      option$3('listRole')
+      option$3('role')
     ].concat(sandboxFields()));
     const parts$e = constant$1([
       external({
@@ -14013,7 +11532,7 @@
     ]);
 
     const factory$k = (detail, components, _spec, externals) => {
-      const lookupAttr = attr => get$h(detail.dom, 'attributes').bind(attrs => get$h(attrs, attr));
+      const lookupAttr = attr => get$g(detail.dom, 'attributes').bind(attrs => get$g(attrs, attr));
       const switchToMenu = sandbox => {
         Sandboxing.getState(sandbox).each(tmenu => {
           tieredMenu.highlightPrimary(tmenu);
@@ -14104,7 +11623,7 @@
           }),
           Focusing.config({})
         ]),
-        events: events$9(Optional.some(action)),
+        events: events$a(Optional.some(action)),
         eventOrder: {
           ...detail.eventOrder,
           [execute$5()]: [
@@ -14116,7 +11635,7 @@
         apis,
         domModification: {
           attributes: {
-            'aria-haspopup': detail.listRole.getOr('true'),
+            'aria-haspopup': 'true',
             ...detail.role.fold(() => ({}), role => ({ role })),
             ...detail.dom.tag === 'button' ? { type: lookupAttr('type').getOr('button') } : {}
           }
@@ -14235,7 +11754,7 @@
               onItemValueHandler(d.value, d.meta);
             }
           }, itemResponse, sharedBackstage, {
-            itemBehaviours: tooltipBehaviour(d.meta, sharedBackstage, Optional.none()),
+            itemBehaviours: tooltipBehaviour(d.meta, sharedBackstage),
             cardText: {
               matchText,
               highlightOn
@@ -14286,26 +11805,24 @@
       };
     };
 
-    const rangeToSimRange = r => SimRange.create(SugarElement.fromDom(r.startContainer), r.startOffset, SugarElement.fromDom(r.endContainer), r.endOffset);
-    const register$c = (editor, sharedBackstage) => {
-      const autocompleterId = generate$6('autocompleter');
+    const getAutocompleterRange = (dom, initRange) => {
+      return detect$1(SugarElement.fromDom(initRange.startContainer)).map(elm => {
+        const range = dom.createRng();
+        range.selectNode(elm.dom);
+        return range;
+      });
+    };
+    const register$b = (editor, sharedBackstage) => {
       const processingAction = Cell(false);
       const activeState = Cell(false);
-      const activeRange = value$4();
       const autocompleter = build$1(InlineView.sketch({
         dom: {
           tag: 'div',
-          classes: ['tox-autocompleter'],
-          attributes: { id: autocompleterId }
+          classes: ['tox-autocompleter']
         },
         components: [],
         fireDismissalEventInstead: {},
-        inlineBehaviours: derive$1([config('dismissAutocompleter', [
-            run$1(dismissRequested(), () => cancelIfNecessary()),
-            run$1(highlight$1(), (_, se) => {
-              getOpt(se.event.target, 'id').each(id => set$9(SugarElement.fromDom(editor.getBody()), 'aria-activedescendant', id));
-            })
-          ])]),
+        inlineBehaviours: derive$1([config('dismissAutocompleter', [run$1(dismissRequested(), () => cancelIfNecessary())])]),
         lazySink: sharedBackstage.getSink
       }));
       const isMenuOpen = () => InlineView.isOpen(autocompleter);
@@ -14313,16 +11830,10 @@
       const hideIfNecessary = () => {
         if (isMenuOpen()) {
           InlineView.hide(autocompleter);
-          editor.dom.remove(autocompleterId, false);
-          const editorBody = SugarElement.fromDom(editor.getBody());
-          getOpt(editorBody, 'aria-owns').filter(ariaOwnsAttr => ariaOwnsAttr === autocompleterId).each(() => {
-            remove$8(editorBody, 'aria-owns');
-            remove$8(editorBody, 'aria-activedescendant');
-          });
         }
       };
       const getMenu = () => InlineView.getContent(autocompleter).bind(tmenu => {
-        return get$i(tmenu.components(), 0);
+        return get$h(tmenu.components(), 0);
       });
       const cancelIfNecessary = () => editor.execCommand('mceAutocompleterClose');
       const getCombinedItems = matches => {
@@ -14330,15 +11841,15 @@
         return bind$3(matches, match => {
           const choices = match.items;
           return createAutocompleteItems(choices, match.matchText, (itemValue, itemMeta) => {
-            const autocompleterApi = {
-              hide: () => cancelIfNecessary(),
-              reload: fetchOptions => {
-                hideIfNecessary();
-                editor.execCommand('mceAutocompleterReload', false, { fetchOptions });
-              }
-            };
-            editor.execCommand('mceAutocompleterRefreshActiveRange');
-            activeRange.get().each(range => {
+            const nr = editor.selection.getRng();
+            getAutocompleterRange(editor.dom, nr).each(range => {
+              const autocompleterApi = {
+                hide: () => cancelIfNecessary(),
+                reload: fetchOptions => {
+                  hideIfNecessary();
+                  editor.execCommand('mceAutocompleterReload', false, { fetchOptions });
+                }
+              };
               processingAction.set(true);
               match.onAction(autocompleterApi, range, itemValue, itemMeta);
               processingAction.set(false);
@@ -14347,52 +11858,25 @@
         });
       };
       const display = (lookupData, items) => {
-        const columns = findMap(lookupData, ld => Optional.from(ld.columns)).getOr(1);
-        InlineView.showMenuAt(autocompleter, {
-          anchor: {
-            type: 'selection',
-            getSelection: () => activeRange.get().map(rangeToSimRange),
-            root: SugarElement.fromDom(editor.getBody())
-          }
-        }, createInlineMenuFrom(createPartialMenuWithAlloyItems('autocompleter-value', true, items, columns, { menuType: 'normal' }), columns, FocusMode.ContentFocus, 'normal'));
+        findIn(SugarElement.fromDom(editor.getBody())).each(element => {
+          const columns = findMap(lookupData, ld => Optional.from(ld.columns)).getOr(1);
+          InlineView.showMenuAt(autocompleter, {
+            anchor: {
+              type: 'node',
+              root: SugarElement.fromDom(editor.getBody()),
+              node: Optional.from(element)
+            }
+          }, createInlineMenuFrom(createPartialMenuWithAlloyItems('autocompleter-value', true, items, columns, { menuType: 'normal' }), columns, FocusMode.ContentFocus, 'normal'));
+        });
         getMenu().each(Highlighting.highlightFirst);
       };
       const updateDisplay = lookupData => {
         const combinedItems = getCombinedItems(lookupData);
         if (combinedItems.length > 0) {
           display(lookupData, combinedItems);
-          set$9(SugarElement.fromDom(editor.getBody()), 'aria-owns', autocompleterId);
-          if (!editor.inline) {
-            cloneAutocompleterToEditorDoc();
-          }
         } else {
           hideIfNecessary();
         }
-      };
-      const cloneAutocompleterToEditorDoc = () => {
-        if (editor.dom.get(autocompleterId)) {
-          editor.dom.remove(autocompleterId, false);
-        }
-        const docElm = editor.getDoc().documentElement;
-        const selection = editor.selection.getNode();
-        const newElm = deep(autocompleter.element);
-        setAll(newElm, {
-          border: '0',
-          clip: 'rect(0 0 0 0)',
-          height: '1px',
-          margin: '-1px',
-          overflow: 'hidden',
-          padding: '0',
-          position: 'absolute',
-          width: '1px',
-          top: `${ selection.offsetTop }px`,
-          left: `${ selection.offsetLeft }px`
-        });
-        editor.dom.add(docElm, newElm.dom);
-        descendant(newElm, '[role="menu"]').each(child => {
-          remove$7(child, 'position');
-          remove$7(child, 'max-height');
-        });
       };
       editor.on('AutocompleterStart', ({lookupData}) => {
         activeState.set(true);
@@ -14400,12 +11884,10 @@
         updateDisplay(lookupData);
       });
       editor.on('AutocompleterUpdate', ({lookupData}) => updateDisplay(lookupData));
-      editor.on('AutocompleterUpdateActiveRange', ({range}) => activeRange.set(range));
       editor.on('AutocompleterEnd', () => {
         hideIfNecessary();
         activeState.set(false);
         processingAction.set(false);
-        activeRange.clear();
       });
       const autocompleterUiApi = {
         cancelIfNecessary,
@@ -14416,9 +11898,41 @@
       };
       AutocompleterEditorEvents.setup(autocompleterUiApi, editor);
     };
-    const Autocompleter = { register: register$c };
+    const Autocompleter = { register: register$b };
 
-    const closest = (scope, selector, isRoot) => closest$3(scope, selector, isRoot).isSome();
+    const nonScrollingOverflows = [
+      'visible',
+      'hidden',
+      'clip'
+    ];
+    const isScrollingOverflowValue = value => trim$1(value).length > 0 && !contains$2(nonScrollingOverflows, value);
+    const isScroller = elem => {
+      if (isHTMLElement(elem)) {
+        const overflowX = get$e(elem, 'overflow-x');
+        const overflowY = get$e(elem, 'overflow-y');
+        return isScrollingOverflowValue(overflowX) || isScrollingOverflowValue(overflowY);
+      } else {
+        return false;
+      }
+    };
+    const detect = popupSinkElem => {
+      const ancestorsScrollers = ancestors(popupSinkElem, isScroller);
+      const scrollers = ancestorsScrollers.length === 0 ? getShadowRoot(popupSinkElem).map(getShadowHost).map(x => ancestors(x, isScroller)).getOr([]) : ancestorsScrollers;
+      return head(scrollers).map(element => ({
+        element,
+        others: scrollers.slice(1)
+      }));
+    };
+    const detectWhenSplitUiMode = (editor, popupSinkElem) => isSplitUiMode(editor) ? detect(popupSinkElem) : Optional.none();
+    const getBoundsFrom = sc => {
+      const scrollableBoxes = [
+        ...map$2(sc.others, box$1),
+        win()
+      ];
+      return constrainByMany(box$1(sc.element), scrollableBoxes);
+    };
+
+    const closest = (scope, selector, isRoot) => closest$1(scope, selector, isRoot).isSome();
 
     const DelayedFunction = (fun, delay) => {
       let ref = null;
@@ -14455,7 +11969,7 @@
       return distX > SIGNIFICANT_MOVE || distY > SIGNIFICANT_MOVE;
     };
     const monitor = settings => {
-      const startData = value$4();
+      const startData = value$2();
       const longpressFired = Cell(false);
       const longpress$1 = DelayedFunction(event => {
         settings.triggerEvent(longpress(), event);
@@ -14512,7 +12026,7 @@
           value: handleTouchend
         }
       ]);
-      const fireIfReady = (event, type) => get$h(handlers, type).bind(handler => handler(event));
+      const fireIfReady = (event, type) => get$g(handlers, type).bind(handler => handler(event));
       return { fireIfReady };
     };
 
@@ -14568,7 +12082,7 @@
           event.kill();
         }
       }));
-      const pasteTimeout = value$4();
+      const pasteTimeout = value$2();
       const onPaste = bind(container, 'paste', event => {
         tapEvent.fireIfReady(event, 'paste').each(tapStopped => {
           if (tapStopped) {
@@ -14597,7 +12111,7 @@
           event.kill();
         }
       });
-      const focusoutTimeout = value$4();
+      const focusoutTimeout = value$2();
       const onFocusOut = bind(container, 'focusout', event => {
         const stopped = settings.triggerEvent('focusout', event);
         if (stopped) {
@@ -14622,7 +12136,7 @@
     };
 
     const derive = (rawEvent, rawTarget) => {
-      const source = get$h(rawEvent, 'target').getOr(rawTarget);
+      const source = get$g(rawEvent, 'target').getOr(rawTarget);
       return Cell(source);
     };
 
@@ -14730,9 +12244,9 @@
           registry[k] = handlers;
         });
       };
-      const findHandler = (handlers, elem) => read(elem).bind(id => get$h(handlers, id)).map(descHandler => eventHandler(elem, descHandler));
-      const filterByType = type => get$h(registry, type).map(handlers => mapToArray(handlers, (f, id) => broadcastHandler(id, f))).getOr([]);
-      const find = (isAboveRoot, type, target) => get$h(registry, type).bind(handlers => closest$2(target, elem => findHandler(handlers, elem), isAboveRoot));
+      const findHandler = (handlers, elem) => read$1(elem).bind(id => get$g(handlers, id)).map(descHandler => eventHandler(elem, descHandler));
+      const filterByType = type => get$g(registry, type).map(handlers => mapToArray(handlers, (f, id) => broadcastHandler(id, f))).getOr([]);
+      const find = (isAboveRoot, type, target) => get$g(registry, type).bind(handlers => closest$4(target, elem => findHandler(handlers, elem), isAboveRoot));
       const unregisterId = id => {
         each(registry, (handlersById, _eventName) => {
           if (has$2(handlersById, id)) {
@@ -14753,7 +12267,7 @@
       const components = {};
       const readOrTag = component => {
         const elem = component.element;
-        return read(elem).getOrThunk(() => write('uid-', component.element));
+        return read$1(elem).getOrThunk(() => write('uid-', component.element));
       };
       const failOnDuplicate = (component, tagId) => {
         const conflict = components[tagId];
@@ -14773,14 +12287,14 @@
         components[tagId] = component;
       };
       const unregister = component => {
-        read(component.element).each(tagId => {
+        read$1(component.element).each(tagId => {
           delete components[tagId];
           events.unregisterId(tagId);
         });
       };
       const filter = type => events.filterByType(type);
       const find = (isAboveRoot, type, target) => events.find(isAboveRoot, type, target);
-      const getById = id => get$h(components, id);
+      const getById = id => get$g(components, id);
       return {
         find,
         filter,
@@ -14803,7 +12317,7 @@
           ...domWithoutAttributes
         },
         components: detail.components,
-        behaviours: get$4(detail.containerBehaviours),
+        behaviours: get$3(detail.containerBehaviours),
         events: detail.events,
         domModification: detail.domModification,
         eventOrder: detail.eventOrder
@@ -14836,7 +12350,7 @@
           monitorEvent(eventName, target, logger => triggerOnUntilStopped(lookup, eventName, data, target, logger));
         },
         triggerFocus: (target, originator) => {
-          read(target).fold(() => {
+          read$1(target).fold(() => {
             focus$3(target);
           }, _alloyId => {
             monitorEvent(focus$4(), target, logger => {
@@ -14907,7 +12421,7 @@
       };
       const destroy = () => {
         domEvents.unbind();
-        remove$6(root.element);
+        remove$5(root.element);
       };
       const broadcastData = data => {
         const receivers = registry.filter(receive());
@@ -14936,7 +12450,7 @@
       };
       const getByUid = uid => registry.getById(uid).fold(() => Result.error(new Error('Could not find component with uid: "' + uid + '" in system.')), Result.value);
       const getByDom = elem => {
-        const uid = read(elem).getOr('not found');
+        const uid = read$1(elem).getOr('not found');
         return getByUid(uid);
       };
       addToWorld(root);
@@ -15072,7 +12586,27 @@
       }
     });
 
-    var global$4 = tinymce.util.Tools.resolve('tinymce.html.Entities');
+    const exhibit$2 = (base, tabConfig) => nu$7({
+      attributes: wrapAll([{
+          key: tabConfig.tabAttr,
+          value: 'true'
+        }])
+    });
+
+    var ActiveTabstopping = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        exhibit: exhibit$2
+    });
+
+    var TabstopSchema = [defaulted('tabAttr', 'data-alloy-tabstop')];
+
+    const Tabstopping = create$4({
+      fields: TabstopSchema,
+      name: 'tabstopping',
+      active: ActiveTabstopping
+    });
+
+    var global$3 = tinymce.util.Tools.resolve('tinymce.html.Entities');
 
     const renderFormFieldWith = (pLabel, pField, extraClasses, extraBehaviours) => {
       const spec = renderFormFieldSpecWith(pLabel, pField, extraClasses, extraBehaviours);
@@ -15098,7 +12632,6 @@
     });
 
     const formChangeEvent = generate$6('form-component-change');
-    const formInputEvent = generate$6('form-component-input');
     const formCloseEvent = generate$6('form-close');
     const formCancelEvent = generate$6('form-cancel');
     const formActionEvent = generate$6('form-action');
@@ -15110,30 +12643,24 @@
 
     const renderCollection = (spec, providersBackstage, initialData) => {
       const pLabel = spec.label.map(label => renderLabel$3(label, providersBackstage));
-      const icons = providersBackstage.icons();
-      const getIcon = icon => {
-        var _a;
-        return (_a = icons[icon]) !== null && _a !== void 0 ? _a : icon;
-      };
       const runOnItem = f => (comp, se) => {
-        closest$3(se.event.target, '[data-collection-item-value]').each(target => {
-          f(comp, se, target, get$g(target, 'data-collection-item-value'));
+        closest$1(se.event.target, '[data-collection-item-value]').each(target => {
+          f(comp, se, target, get$f(target, 'data-collection-item-value'));
         });
       };
       const setContents = (comp, items) => {
-        const disabled = providersBackstage.checkUiComponentContext('mode:design').shouldDisable || providersBackstage.isDisabled();
-        const disabledClass = disabled ? ' tox-collection__item--state-disabled' : '';
         const htmlLines = map$2(items, item => {
-          const itemText = global$6.translate(item.text);
+          const itemText = global$8.translate(item.text);
           const textContent = spec.columns === 1 ? `<div class="tox-collection__item-label">${ itemText }</div>` : '';
-          const iconContent = `<div class="tox-collection__item-icon">${ getIcon(item.icon) }</div>`;
+          const iconContent = `<div class="tox-collection__item-icon">${ item.icon }</div>`;
           const mapItemName = {
             '_': ' ',
             ' - ': ' ',
             '-': ' '
           };
           const ariaLabel = itemText.replace(/\_| \- |\-/g, match => mapItemName[match]);
-          return `<div data-mce-tooltip="${ ariaLabel }" class="tox-collection__item${ disabledClass }" tabindex="-1" data-collection-item-value="${ global$4.encodeAllRaw(item.value) }" aria-label="${ ariaLabel }">${ iconContent }${ textContent }</div>`;
+          const disabledClass = providersBackstage.isDisabled() ? ' tox-collection__item--state-disabled' : '';
+          return `<div class="tox-collection__item${ disabledClass }" tabindex="-1" data-collection-item-value="${ global$3.encodeAllRaw(item.value) }" title="${ ariaLabel }" aria-label="${ ariaLabel }">${ iconContent }${ textContent }</div>`;
         });
         const chunks = spec.columns !== 'auto' && spec.columns > 1 ? chunk$1(htmlLines, spec.columns) : [htmlLines];
         const html = map$2(chunks, ch => `<div class="tox-collection__group">${ ch.join('') }</div>`);
@@ -15141,7 +12668,7 @@
       };
       const onClick = runOnItem((comp, se, tgt, itemValue) => {
         se.stop();
-        if (!(providersBackstage.checkUiComponentContext('mode:design').shouldDisable || providersBackstage.isDisabled())) {
+        if (!providersBackstage.isDisabled()) {
           emitWith(comp, formActionEvent, {
             name: spec.name,
             value: itemValue
@@ -15150,20 +12677,19 @@
       });
       const collectionEvents = [
         run$1(mouseover(), runOnItem((comp, se, tgt) => {
-          focus$3(tgt, true);
+          focus$3(tgt);
         })),
         run$1(click(), onClick),
         run$1(tap(), onClick),
         run$1(focusin(), runOnItem((comp, se, tgt) => {
           descendant(comp.element, '.' + activeClass).each(currentActive => {
-            remove$3(currentActive, activeClass);
+            remove$2(currentActive, activeClass);
           });
           add$2(tgt, activeClass);
         })),
         run$1(focusout(), runOnItem(comp => {
           descendant(comp.element, '.' + activeClass).each(currentActive => {
-            remove$3(currentActive, activeClass);
-            blur$1(currentActive);
+            remove$2(currentActive, activeClass);
           });
         })),
         runOnExecute$1(runOnItem((comp, se, tgt, itemValue) => {
@@ -15183,7 +12709,7 @@
         factory: { sketch: identity },
         behaviours: derive$1([
           Disabling.config({
-            disabled: () => providersBackstage.checkUiComponentContext(spec.context).shouldDisable,
+            disabled: providersBackstage.isDisabled,
             onDisabled: comp => {
               iterCollectionItems(comp, childElm => {
                 add$2(childElm, 'tox-collection__item--state-disabled');
@@ -15192,50 +12718,13 @@
             },
             onEnabled: comp => {
               iterCollectionItems(comp, childElm => {
-                remove$3(childElm, 'tox-collection__item--state-disabled');
-                remove$8(childElm, 'aria-disabled');
+                remove$2(childElm, 'tox-collection__item--state-disabled');
+                remove$7(childElm, 'aria-disabled');
               });
             }
           }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context)),
+          receivingConfig(),
           Replacing.config({}),
-          Tooltipping.config({
-            ...providersBackstage.tooltips.getConfig({
-              tooltipText: '',
-              onShow: comp => {
-                descendant(comp.element, '.' + activeClass + '[data-mce-tooltip]').each(current => {
-                  getOpt(current, 'data-mce-tooltip').each(text => {
-                    Tooltipping.setComponents(comp, providersBackstage.tooltips.getComponents({ tooltipText: text }));
-                  });
-                });
-              }
-            }),
-            mode: 'children-keyboard-focus',
-            anchor: comp => ({
-              type: 'node',
-              node: descendant(comp.element, '.' + activeClass).orThunk(() => first$1('.tox-collection__item')),
-              root: comp.element,
-              layouts: {
-                onLtr: constant$1([
-                  south$2,
-                  north$2,
-                  southeast$2,
-                  northeast$2,
-                  southwest$2,
-                  northwest$2
-                ]),
-                onRtl: constant$1([
-                  south$2,
-                  north$2,
-                  southeast$2,
-                  northeast$2,
-                  southwest$2,
-                  northwest$2
-                ])
-              },
-              bubble: nu$5(0, -2, {})
-            })
-          }),
           Representing.config({
             store: {
               mode: 'memory',
@@ -15260,10 +12749,6 @@
             'disabling',
             'alloy.base.behaviour',
             'collection-events'
-          ],
-          [focusin()]: [
-            'collection-events',
-            'tooltipping'
           ]
         }
       });
@@ -15281,7 +12766,7 @@
     };
     const markValid = (component, invalidConfig) => {
       const elem = invalidConfig.getRoot(component).getOr(component.element);
-      remove$3(elem, invalidConfig.invalidClass);
+      remove$2(elem, invalidConfig.invalidClass);
       invalidConfig.notify.each(notifyInfo => {
         if (isAriaElement(component.element)) {
           set$9(component.element, 'aria-invalid', false);
@@ -15338,7 +12823,7 @@
         isInvalid: isInvalid
     });
 
-    const events$7 = (invalidConfig, invalidState) => invalidConfig.validator.map(validatorInfo => derive$2([run$1(validatorInfo.onEvent, component => {
+    const events$8 = (invalidConfig, invalidState) => invalidConfig.validator.map(validatorInfo => derive$2([run$1(validatorInfo.onEvent, component => {
         run(component, invalidConfig, invalidState).get(identity);
       })].concat(validatorInfo.validateOnLoad ? [runOnAttached(component => {
         run(component, invalidConfig, invalidState).get(noop);
@@ -15346,7 +12831,7 @@
 
     var ActiveInvalidate = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        events: events$7
+        events: events$8
     });
 
     var InvalidateSchema = [
@@ -15382,7 +12867,7 @@
       }
     });
 
-    const exhibit$1 = () => nu$8({
+    const exhibit$1 = () => nu$7({
       styles: {
         '-webkit-user-select': 'none',
         'user-select': 'none',
@@ -15391,11 +12876,11 @@
       },
       attributes: { unselectable: 'on' }
     });
-    const events$6 = () => derive$2([abort(selectstart(), always)]);
+    const events$7 = () => derive$2([abort(selectstart(), always)]);
 
     var ActiveUnselecting = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        events: events$6,
+        events: events$7,
         exhibit: exhibit$1
     });
 
@@ -15410,8 +12895,8 @@
       components: spec.components,
       toggleClass: 'mce-active',
       dropdownBehaviours: derive$1([
-        DisablingConfigs.button(() => sharedBackstage.providers.isDisabled() || sharedBackstage.providers.checkUiComponentContext(spec.context).shouldDisable),
-        toggleOnReceive(() => sharedBackstage.providers.checkUiComponentContext(spec.context)),
+        DisablingConfigs.button(sharedBackstage.providers.isDisabled),
+        receivingConfig(),
         Unselecting.config({}),
         Tabstopping.config({})
       ]),
@@ -15434,8 +12919,8 @@
         data: initialData,
         onSetValue: c => Invalidating.run(c).get(noop),
         inputBehaviours: derive$1([
-          Disabling.config({ disabled: () => sharedBackstage.providers.isDisabled() || sharedBackstage.providers.checkUiComponentContext(spec.context).shouldDisable }),
-          toggleOnReceive(() => sharedBackstage.providers.checkUiComponentContext(spec.context)),
+          Disabling.config({ disabled: sharedBackstage.providers.isDisabled }),
+          receivingConfig(),
           Tabstopping.config({}),
           Invalidating.config({
             invalidClass: 'tox-textbox-field-invalid',
@@ -15505,8 +12990,7 @@
         fetch: getFetch$1(colorInputBackstage.getColors(spec.storageKey), spec.storageKey, colorInputBackstage.hasCustomColors()),
         columns: colorInputBackstage.getColorCols(spec.storageKey),
         presets: 'color',
-        onItemAction,
-        context: spec.context
+        onItemAction
       }, sharedBackstage));
       return FormField.sketch({
         dom: {
@@ -15590,7 +13074,6 @@
         };
       }
     });
-    const isShift = event => isShift$1(event.event);
     const spectrumPart = required({
       schema: [customField('mouseIsDown', () => Cell(false))],
       name: 'spectrum',
@@ -15602,12 +13085,11 @@
           behaviours: derive$1([
             Keying.config({
               mode: 'special',
-              onLeft: (spectrum, event) => model.onLeft(spectrum, detail, isShift(event)),
-              onRight: (spectrum, event) => model.onRight(spectrum, detail, isShift(event)),
-              onUp: (spectrum, event) => model.onUp(spectrum, detail, isShift(event)),
-              onDown: (spectrum, event) => model.onDown(spectrum, detail, isShift(event))
+              onLeft: spectrum => model.onLeft(spectrum, detail),
+              onRight: spectrum => model.onRight(spectrum, detail),
+              onUp: spectrum => model.onUp(spectrum, detail),
+              onDown: spectrum => model.onDown(spectrum, detail)
             }),
-            Tabstopping.config({}),
             Focusing.config({})
           ]),
           events: derive$2([
@@ -15665,7 +13147,7 @@
     const yRange = detail => range(detail, maxY, minY);
     const halfX = detail => xRange(detail) / 2;
     const halfY = detail => yRange(detail) / 2;
-    const step = (detail, useMultiplier) => useMultiplier ? detail.stepSize * detail.speedMultiplier : detail.stepSize;
+    const step = detail => detail.stepSize;
     const snap = detail => detail.snapToGrid;
     const snapStart = detail => detail.snapStart;
     const rounded = detail => detail.rounded;
@@ -15868,13 +13350,13 @@
       const max = maxX(detail);
       fireSliderChange$2(spectrum, max);
     };
-    const moveBy$2 = (direction, spectrum, detail, useMultiplier) => {
+    const moveBy$2 = (direction, spectrum, detail) => {
       const f = direction > 0 ? increaseBy : reduceBy;
-      const xValue = f(currentValue(detail), minX(detail), maxX(detail), step(detail, useMultiplier));
+      const xValue = f(currentValue(detail), minX(detail), maxX(detail), step(detail));
       fireSliderChange$2(spectrum, xValue);
       return Optional.some(xValue);
     };
-    const handleMovement$2 = direction => (spectrum, detail, useMultiplier) => moveBy$2(direction, spectrum, detail, useMultiplier).map(always);
+    const handleMovement$2 = direction => (spectrum, detail) => moveBy$2(direction, spectrum, detail).map(always);
     const getValueFromEvent$2 = simulatedEvent => {
       const pos = getEventSource(simulatedEvent);
       return pos.map(p => p.left);
@@ -15907,7 +13389,7 @@
     const setPositionFromValue$2 = (slider, thumb, detail, edges) => {
       const value = currentValue(detail);
       const pos = findPositionOfValue$1(slider, edges.getSpectrum(slider), value, edges.getLeftEdge(slider), edges.getRightEdge(slider), detail);
-      const thumbRadius = get$d(thumb.element) / 2;
+      const thumbRadius = get$c(thumb.element) / 2;
       set$8(thumb.element, 'left', pos - thumbRadius + 'px');
     };
     const onLeft$2 = handleMovement$2(-1);
@@ -15976,13 +13458,13 @@
       const max = maxY(detail);
       fireSliderChange$1(spectrum, max);
     };
-    const moveBy$1 = (direction, spectrum, detail, useMultiplier) => {
+    const moveBy$1 = (direction, spectrum, detail) => {
       const f = direction > 0 ? increaseBy : reduceBy;
-      const yValue = f(currentValue(detail), minY(detail), maxY(detail), step(detail, useMultiplier));
+      const yValue = f(currentValue(detail), minY(detail), maxY(detail), step(detail));
       fireSliderChange$1(spectrum, yValue);
       return Optional.some(yValue);
     };
-    const handleMovement$1 = direction => (spectrum, detail, useMultiplier) => moveBy$1(direction, spectrum, detail, useMultiplier).map(always);
+    const handleMovement$1 = direction => (spectrum, detail) => moveBy$1(direction, spectrum, detail).map(always);
     const getValueFromEvent$1 = simulatedEvent => {
       const pos = getEventSource(simulatedEvent);
       return pos.map(p => {
@@ -16017,7 +13499,7 @@
     const setPositionFromValue$1 = (slider, thumb, detail, edges) => {
       const value = currentValue(detail);
       const pos = findPositionOfValue(slider, edges.getSpectrum(slider), value, edges.getTopEdge(slider), edges.getBottomEdge(slider), detail);
-      const thumbRadius = get$e(thumb.element) / 2;
+      const thumbRadius = get$d(thumb.element) / 2;
       set$8(thumb.element, 'top', pos - thumbRadius + 'px');
     };
     const onLeft$1 = Optional.none;
@@ -16065,14 +13547,14 @@
       fireSliderChange(spectrum, val);
       return val;
     };
-    const moveBy = (direction, isVerticalMovement, spectrum, detail, useMultiplier) => {
+    const moveBy = (direction, isVerticalMovement, spectrum, detail) => {
       const f = direction > 0 ? increaseBy : reduceBy;
-      const xValue = isVerticalMovement ? currentValue(detail).x : f(currentValue(detail).x, minX(detail), maxX(detail), step(detail, useMultiplier));
-      const yValue = !isVerticalMovement ? currentValue(detail).y : f(currentValue(detail).y, minY(detail), maxY(detail), step(detail, useMultiplier));
+      const xValue = isVerticalMovement ? currentValue(detail).x : f(currentValue(detail).x, minX(detail), maxX(detail), step(detail));
+      const yValue = !isVerticalMovement ? currentValue(detail).y : f(currentValue(detail).y, minY(detail), maxY(detail), step(detail));
       fireSliderChange(spectrum, sliderValue(xValue, yValue));
       return Optional.some(xValue);
     };
-    const handleMovement = (direction, isVerticalMovement) => (spectrum, detail, useMultiplier) => moveBy(direction, isVerticalMovement, spectrum, detail, useMultiplier).map(always);
+    const handleMovement = (direction, isVerticalMovement) => (spectrum, detail) => moveBy(direction, isVerticalMovement, spectrum, detail).map(always);
     const setToMin = (spectrum, detail) => {
       const mX = minX(detail);
       const mY = minY(detail);
@@ -16088,8 +13570,8 @@
       const value = currentValue(detail);
       const xPos = findPositionOfValue$1(slider, edges.getSpectrum(slider), value.x, edges.getLeftEdge(slider), edges.getRightEdge(slider), detail);
       const yPos = findPositionOfValue(slider, edges.getSpectrum(slider), value.y, edges.getTopEdge(slider), edges.getBottomEdge(slider), detail);
-      const thumbXRadius = get$d(thumb.element) / 2;
-      const thumbYRadius = get$e(thumb.element) / 2;
+      const thumbXRadius = get$c(thumb.element) / 2;
+      const thumbYRadius = get$d(thumb.element) / 2;
       set$8(thumb.element, 'left', xPos - thumbXRadius + 'px');
       set$8(thumb.element, 'top', yPos - thumbYRadius + 'px');
     };
@@ -16124,7 +13606,6 @@
 
     const SliderSchema = [
       defaulted('stepSize', 1),
-      defaulted('speedMultiplier', 10),
       defaulted('onChange', noop),
       defaulted('onChoose', noop),
       defaulted('onInit', noop),
@@ -16226,9 +13707,6 @@
         detail.onDragEnd(slider, getThumb(slider));
         choose(slider);
       };
-      const focusWidget = component => {
-        getPart(component, detail, 'spectrum').map(Keying.focusIn);
-      };
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -16236,7 +13714,9 @@
         behaviours: augment(detail.sliderBehaviours, [
           Keying.config({
             mode: 'special',
-            focusIn: focusWidget
+            focusIn: slider => {
+              return getPart(slider, detail, 'spectrum').map(Keying.focusIn).map(always);
+            }
           }),
           Representing.config({
             store: {
@@ -16263,10 +13743,7 @@
           }),
           run$1(touchstart(), onDragStart),
           run$1(touchend(), onDragEnd),
-          run$1(mousedown(), (component, event) => {
-            focusWidget(component);
-            onDragStart(component, event);
-          }),
+          run$1(mousedown(), onDragStart),
           run$1(mouseup(), onDragEnd)
         ]),
         apis: {
@@ -16323,12 +13800,7 @@
         dom: {
           tag: 'div',
           classes: [getClass('hue-slider')],
-          attributes: {
-            'role': 'slider',
-            'aria-valuemin': 0,
-            'aria-valuemax': 360,
-            'aria-valuenow': 120
-          }
+          attributes: { role: 'presentation' }
         },
         rounded: false,
         model: {
@@ -16341,7 +13813,6 @@
         ],
         sliderBehaviours: derive$1([Focusing.config({})]),
         onChange: (slider, _thumb, value) => {
-          set$9(slider.element, 'aria-valuenow', Math.floor(360 - value * 3.6));
           emitWith(slider, sliderUpdate, { value });
         }
       });
@@ -16411,40 +13882,20 @@
     const invalidInput = generate$6('invalid-input');
     const validatingInput = generate$6('validating-input');
     const translatePrefix = 'colorcustom.rgb.';
-    const uninitiatedTooltipApi = {
-      isEnabled: always,
-      setEnabled: noop,
-      immediatelyShow: noop,
-      immediatelyHide: noop
-    };
-    const rgbFormFactory = (translate, getClass, onValidHexx, onInvalidHexx, tooltipGetConfig, makeIcon) => {
-      const setTooltipEnabled = (enabled, tooltipApi) => {
-        const api = tooltipApi.get();
-        if (enabled === api.isEnabled()) {
-          return;
-        }
-        api.setEnabled(enabled);
-        if (enabled) {
-          api.immediatelyShow();
-        } else {
-          api.immediatelyHide();
-        }
-      };
-      const invalidation = (label, isValid, tooltipApi) => Invalidating.config({
+    const rgbFormFactory = (translate, getClass, onValidHexx, onInvalidHexx) => {
+      const invalidation = (label, isValid) => Invalidating.config({
         invalidClass: getClass('invalid'),
         notify: {
           onValidate: comp => {
             emitWith(comp, validatingInput, { type: label });
           },
           onValid: comp => {
-            setTooltipEnabled(false, tooltipApi);
             emitWith(comp, validInput, {
               type: label,
               value: Representing.getValue(comp)
             });
           },
           onInvalid: comp => {
-            setTooltipEnabled(true, tooltipApi);
             emitWith(comp, invalidInput, {
               type: label,
               value: Representing.getValue(comp)
@@ -16461,55 +13912,25 @@
         }
       });
       const renderTextField = (isValid, name, label, description, data) => {
-        const tooltipApi = Cell(uninitiatedTooltipApi);
         const helptext = translate(translatePrefix + 'range');
         const pLabel = FormField.parts.label({
-          dom: { tag: 'label' },
+          dom: {
+            tag: 'label',
+            attributes: { 'aria-label': description }
+          },
           components: [text$2(label)]
         });
         const pField = FormField.parts.field({
           data,
           factory: Input,
           inputAttributes: {
-            'type': 'text',
-            'aria-label': description,
+            type: 'text',
             ...name === 'hex' ? { 'aria-live': 'polite' } : {}
           },
           inputClasses: [getClass('textfield')],
           inputBehaviours: derive$1([
-            invalidation(name, isValid, tooltipApi),
-            Tabstopping.config({}),
-            Tooltipping.config({
-              ...tooltipGetConfig({
-                tooltipText: '',
-                onSetup: comp => {
-                  tooltipApi.set({
-                    isEnabled: () => {
-                      return Tooltipping.isEnabled(comp);
-                    },
-                    setEnabled: enabled => {
-                      return Tooltipping.setEnabled(comp, enabled);
-                    },
-                    immediatelyShow: () => {
-                      return Tooltipping.immediateOpenClose(comp, true);
-                    },
-                    immediatelyHide: () => {
-                      return Tooltipping.immediateOpenClose(comp, false);
-                    }
-                  });
-                  Tooltipping.setEnabled(comp, false);
-                },
-                onShow: (component, _tooltip) => {
-                  Tooltipping.setComponents(component, [{
-                      dom: {
-                        tag: 'p',
-                        classes: [getClass('rgb-warning-note')]
-                      },
-                      components: [text$2(translate(name === 'hex' ? 'colorcustom.rgb.invalidHex' : 'colorcustom.rgb.invalid'))]
-                    }]);
-                }
-              })
-            })
+            invalidation(name, isValid),
+            Tabstopping.config({})
           ]),
           onSetValue: input => {
             if (Invalidating.isInvalid(input)) {
@@ -16518,27 +13939,16 @@
             }
           }
         });
-        const errorId = generate$6('aria-invalid');
-        const memInvalidIcon = record(makeIcon('invalid', Optional.some(errorId), 'warning'));
-        const memStatus = record({
-          dom: {
-            tag: 'div',
-            classes: [getClass('invalid-icon')]
-          },
-          components: [memInvalidIcon.asSpec()]
-        });
         const comps = [
           pLabel,
-          pField,
-          memStatus.asSpec()
+          pField
         ];
         const concats = name !== 'hex' ? [FormField.parts['aria-descriptor']({ text: helptext })] : [];
         const components = comps.concat(concats);
         return {
           dom: {
             tag: 'div',
-            attributes: { role: 'presentation' },
-            classes: [getClass('rgb-container')]
+            attributes: { role: 'presentation' }
           },
           components
         };
@@ -16689,7 +14099,7 @@
       return rgbFormSketcher;
     };
 
-    const paletteFactory = (translate, getClass) => {
+    const paletteFactory = (_translate, getClass) => {
       const spectrumPart = Slider.parts.spectrum({
         dom: {
           tag: 'canvas',
@@ -16736,11 +14146,6 @@
           x: hsv.saturation,
           y: 100 - hsv.value
         });
-        set$9(slider.element, 'aria-valuetext', translate([
-          'Saturation {0}%, Brightness {1}%',
-          hsv.saturation,
-          hsv.value
-        ]));
       };
       const factory = _detail => {
         const getInitialValue = constant$1({
@@ -16748,13 +14153,6 @@
           y: 0
         });
         const onChange = (slider, _thumb, value) => {
-          if (!isNumber(value)) {
-            set$9(slider.element, 'aria-valuetext', translate([
-              'Saturation {0}%, Brightness {1}%',
-              Math.floor(value.x),
-              Math.floor(100 - value.y)
-            ]));
-          }
           emitWith(slider, paletteUpdate, { value });
         };
         const onInit = (_slider, _thumb, spectrum, _value) => {
@@ -16767,14 +14165,7 @@
         return Slider.sketch({
           dom: {
             tag: 'div',
-            attributes: {
-              'role': 'slider',
-              'aria-valuetext': translate([
-                'Saturation {0}%, Brightness {1}%',
-                0,
-                0
-              ])
-            },
+            attributes: { role: 'presentation' },
             classes: [getClass('sv-palette')]
           },
           model: {
@@ -16808,9 +14199,9 @@
       return saturationBrightnessPaletteSketcher;
     };
 
-    const makeFactory = (translate, getClass, tooltipConfig, makeIcon) => {
+    const makeFactory = (translate, getClass) => {
       const factory = detail => {
-        const rgbForm = rgbFormFactory(translate, getClass, detail.onValidHex, detail.onInvalidHex, tooltipConfig, makeIcon);
+        const rgbForm = rgbFormFactory(translate, getClass, detail.onValidHex, detail.onInvalidHex);
         const sbPalette = paletteFactory(translate, getClass);
         const hueSliderToDegrees = hue => (100 - hue) / 100 * 360;
         const hueDegreesToSlider = hue => 100 - hue / 360 * 100;
@@ -16959,7 +14350,7 @@
       }
     });
     const withElement = (initialValue, getter, setter) => withComp(initialValue, c => getter(c.element), (c, v) => setter(c.element, v));
-    const domHtml = optInitialValue => withElement(optInitialValue, get$8, set$6);
+    const domHtml = optInitialValue => withElement(optInitialValue, get$9, set$6);
     const memory = initialValue => Representing.config({
       store: {
         mode: 'memory',
@@ -16969,41 +14360,23 @@
 
     const english = {
       'colorcustom.rgb.red.label': 'R',
-      'colorcustom.rgb.red.description': 'Red channel',
+      'colorcustom.rgb.red.description': 'Red component',
       'colorcustom.rgb.green.label': 'G',
-      'colorcustom.rgb.green.description': 'Green channel',
+      'colorcustom.rgb.green.description': 'Green component',
       'colorcustom.rgb.blue.label': 'B',
-      'colorcustom.rgb.blue.description': 'Blue channel',
+      'colorcustom.rgb.blue.description': 'Blue component',
       'colorcustom.rgb.hex.label': '#',
       'colorcustom.rgb.hex.description': 'Hex color code',
       'colorcustom.rgb.range': 'Range 0 to 255',
-      'colorcustom.rgb.invalid': 'Numbers only, 0 to 255',
-      'colorcustom.rgb.invalidHex': 'Hexadecimal only, 000000 to FFFFFF',
       'aria.color.picker': 'Color Picker',
       'aria.input.invalid': 'Invalid input'
     };
     const translate$1 = providerBackstage => key => {
-      if (isString(key)) {
-        return providerBackstage.translate(english[key]);
-      } else {
-        return providerBackstage.translate(key);
-      }
+      return providerBackstage.translate(english[key]);
     };
     const renderColorPicker = (_spec, providerBackstage, initialData) => {
       const getClass = key => 'tox-' + key;
-      const renderIcon = (name, errId, icon = name, label = name) => render$4(icon, {
-        tag: 'div',
-        classes: [
-          'tox-icon',
-          'tox-control-wrap__status-icon-' + name
-        ],
-        attributes: {
-          'title': providerBackstage.translate(label),
-          'aria-live': 'polite',
-          ...errId.fold(() => ({}), id => ({ id }))
-        }
-      }, providerBackstage.icons);
-      const colourPickerFactory = makeFactory(translate$1(providerBackstage), getClass, providerBackstage.tooltips.getConfig, renderIcon);
+      const colourPickerFactory = makeFactory(translate$1(providerBackstage), getClass);
       const onValidHex = form => {
         emitWith(form, formActionEvent, {
           name: 'hex-valid',
@@ -17039,7 +14412,7 @@
             return optHex.map(hex => '#' + removeLeading(hex, '#')).getOr('');
           }, (comp, newValue) => {
             const pattern = /^#([a-fA-F0-9]{3}(?:[a-fA-F0-9]{3})?)/;
-            const valOpt = Optional.from(pattern.exec(newValue)).bind(matches => get$i(matches, 1));
+            const valOpt = Optional.from(pattern.exec(newValue)).bind(matches => get$h(matches, 1));
             const picker = memPicker.get(comp);
             const optRgbForm = Composing.getCurrent(picker);
             optRgbForm.fold(() => {
@@ -17056,23 +14429,13 @@
       };
     };
 
-    var global$3 = tinymce.util.Tools.resolve('tinymce.Resource');
+    var global$2 = tinymce.util.Tools.resolve('tinymce.Resource');
 
     const isOldCustomEditor = spec => has$2(spec, 'init');
     const renderCustomEditor = spec => {
-      const editorApi = value$4();
+      const editorApi = value$2();
       const memReplaced = record({ dom: { tag: spec.tag } });
-      const initialValue = value$4();
-      const focusBehaviour = !isOldCustomEditor(spec) && spec.onFocus.isSome() ? [
-        Focusing.config({
-          onFocus: comp => {
-            spec.onFocus.each(onFocusFn => {
-              onFocusFn(comp.element.dom);
-            });
-          }
-        }),
-        Tabstopping.config({})
-      ] : [];
+      const initialValue = value$2();
       return {
         dom: {
           tag: 'div',
@@ -17081,7 +14444,7 @@
         behaviours: derive$1([
           config('custom-editor-events', [runOnAttached(component => {
               memReplaced.getOpt(component).each(ta => {
-                (isOldCustomEditor(spec) ? spec.init(ta.element.dom) : global$3.load(spec.scriptId, spec.scriptUrl).then(init => init(ta.element.dom, spec.settings))).then(ea => {
+                (isOldCustomEditor(spec) ? spec.init(ta.element.dom) : global$2.load(spec.scriptId, spec.scriptUrl).then(init => init(ta.element.dom, spec.settings))).then(ea => {
                   initialValue.on(cvalue => {
                     ea.setValue(cvalue);
                   });
@@ -17090,20 +14453,19 @@
                 });
               });
             })]),
-          withComp(Optional.none(), () => editorApi.get().fold(() => initialValue.get().getOr(''), ed => ed.getValue()), (_component, value) => {
+          withComp(Optional.none(), () => editorApi.get().fold(() => initialValue.get().getOr(''), ed => ed.getValue()), (component, value) => {
             editorApi.get().fold(() => initialValue.set(value), ed => ed.setValue(value));
           }),
           ComposingConfigs.self()
-        ].concat(focusBehaviour)),
+        ]),
         components: [memReplaced.asSpec()]
       };
     };
 
-    var global$2 = tinymce.util.Tools.resolve('tinymce.util.Tools');
+    var global$1 = tinymce.util.Tools.resolve('tinymce.util.Tools');
 
-    const browseFilesEvent = generate$6('browse.files.event');
     const filterByExtension = (files, providersBackstage) => {
-      const allowedImageFileTypes = global$2.explode(providersBackstage.getOption('images_file_types'));
+      const allowedImageFileTypes = global$1.explode(providersBackstage.getOption('images_file_types'));
       const isFileInAllowedTypes = file => exists(allowedImageFileTypes, type => endsWith(file.name.toLowerCase(), `.${ type.toLowerCase() }`));
       return filter$2(from(files), isFileInAllowedTypes);
     };
@@ -17120,12 +14482,12 @@
         var _a;
         if (!Disabling.isDisabled(comp)) {
           const transferEvent = se.event.raw;
-          emitWith(comp, browseFilesEvent, { files: (_a = transferEvent.dataTransfer) === null || _a === void 0 ? void 0 : _a.files });
+          handleFiles(comp, (_a = transferEvent.dataTransfer) === null || _a === void 0 ? void 0 : _a.files);
         }
       };
       const onSelect = (component, simulatedEvent) => {
         const input = simulatedEvent.event.raw.target;
-        emitWith(component, browseFilesEvent, { files: input.files });
+        handleFiles(component, input.files);
       };
       const handleFiles = (component, files) => {
         if (files) {
@@ -17147,41 +14509,16 @@
             cutter(tap())
           ])])
       });
-      const pLabel = spec.label.map(label => renderLabel$3(label, providersBackstage));
-      const pField = FormField.parts.field({
-        factory: Button,
-        dom: {
-          tag: 'button',
-          styles: { position: 'relative' },
-          classes: [
-            'tox-button',
-            'tox-button--secondary'
-          ]
-        },
-        components: [
-          text$2(providersBackstage.translate('Browse for an image')),
-          memInput.asSpec()
-        ],
-        action: comp => {
-          const inputComp = memInput.get(comp);
-          inputComp.element.dom.click();
-        },
-        buttonBehaviours: derive$1([
-          ComposingConfigs.self(),
-          memory(initialData.getOr([])),
-          Tabstopping.config({}),
-          DisablingConfigs.button(() => providersBackstage.checkUiComponentContext(spec.context).shouldDisable),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context))
-        ])
-      });
-      const wrapper = {
+      const renderField = s => ({
+        uid: s.uid,
         dom: {
           tag: 'div',
           classes: ['tox-dropzone-container']
         },
         behaviours: derive$1([
-          Disabling.config({ disabled: () => providersBackstage.checkUiComponentContext(spec.context).shouldDisable }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context)),
+          memory(initialData.getOr([])),
+          ComposingConfigs.self(),
+          Disabling.config({}),
           Toggling.config({
             toggleClass: 'dragenter',
             toggleOnExecute: false
@@ -17214,15 +14551,35 @@
                 dom: { tag: 'p' },
                 components: [text$2(providersBackstage.translate('Drop an image here'))]
               },
-              pField
+              Button.sketch({
+                dom: {
+                  tag: 'button',
+                  styles: { position: 'relative' },
+                  classes: [
+                    'tox-button',
+                    'tox-button--secondary'
+                  ]
+                },
+                components: [
+                  text$2(providersBackstage.translate('Browse for an image')),
+                  memInput.asSpec()
+                ],
+                action: comp => {
+                  const inputComp = memInput.get(comp);
+                  inputComp.element.dom.click();
+                },
+                buttonBehaviours: derive$1([
+                  Tabstopping.config({}),
+                  DisablingConfigs.button(providersBackstage.isDisabled),
+                  receivingConfig()
+                ])
+              })
             ]
           }]
-      };
-      return renderFormFieldWith(pLabel, wrapper, ['tox-form__group--stretched'], [config('handle-files', [run$1(browseFilesEvent, (comp, se) => {
-            FormField.getField(comp).each(field => {
-              handleFiles(field, se.event.files);
-            });
-          })])]);
+      });
+      const pLabel = spec.label.map(label => renderLabel$3(label, providersBackstage));
+      const pField = FormField.parts.field({ factory: { sketch: renderField } });
+      return renderFormFieldWith(pLabel, pField, ['tox-form__group--stretched'], []);
     };
 
     const renderGrid = (spec, backstage) => ({
@@ -17371,7 +14728,7 @@
     const bodySendMessageChannel = generate$6('body-send-message');
     const dialogFocusShiftedChannel = generate$6('dialog-focus-shifted');
 
-    const browser = detect$1().browser;
+    const browser = detect$2().browser;
     const isSafari = browser.isSafari();
     const isFirefox = browser.isFirefox();
     const isSafariOrFirefox = isSafari || isFirefox;
@@ -17462,7 +14819,7 @@
                 onReceive: (comp, message) => {
                   message.newFocus.each(newFocus => {
                     parentElement(comp.element).each(parent => {
-                      const f = eq(comp.element, newFocus) ? add$2 : remove$3;
+                      const f = eq(comp.element, newFocus) ? add$2 : remove$2;
                       f(parent, 'tox-navobj-bordered-focus');
                     });
                   });
@@ -17475,6 +14832,24 @@
       const pField = FormField.parts.field({ factory: { sketch: factory } });
       return renderFormFieldWith(pLabel, pField, ['tox-form__group--stretched'], []);
     };
+
+    const image = image => new Promise((resolve, reject) => {
+      const loaded = () => {
+        destroy();
+        resolve(image);
+      };
+      const listeners = [
+        bind(image, 'load', loaded),
+        bind(image, 'error', () => {
+          destroy();
+          reject('Unable to load data from image: ' + image.dom.src);
+        })
+      ];
+      const destroy = () => each$1(listeners, l => l.unbind());
+      if (image.dom.complete) {
+        loaded();
+      }
+    });
 
     const calculateImagePosition = (panelWidth, panelHeight, imageWidth, imageHeight, zoom) => {
       const width = imageWidth * zoom;
@@ -17489,8 +14864,8 @@
       };
     };
     const zoomToFit = (panel, width, height) => {
-      const panelW = get$d(panel);
-      const panelH = get$e(panel);
+      const panelW = get$c(panel);
+      const panelH = get$d(panel);
       return Math.min(panelW / width, panelH / height, 1);
     };
     const renderImagePreview = (spec, initialData) => {
@@ -17523,7 +14898,7 @@
               const z = zoomToFit(frameComponent.element, cachedWidth, cachedHeight);
               translatedData.zoom = z;
             }
-            const position = calculateImagePosition(get$d(frameComponent.element), get$e(frameComponent.element), cachedWidth, cachedHeight, translatedData.zoom);
+            const position = calculateImagePosition(get$c(frameComponent.element), get$d(frameComponent.element), cachedWidth, cachedHeight, translatedData.zoom);
             memContainer.getOpt(frameComponent).each(container => {
               setAll(container.element, position);
             });
@@ -17531,9 +14906,9 @@
         };
         memImage.getOpt(frameComponent).each(imageComponent => {
           const img = imageComponent.element;
-          if (data.url !== get$g(img, 'src')) {
+          if (data.url !== get$f(img, 'src')) {
             set$9(img, 'src', data.url);
-            remove$3(frameComponent.element, 'tox-imagepreview__loaded');
+            remove$2(frameComponent.element, 'tox-imagepreview__loaded');
           }
           applyFramePositioning();
           image(img).then(img => {
@@ -17569,11 +14944,11 @@
       };
     };
 
-    const renderLabel$2 = (spec, backstageShared, getCompByName) => {
+    const renderLabel$2 = (spec, backstageShared) => {
       const baseClass = 'tox-label';
       const centerClass = spec.align === 'center' ? [`${ baseClass }--center`] : [];
       const endClass = spec.align === 'end' ? [`${ baseClass }--end`] : [];
-      const label = record({
+      const label = {
         dom: {
           tag: 'label',
           classes: [
@@ -17583,7 +14958,7 @@
           ]
         },
         components: [text$2(backstageShared.providers.translate(spec.label))]
-      });
+      };
       const comps = map$2(spec.items, backstageShared.interpreter);
       return {
         dom: {
@@ -17591,26 +14966,14 @@
           classes: ['tox-form__group']
         },
         components: [
-          label.asSpec(),
+          label,
           ...comps
         ],
         behaviours: derive$1([
           ComposingConfigs.self(),
           Replacing.config({}),
           domHtml(Optional.none()),
-          Keying.config({ mode: 'acyclic' }),
-          config('label', [runOnAttached(comp => {
-              spec.for.each(name => {
-                getCompByName(name).each(target => {
-                  label.getOpt(comp).each(labelComp => {
-                    var _a;
-                    const id = (_a = get$g(target.element, 'id')) !== null && _a !== void 0 ? _a : generate$6('form-field');
-                    set$9(target.element, 'id', id);
-                    set$9(labelComp.element, 'for', id);
-                  });
-                });
-              });
-            })])
+          Keying.config({ mode: 'acyclic' })
         ])
       };
     };
@@ -17628,17 +14991,11 @@
         'disabling',
         'alloy.base.behaviour',
         'toggling',
-        'toolbar-button-events',
-        'tooltipping'
+        'toolbar-button-events'
       ],
       [attachedToDom()]: [
         'toolbar-button-events',
         commonButtonDisplayEvent
-      ],
-      [detachedFromDom()]: [
-        'toolbar-button-events',
-        'dropdown-events',
-        'tooltipping'
       ],
       [mousedown()]: [
         'focusing',
@@ -17647,9 +15004,9 @@
       ]
     };
 
-    const forceInitialSize = comp => set$8(comp.element, 'width', get$f(comp.element, 'width'));
+    const forceInitialSize = comp => set$8(comp.element, 'width', get$e(comp.element, 'width'));
 
-    const renderIcon$1 = (iconName, iconsProvider, behaviours) => render$4(iconName, {
+    const renderIcon$1 = (iconName, iconsProvider, behaviours) => render$3(iconName, {
       tag: 'span',
       classes: [
         'tox-icon',
@@ -17670,10 +15027,8 @@
 
     const updateMenuText = generate$6('update-menu-text');
     const updateMenuIcon = generate$6('update-menu-icon');
-    const updateTooltiptext = generate$6('update-tooltip-text');
-    const renderCommonDropdown = (spec, prefix, sharedBackstage, btnName) => {
+    const renderCommonDropdown = (spec, prefix, sharedBackstage) => {
       const editorOffCell = Cell(noop);
-      const tooltip = Cell(spec.tooltip);
       const optMemDisplayText = spec.text.map(text => record(renderLabel$1(text, prefix, sharedBackstage.providers)));
       const optMemDisplayIcon = spec.icon.map(iconName => record(renderReplaceableIconFromPack(iconName, sharedBackstage.providers.icons)));
       const onLeftOrRightInMenu = (comp, se) => {
@@ -17684,31 +15039,28 @@
         return Optional.some(true);
       };
       const role = spec.role.fold(() => ({}), role => ({ role }));
-      const listRole = Optional.from(spec.listRole).map(listRole => ({ listRole })).getOr({});
-      const ariaLabelAttribute = spec.ariaLabel.fold(() => ({}), ariaLabel => {
-        const translatedAriaLabel = sharedBackstage.providers.translate(ariaLabel);
-        return { 'aria-label': translatedAriaLabel };
+      const tooltipAttributes = spec.tooltip.fold(() => ({}), tooltip => {
+        const translatedTooltip = sharedBackstage.providers.translate(tooltip);
+        return {
+          'title': translatedTooltip,
+          'aria-label': translatedTooltip
+        };
       });
-      const iconSpec = render$4('chevron-down', {
+      const iconSpec = render$3('chevron-down', {
         tag: 'div',
         classes: [`${ prefix }__select-chevron`]
       }, sharedBackstage.providers.icons);
       const fixWidthBehaviourName = generate$6('common-button-display-events');
-      const customEventsName = 'dropdown-events';
       const memDropdown = record(Dropdown.sketch({
         ...spec.uid ? { uid: spec.uid } : {},
         ...role,
-        ...listRole,
         dom: {
           tag: 'button',
           classes: [
             prefix,
             `${ prefix }--select`
           ].concat(map$2(spec.classes, c => `${ prefix }--${ c }`)),
-          attributes: {
-            ...ariaLabelAttribute,
-            ...isNonNullable(btnName) ? { 'data-mce-name': btnName } : {}
-          }
+          attributes: { ...tooltipAttributes }
         },
         components: componentRenderPipeline([
           optMemDisplayIcon.map(mem => mem.asSpec()),
@@ -17724,29 +15076,15 @@
         },
         dropdownBehaviours: derive$1([
           ...spec.dropdownBehaviours,
-          DisablingConfigs.button(() => spec.disabled || sharedBackstage.providers.checkUiComponentContext(spec.context).shouldDisable),
-          toggleOnReceive(() => sharedBackstage.providers.checkUiComponentContext(spec.context)),
+          DisablingConfigs.button(() => spec.disabled || sharedBackstage.providers.isDisabled()),
+          receivingConfig(),
           Unselecting.config({}),
           Replacing.config({}),
-          ...spec.tooltip.map(t => Tooltipping.config(sharedBackstage.providers.tooltips.getConfig({
-            tooltipText: sharedBackstage.providers.translate(t),
-            onShow: comp => {
-              if (lift2(tooltip.get(), spec.tooltip, (tooltipStr, tt) => tt !== tooltipStr).getOr(false)) {
-                const translatedTooltip = sharedBackstage.providers.translate(tooltip.get().getOr(''));
-                Tooltipping.setComponents(comp, sharedBackstage.providers.tooltips.getComponents({ tooltipText: translatedTooltip }));
-              }
-            }
-          }))).toArray(),
-          config(customEventsName, [
+          config('dropdown-events', [
             onControlAttached(spec, editorOffCell),
             onControlDetached(spec, editorOffCell)
           ]),
-          config(fixWidthBehaviourName, [runOnAttached((comp, _se) => {
-              if (spec.listRole !== 'listbox') {
-                forceInitialSize(comp);
-              }
-            })]),
-          config('update-dropdown-width-variable', [run$1(windowResize(), (comp, _se) => Dropdown.close(comp))]),
+          config(fixWidthBehaviourName, [runOnAttached((comp, _se) => forceInitialSize(comp))]),
           config('menubutton-update-display-text', [
             run$1(updateMenuText, (comp, se) => {
               optMemDisplayText.bind(mem => mem.getOpt(comp)).each(displayText => {
@@ -17757,16 +15095,11 @@
               optMemDisplayIcon.bind(mem => mem.getOpt(comp)).each(displayIcon => {
                 Replacing.set(displayIcon, [renderReplaceableIconFromPack(se.event.icon, sharedBackstage.providers.icons)]);
               });
-            }),
-            run$1(updateTooltiptext, (comp, se) => {
-              const translatedTooltip = sharedBackstage.providers.translate(se.event.text);
-              set$9(comp.element, 'aria-label', translatedTooltip);
-              tooltip.set(Optional.some(se.event.text));
             })
           ])
         ]),
         eventOrder: deepMerge(toolbarButtonEventOrder, {
-          [mousedown()]: [
+          mousedown: [
             'focusing',
             'alloy.base.behaviour',
             'item-type-events',
@@ -17774,8 +15107,7 @@
           ],
           [attachedToDom()]: [
             'toolbar-button-events',
-            Tooltipping.name(),
-            customEventsName,
+            'dropdown-events',
             fixWidthBehaviourName
           ]
         }),
@@ -17802,15 +15134,13 @@
           menu: {
             ...part(false, spec.columns, spec.presets),
             fakeFocus: spec.searchable,
-            ...spec.listRole === 'listbox' ? {} : {
-              onHighlightItem: updateAriaOnHighlight,
-              onCollapseMenu: (tmenuComp, itemCompCausingCollapse, nowActiveMenuComp) => {
-                Highlighting.getHighlighted(nowActiveMenuComp).each(itemComp => {
-                  updateAriaOnHighlight(tmenuComp, nowActiveMenuComp, itemComp);
-                });
-              },
-              onDehighlightItem: updateAriaOnDehighlight
-            }
+            onHighlightItem: updateAriaOnHighlight,
+            onCollapseMenu: (tmenuComp, itemCompCausingCollapse, nowActiveMenuComp) => {
+              Highlighting.getHighlighted(nowActiveMenuComp).each(itemComp => {
+                updateAriaOnHighlight(tmenuComp, nowActiveMenuComp, itemComp);
+              });
+            },
+            onDehighlightItem: updateAriaOnDehighlight
           }
         },
         getAnchorOverrides: () => {
@@ -17862,7 +15192,7 @@
       };
     };
     const generateValueIfRequired = item => {
-      const itemValue = get$h(item, 'value').getOrThunk(() => generate$6('generated-menu-item'));
+      const itemValue = get$g(item, 'value').getOrThunk(() => generate$6('generated-menu-item'));
       return deepMerge({ value: itemValue }, item);
     };
     const expand = (items, menuItems) => {
@@ -17920,17 +15250,16 @@
 
     const isSingleListItem = item => !has$2(item, 'items');
     const dataAttribute = 'data-value';
-    const fetchItems = (dropdownComp, name, items, selectedValue, hasNestedItems) => map$2(items, item => {
+    const fetchItems = (dropdownComp, name, items, selectedValue) => map$2(items, item => {
       if (!isSingleListItem(item)) {
         return {
           type: 'nestedmenuitem',
           text: item.text,
-          getSubmenuItems: () => fetchItems(dropdownComp, name, item.items, selectedValue, hasNestedItems)
+          getSubmenuItems: () => fetchItems(dropdownComp, name, item.items, selectedValue)
         };
       } else {
         return {
           type: 'togglemenuitem',
-          ...hasNestedItems ? {} : { role: 'option' },
           text: item.text,
           value: item.value,
           active: item.value === selectedValue,
@@ -17950,7 +15279,6 @@
       }
     });
     const renderListBox = (spec, backstage, initialData) => {
-      const hasNestedItems = exists(spec.items, item => !isSingleListItem(item));
       const providersBackstage = backstage.shared.providers;
       const initialItem = initialData.bind(value => findItemByValue(spec.items, value)).orThunk(() => head(spec.items).filter(isSingleListItem));
       const pLabel = spec.label.map(label => renderLabel$3(label, providersBackstage));
@@ -17958,16 +15286,13 @@
         dom: {},
         factory: {
           sketch: sketchSpec => renderCommonDropdown({
-            context: spec.context,
             uid: sketchSpec.uid,
             text: initialItem.map(item => item.text),
             icon: Optional.none(),
-            tooltip: Optional.none(),
-            role: someIf(!hasNestedItems, 'combobox'),
-            ...hasNestedItems ? {} : { listRole: 'listbox' },
-            ariaLabel: spec.label,
+            tooltip: spec.label,
+            role: Optional.none(),
             fetch: (comp, callback) => {
-              const items = fetchItems(comp, spec.name, spec.items, Representing.getValue(comp), hasNestedItems);
+              const items = fetchItems(comp, spec.name, spec.items, Representing.getValue(comp));
               callback(build(items, ItemResponse$1.CLOSE_ON_EXECUTE, backstage, {
                 isHorizontalMenu: false,
                 search: Optional.none()
@@ -17980,7 +15305,7 @@
             classes: [],
             dropdownBehaviours: [
               Tabstopping.config({}),
-              withComp(initialItem.map(item => item.value), comp => get$g(comp.element, dataAttribute), (comp, data) => {
+              withComp(initialItem.map(item => item.value), comp => get$f(comp.element, dataAttribute), (comp, data) => {
                 findItemByValue(spec.items, data).each(item => {
                   set$9(comp.element, dataAttribute, item.value);
                   emitWith(comp, updateMenuText, { text: item.text });
@@ -18007,7 +15332,7 @@
           [listBoxWrap]
         ]),
         fieldBehaviours: derive$1([Disabling.config({
-            disabled: () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable,
+            disabled: constant$1(!spec.enabled),
             onDisabled: comp => {
               FormField.getField(comp).each(Disabling.disable);
             },
@@ -18049,7 +15374,7 @@
             store: {
               mode: 'manual',
               getValue: select => {
-                return get$7(select.element);
+                return get$6(select.element);
               },
               setValue: (select, newValue) => {
                 const firstOption = head(detail.options);
@@ -18094,14 +15419,14 @@
         options: translatedOptions,
         factory: HtmlSelect,
         selectBehaviours: derive$1([
-          Disabling.config({ disabled: () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable }),
+          Disabling.config({ disabled: () => !spec.enabled || providersBackstage.isDisabled() }),
           Tabstopping.config({}),
           config('selectbox-change', [run$1(change(), (component, _) => {
               emitWith(component, formChangeEvent, { name: spec.name });
             })])
         ])
       });
-      const chevron = spec.size > 1 ? Optional.none() : Optional.some(render$4('chevron-down', {
+      const chevron = spec.size > 1 ? Optional.none() : Optional.some(render$3('chevron-down', {
         tag: 'div',
         classes: ['tox-selectfield__icon-js']
       }, providersBackstage.icons));
@@ -18126,7 +15451,7 @@
         ]),
         fieldBehaviours: derive$1([
           Disabling.config({
-            disabled: () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable,
+            disabled: () => !spec.enabled || providersBackstage.isDisabled(),
             onDisabled: comp => {
               FormField.getField(comp).each(Disabling.disable);
             },
@@ -18134,7 +15459,7 @@
               FormField.getField(comp).each(Disabling.enable);
             }
           }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context))
+          receivingConfig()
         ])
       });
     };
@@ -18148,8 +15473,7 @@
       SketchBehaviours.field('coupledFieldBehaviours', [
         Composing,
         Representing
-      ]),
-      defaultedFunction('onInput', noop)
+      ])
     ]);
     const getField = (comp, detail, partName) => getPart(comp, detail, partName).bind(Composing.getCurrent);
     const coupledPart = (selfName, otherName) => required({
@@ -18163,7 +15487,6 @@
                     if (Toggling.isOn(lock)) {
                       detail.onLockedChange(me, other, lock);
                     }
-                    detail.onInput(me);
                   });
                 });
               })])])
@@ -18314,17 +15637,13 @@
     const renderSizeInput = (spec, providersBackstage) => {
       let converter = noSizeConversion;
       const ratioEvent = generate$6('ratio-event');
-      const makeIcon = iconName => render$4(iconName, {
+      const makeIcon = iconName => render$3(iconName, {
         tag: 'span',
         classes: [
           'tox-icon',
           'tox-lock-icon__' + iconName
         ]
       }, providersBackstage.icons);
-      const disabled = () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable;
-      const toggleOnReceive$1 = toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context));
-      const label = spec.label.getOr('Constrain proportions');
-      const translatedLabel = providersBackstage.translate(label);
       const pLock = FormCoupledInputs.parts.lock({
         dom: {
           tag: 'button',
@@ -18334,20 +15653,16 @@
             'tox-button--naked',
             'tox-button--icon'
           ],
-          attributes: {
-            'aria-label': translatedLabel,
-            'data-mce-name': label
-          }
+          attributes: { title: providersBackstage.translate(spec.label.getOr('Constrain proportions')) }
         },
         components: [
           makeIcon('lock'),
           makeIcon('unlock')
         ],
         buttonBehaviours: derive$1([
-          Disabling.config({ disabled }),
-          toggleOnReceive$1,
-          Tabstopping.config({}),
-          Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: translatedLabel }))
+          Disabling.config({ disabled: () => !spec.enabled || providersBackstage.isDisabled() }),
+          receivingConfig(),
+          Tabstopping.config({})
         ])
       });
       const formGroup = components => ({
@@ -18361,8 +15676,8 @@
         factory: Input,
         inputClasses: ['tox-textfield'],
         inputBehaviours: derive$1([
-          Disabling.config({ disabled }),
-          toggleOnReceive$1,
+          Disabling.config({ disabled: () => !spec.enabled || providersBackstage.isDisabled() }),
+          receivingConfig(),
           Tabstopping.config({}),
           config('size-input-events', [
             run$1(focusin(), (component, _simulatedEvent) => {
@@ -18422,7 +15737,7 @@
         },
         coupledFieldBehaviours: derive$1([
           Disabling.config({
-            disabled,
+            disabled: () => !spec.enabled || providersBackstage.isDisabled(),
             onDisabled: comp => {
               FormCoupledInputs.getField1(comp).bind(FormField.getField).each(Disabling.disable);
               FormCoupledInputs.getField2(comp).bind(FormField.getField).each(Disabling.disable);
@@ -18434,7 +15749,7 @@
               FormCoupledInputs.getLock(comp).each(Disabling.enable);
             }
           }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext('mode:design')),
+          receivingConfig(),
           config('size-input-events2', [run$1(ratioEvent, (component, simulatedEvent) => {
               const isField1 = simulatedEvent.event.isField1;
               const optCurrent = isField1 ? FormCoupledInputs.getField1(component) : FormCoupledInputs.getField2(component);
@@ -18495,12 +15810,6 @@
             name: spec.name,
             value
           });
-        },
-        onChange: (component, thumb, value) => {
-          emitWith(component, formChangeEvent, {
-            name: spec.name,
-            value
-          });
         }
       });
     };
@@ -18552,8 +15861,8 @@
     const renderTextField = (spec, providersBackstage) => {
       const pLabel = spec.label.map(label => renderLabel$3(label, providersBackstage));
       const baseInputBehaviours = [
-        Disabling.config({ disabled: () => spec.disabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable }),
-        toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context)),
+        Disabling.config({ disabled: () => spec.disabled || providersBackstage.isDisabled() }),
+        receivingConfig(),
         Keying.config({
           mode: 'execution',
           useEnter: spec.multiline !== true,
@@ -18591,8 +15900,7 @@
       const inputMode = spec.inputMode.fold(constant$1({}), mode => ({ inputmode: mode }));
       const inputAttributes = {
         ...placeholder,
-        ...inputMode,
-        'data-mce-name': spec.name
+        ...inputMode
       };
       const pField = FormField.parts.field({
         tag: spec.multiline === true ? 'textarea' : 'input',
@@ -18617,7 +15925,7 @@
       const extraClasses2 = extraClasses.concat(spec.maximized ? ['tox-form-group--maximize'] : []);
       const extraBehaviours = [
         Disabling.config({
-          disabled: () => spec.disabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable,
+          disabled: () => spec.disabled || providersBackstage.isDisabled(),
           onDisabled: comp => {
             FormField.getField(comp).each(Disabling.disable);
           },
@@ -18625,7 +15933,7 @@
             FormField.getField(comp).each(Disabling.enable);
           }
         }),
-        toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context))
+        receivingConfig()
       ];
       return renderFormFieldWith(pLabel, pTextField, extraClasses2, extraBehaviours);
     };
@@ -18640,8 +15948,7 @@
       classname: 'tox-textfield',
       validation: Optional.none(),
       maximized: spec.maximized,
-      data: initialData,
-      context: spec.context
+      data: initialData
     }, providersBackstage);
     const renderTextarea = (spec, providersBackstage, initialData) => renderTextField({
       name: spec.name,
@@ -18654,8 +15961,7 @@
       classname: 'tox-textarea',
       validation: Optional.none(),
       maximized: spec.maximized,
-      data: initialData,
-      context: spec.context
+      data: initialData
     }, providersBackstage);
 
     const getAnimationRoot = (component, slideConfig) => slideConfig.getAnimationRoot.fold(() => component.element, get => get(component));
@@ -18664,21 +15970,21 @@
     const getDimension = (slideConfig, elem) => slideConfig.dimension.getDimension(elem);
     const disableTransitions = (component, slideConfig) => {
       const root = getAnimationRoot(component, slideConfig);
-      remove$2(root, [
+      remove$1(root, [
         slideConfig.shrinkingClass,
         slideConfig.growingClass
       ]);
     };
     const setShrunk = (component, slideConfig) => {
-      remove$3(component.element, slideConfig.openClass);
+      remove$2(component.element, slideConfig.openClass);
       add$2(component.element, slideConfig.closedClass);
       set$8(component.element, getDimensionProperty(slideConfig), '0px');
       reflow(component.element);
     };
     const setGrown = (component, slideConfig) => {
-      remove$3(component.element, slideConfig.closedClass);
+      remove$2(component.element, slideConfig.closedClass);
       add$2(component.element, slideConfig.openClass);
-      remove$7(component.element, getDimensionProperty(slideConfig));
+      remove$6(component.element, getDimensionProperty(slideConfig));
     };
     const doImmediateShrink = (component, slideConfig, slideState, _calculatedSize) => {
       slideState.setCollapsed();
@@ -18694,7 +16000,7 @@
       set$8(component.element, getDimensionProperty(slideConfig), size);
       reflow(component.element);
       const root = getAnimationRoot(component, slideConfig);
-      remove$3(root, slideConfig.growingClass);
+      remove$2(root, slideConfig.growingClass);
       add$2(root, slideConfig.shrinkingClass);
       setShrunk(component, slideConfig);
       slideConfig.onStartShrink(component);
@@ -18719,16 +16025,16 @@
       };
       const setStartSize = wasShrinking ? startPartialGrow : startCompleteGrow;
       setStartSize();
-      remove$3(root, slideConfig.shrinkingClass);
+      remove$2(root, slideConfig.shrinkingClass);
       add$2(root, slideConfig.growingClass);
       setGrown(component, slideConfig);
       set$8(component.element, getDimensionProperty(slideConfig), fullSize);
       slideState.setExpanded();
       slideConfig.onStartGrow(component);
     };
-    const refresh$3 = (component, slideConfig, slideState) => {
+    const refresh$4 = (component, slideConfig, slideState) => {
       if (slideState.isExpanded()) {
-        remove$7(component.element, getDimensionProperty(slideConfig));
+        remove$6(component.element, getDimensionProperty(slideConfig));
         const fullSize = getDimension(slideConfig, component.element);
         set$8(component.element, getDimensionProperty(slideConfig), fullSize);
       }
@@ -18776,7 +16082,7 @@
 
     var SlidingApis = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        refresh: refresh$3,
+        refresh: refresh$4,
         grow: grow,
         shrink: shrink,
         immediateShrink: immediateShrink,
@@ -18792,20 +16098,20 @@
 
     const exhibit = (base, slideConfig, _slideState) => {
       const expanded = slideConfig.expanded;
-      return expanded ? nu$8({
+      return expanded ? nu$7({
         classes: [slideConfig.openClass],
         styles: {}
-      }) : nu$8({
+      }) : nu$7({
         classes: [slideConfig.closedClass],
         styles: wrap$1(slideConfig.dimension.property, '0px')
       });
     };
-    const events$5 = (slideConfig, slideState) => derive$2([runOnSource(transitionend(), (component, simulatedEvent) => {
+    const events$6 = (slideConfig, slideState) => derive$2([runOnSource(transitionend(), (component, simulatedEvent) => {
         const raw = simulatedEvent.event.raw;
         if (raw.propertyName === slideConfig.dimension.property) {
           disableTransitions(component, slideConfig);
           if (slideState.isExpanded()) {
-            remove$7(component.element, slideConfig.dimension.property);
+            remove$6(component.element, slideConfig.dimension.property);
           }
           const notify = slideState.isExpanded() ? slideConfig.onGrown : slideConfig.onShrunk;
           notify(component);
@@ -18815,7 +16121,7 @@
     var ActiveSliding = /*#__PURE__*/Object.freeze({
         __proto__: null,
         exhibit: exhibit,
-        events: events$5
+        events: events$6
     });
 
     var SlidingSchema = [
@@ -18832,19 +16138,19 @@
       requiredOf('dimension', choose$1('property', {
         width: [
           output$1('property', 'width'),
-          output$1('getDimension', elem => get$d(elem) + 'px')
+          output$1('getDimension', elem => get$c(elem) + 'px')
         ],
         height: [
           output$1('property', 'height'),
-          output$1('getDimension', elem => get$e(elem) + 'px')
+          output$1('getDimension', elem => get$d(elem) + 'px')
         ]
       }))
     ];
 
-    const init$8 = spec => {
+    const init$9 = spec => {
       const state = Cell(spec.expanded);
       const readState = () => 'expanded: ' + state.get();
-      return nu$7({
+      return nu$8({
         isExpanded: () => state.get() === true,
         isCollapsed: () => state.get() === false,
         setCollapsed: curry(state.set, false),
@@ -18855,7 +16161,7 @@
 
     var SlidingState = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        init: init$8
+        init: init$9
     });
 
     const Sliding = create$4({
@@ -18875,26 +16181,21 @@
           add$2(elm, 'tox-tbtn--enabled');
           set$9(elm, 'aria-pressed', true);
         } else {
-          remove$3(elm, 'tox-tbtn--enabled');
-          remove$8(elm, 'aria-pressed');
+          remove$2(elm, 'tox-tbtn--enabled');
+          remove$7(elm, 'aria-pressed');
         }
       },
       isActive: () => has(component.element, 'tox-tbtn--enabled'),
-      setTooltip: tooltip => {
-        emitWith(component, updateTooltiptext, { text: tooltip });
-      },
       setText: text => {
         emitWith(component, updateMenuText, { text });
       },
       setIcon: icon => emitWith(component, updateMenuIcon, { icon })
     });
-    const renderMenuButton = (spec, prefix, backstage, role, tabstopping = true, btnName) => {
-      const classes = spec.buttonType === 'bordered' ? ['bordered'] : [];
+    const renderMenuButton = (spec, prefix, backstage, role, tabstopping = true) => {
       return renderCommonDropdown({
         text: spec.text,
         icon: spec.icon,
         tooltip: spec.tooltip,
-        ariaLabel: spec.tooltip,
         searchable: spec.search.isSome(),
         role,
         fetch: (dropdownComp, callback) => {
@@ -18907,13 +16208,12 @@
           }, fetchContext, getMenuButtonApi(dropdownComp));
         },
         onSetup: spec.onSetup,
-        getApi: comp => getMenuButtonApi(comp),
+        getApi: getMenuButtonApi,
         columns: 1,
         presets: 'normal',
-        classes,
-        dropdownBehaviours: [...tabstopping ? [Tabstopping.config({})] : []],
-        context: spec.context
-      }, prefix, backstage.shared, btnName);
+        classes: [],
+        dropdownBehaviours: [...tabstopping ? [Tabstopping.config({})] : []]
+      }, prefix, backstage.shared);
     };
     const getFetch = (items, getButton, backstage) => {
       const getMenuItemAction = item => api => {
@@ -18940,7 +16240,6 @@
             type: item.type,
             active: false,
             ...text,
-            context: item.context,
             onAction: getMenuItemAction(item),
             onSetup: getMenuItemSetup(item)
           };
@@ -18952,18 +16251,17 @@
       dom: {
         tag: 'span',
         classes: ['tox-tree__label'],
-        attributes: { 'aria-label': text }
+        attributes: {
+          'title': text,
+          'aria-label': text
+        }
       },
       components: [text$2(text)]
     });
-    const renderCustomStateIcon = (container, components, backstage) => {
-      container.customStateIcon.each(icon => components.push(renderIcon(icon, backstage.shared.providers.icons, container.customStateIconTooltip.fold(() => [], tooltip => [Tooltipping.config(backstage.shared.providers.tooltips.getConfig({ tooltipText: tooltip }))]), ['tox-icon-custom-state'])));
-    };
     const leafLabelEventsId = generate$6('leaf-label-event-id');
     const renderLeafLabel = ({leaf, onLeafAction, visible, treeId, selectedId, backstage}) => {
       const internalMenuButton = leaf.menu.map(btn => renderMenuButton(btn, 'tox-mbtn', backstage, Optional.none(), visible));
       const components = [renderLabel(leaf.title)];
-      renderCustomStateIcon(leaf, components, backstage);
       internalMenuButton.each(btn => components.push(btn));
       return Button.sketch({
         dom: {
@@ -19012,7 +16310,7 @@
               const isLeftArrowKey = se.event.raw.code === 'ArrowLeft';
               const isRightArrowKey = se.event.raw.code === 'ArrowRight';
               if (isLeftArrowKey) {
-                ancestor$1(comp.element, '.tox-tree--directory').each(dirElement => {
+                ancestor(comp.element, '.tox-tree--directory').each(dirElement => {
                   comp.getSystem().getByDom(dirElement).each(dirComp => {
                     child(dirElement, '.tox-tree--directory__label').each(dirLabelElement => {
                       dirComp.getSystem().getByDom(dirLabelElement).each(Focusing.focus);
@@ -19028,14 +16326,13 @@
         ])
       });
     };
-    const renderIcon = (iconName, iconsProvider, behaviours, extraClasses, extraAttributes) => render$4(iconName, {
+    const renderIcon = (iconName, iconsProvider, behaviours) => render$3(iconName, {
       tag: 'span',
       classes: [
         'tox-tree__icon-wrap',
         'tox-icon'
-      ].concat(extraClasses || []),
-      behaviours,
-      attributes: extraAttributes
+      ],
+      behaviours
     }, iconsProvider);
     const renderIconFromPack = (iconName, iconsProvider) => renderIcon(iconName, iconsProvider, []);
     const directoryLabelEventsId = generate$6('directory-label-event-id');
@@ -19051,12 +16348,11 @@
         },
         renderLabel(directory.title)
       ];
-      renderCustomStateIcon(directory, components, backstage);
       internalMenuButton.each(btn => {
         components.push(btn);
       });
       const toggleExpandChildren = button => {
-        ancestor$1(button.element, '.tox-tree--directory').each(directoryEle => {
+        ancestor(button.element, '.tox-tree--directory').each(directoryEle => {
           button.getSystem().getByDom(directoryEle).each(directoryComp => {
             const willExpand = !Toggling.isOn(directoryComp);
             Toggling.toggle(directoryComp);
@@ -19092,13 +16388,13 @@
                 se.stop();
               }
               if (isRightArrowKey || isLeftArrowKey) {
-                ancestor$1(comp.element, '.tox-tree--directory').each(directoryEle => {
+                ancestor(comp.element, '.tox-tree--directory').each(directoryEle => {
                   comp.getSystem().getByDom(directoryEle).each(directoryComp => {
                     if (!Toggling.isOn(directoryComp) && isRightArrowKey || Toggling.isOn(directoryComp) && isLeftArrowKey) {
                       toggleExpandChildren(comp);
                       se.stop();
                     } else if (isLeftArrowKey && !Toggling.isOn(directoryComp)) {
-                      ancestor$1(directoryComp.element, '.tox-tree--directory').each(parentDirElement => {
+                      ancestor(directoryComp.element, '.tox-tree--directory').each(parentDirElement => {
                         child(parentDirElement, '.tox-tree--directory__label').each(parentDirLabelElement => {
                           directoryComp.getSystem().getByDom(parentDirLabelElement).each(Focusing.focus);
                         });
@@ -19290,7 +16586,7 @@
       };
     };
 
-    const events$4 = (streamConfig, streamState) => {
+    const events$5 = (streamConfig, streamState) => {
       const streams = streamConfig.stream.streams;
       const processor = streams.setup(streamConfig, streamState);
       return derive$2([
@@ -19301,7 +16597,7 @@
 
     var ActiveStreaming = /*#__PURE__*/Object.freeze({
         __proto__: null,
-        events: events$4
+        events: events$5
     });
 
     const throttle = _config => {
@@ -19316,18 +16612,18 @@
           t.cancel();
         }
       };
-      return nu$7({
+      return nu$8({
         readState,
         setTimer,
         cancel
       });
     };
-    const init$7 = spec => spec.stream.streams.state(spec);
+    const init$8 = spec => spec.stream.streams.state(spec);
 
     var StreamingState = /*#__PURE__*/Object.freeze({
         __proto__: null,
         throttle: throttle,
-        init: init$7
+        init: init$8
     });
 
     const setup$c = (streamInfo, streamState) => {
@@ -19371,9 +16667,9 @@
     };
     const setSelectionOn = (input, f) => {
       const el = input.element;
-      const value = get$7(el);
+      const value = get$6(el);
       const node = el.dom;
-      if (get$g(el, 'type') !== 'number') {
+      if (get$f(el, 'type') !== 'number') {
         f(node, value);
       }
     };
@@ -19435,7 +16731,7 @@
           onSetValue: detail.onSetValue,
           store: {
             mode: 'dataset',
-            getDataKey: comp => get$7(comp.element),
+            getDataKey: comp => get$6(comp.element),
             getFallbackEntry: itemString => ({
               value: itemString,
               meta: {}
@@ -19456,7 +16752,7 @@
             const sandbox = Coupling.getCoupled(component, 'sandbox');
             const focusInInput = Focusing.isFocused(component);
             if (focusInInput) {
-              if (get$7(component.element).length >= detail.minChars) {
+              if (get$6(component.element).length >= detail.minChars) {
                 const previousValue = getActiveMenu(sandbox).bind(activeMenu => Highlighting.getHighlighted(activeMenu).map(Representing.getValue));
                 detail.previewing.set(true);
                 const onOpenSync = _sandbox => {
@@ -19530,7 +16826,7 @@
               return makeSandbox$1(detail, hotspot, {
                 onOpen: () => Toggling.on(hotspot),
                 onClose: () => {
-                  detail.lazyTypeaheadComp.get().each(input => remove$8(input.element, 'aria-activedescendant'));
+                  detail.lazyTypeaheadComp.get().each(input => remove$7(input.element, 'aria-activedescendant'));
                   Toggling.off(hotspot);
                 }
               });
@@ -19614,7 +16910,6 @@
       defaulted('dismissOnBlur', true),
       markers$1(['openClass']),
       option$3('initialData'),
-      option$3('listRole'),
       field('typeaheadBehaviours', [
         Focusing,
         Representing,
@@ -19761,15 +17056,17 @@
       fromPromise
     };
 
-    const renderCommonSpec = (spec, actionOpt, extraBehaviours = [], dom, components, tooltip, providersBackstage) => {
+    const renderCommonSpec = (spec, actionOpt, extraBehaviours = [], dom, components, providersBackstage) => {
       const action = actionOpt.fold(() => ({}), action => ({ action }));
       const common = {
         buttonBehaviours: derive$1([
-          DisablingConfigs.item(() => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context)),
+          DisablingConfigs.button(() => !spec.enabled || providersBackstage.isDisabled()),
+          receivingConfig(),
           Tabstopping.config({}),
-          ...tooltip.map(t => Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: providersBackstage.translate(t) }))).toArray(),
-          config('button press', [preventDefault('click')])
+          config('button press', [
+            preventDefault('click'),
+            preventDefault('mousedown')
+          ])
         ].concat(extraBehaviours)),
         eventOrder: {
           click: [
@@ -19786,19 +17083,19 @@
       const domFinal = deepMerge(common, { dom });
       return deepMerge(domFinal, { components });
     };
-    const renderIconButtonSpec = (spec, action, providersBackstage, extraBehaviours = [], btnName) => {
-      const tooltipAttributes = spec.tooltip.map(tooltip => ({ 'aria-label': providersBackstage.translate(tooltip) })).getOr({});
+    const renderIconButtonSpec = (spec, action, providersBackstage, extraBehaviours = []) => {
+      const tooltipAttributes = spec.tooltip.map(tooltip => ({
+        'aria-label': providersBackstage.translate(tooltip),
+        'title': providersBackstage.translate(tooltip)
+      })).getOr({});
       const dom = {
         tag: 'button',
         classes: ['tox-tbtn'],
-        attributes: {
-          ...tooltipAttributes,
-          'data-mce-name': btnName
-        }
+        attributes: tooltipAttributes
       };
       const icon = spec.icon.map(iconName => renderIconFromPack$1(iconName, providersBackstage.icons));
       const components = componentRenderPipeline([icon]);
-      return renderCommonSpec(spec, action, extraBehaviours, dom, components, spec.tooltip, providersBackstage);
+      return renderCommonSpec(spec, action, extraBehaviours, dom, components, providersBackstage);
     };
     const calculateClassesFromButtonType = buttonType => {
       switch (buttonType) {
@@ -19829,13 +17126,9 @@
       const dom = {
         tag: 'button',
         classes,
-        attributes: {
-          'aria-label': translatedText,
-          'data-mce-name': spec.text
-        }
+        attributes: { title: translatedText }
       };
-      const optTooltip = spec.icon.map(constant$1(translatedText));
-      return renderCommonSpec(spec, action, extraBehaviours, dom, components, optTooltip, providersBackstage);
+      return renderCommonSpec(spec, action, extraBehaviours, dom, components, providersBackstage);
     };
     const renderButton$1 = (spec, action, providersBackstage, extraBehaviours = [], extraClasses = []) => {
       const buttonSpec = renderButtonSpec(spec, Optional.some(action), providersBackstage, extraBehaviours, extraClasses);
@@ -19858,7 +17151,7 @@
     const isMenuFooterButtonSpec = (spec, buttonType) => buttonType === 'menu';
     const isNormalFooterButtonSpec = (spec, buttonType) => buttonType === 'custom' || buttonType === 'cancel' || buttonType === 'submit';
     const isToggleButtonSpec = (spec, buttonType) => buttonType === 'togglebutton';
-    const renderToggleButton = (spec, providers, btnName) => {
+    const renderToggleButton = (spec, providers) => {
       var _a, _b;
       const optMemIcon = spec.icon.map(memIcon => renderReplaceableIconFromPack(memIcon, providers.icons)).map(record);
       const action = comp => {
@@ -19878,11 +17171,14 @@
         ...spec,
         name: (_a = spec.name) !== null && _a !== void 0 ? _a : '',
         primary: buttonType === 'primary',
-        tooltip: spec.tooltip,
+        tooltip: Optional.from(spec.tooltip),
         enabled: (_b = spec.enabled) !== null && _b !== void 0 ? _b : false,
         borderless: false
       };
-      const tooltipAttributes = buttonSpec.tooltip.or(spec.text).map(tooltip => ({ 'aria-label': providers.translate(tooltip) })).getOr({});
+      const tooltipAttributes = buttonSpec.tooltip.map(tooltip => ({
+        'aria-label': providers.translate(tooltip),
+        'title': providers.translate(tooltip)
+      })).getOr({});
       const buttonTypeClasses = calculateClassesFromButtonType(buttonType !== null && buttonType !== void 0 ? buttonType : 'secondary');
       const showIconAndText = spec.icon.isSome() && spec.text.isSome();
       const dom = {
@@ -19892,10 +17188,7 @@
           ...spec.active ? ['tox-button--enabled'] : [],
           ...showIconAndText ? ['tox-button--icon-and-text'] : []
         ],
-        attributes: {
-          ...tooltipAttributes,
-          ...isNonNullable(btnName) ? { 'data-mce-name': btnName } : {}
-        }
+        attributes: tooltipAttributes
       };
       const extraBehaviours = [];
       const translatedText = providers.translate(spec.text.getOr(''));
@@ -19905,7 +17198,7 @@
         ...iconComp,
         ...spec.text.isSome() ? [translatedTextComponed] : []
       ];
-      const iconButtonSpec = renderCommonSpec(buttonSpec, Optional.some(action), extraBehaviours, dom, components, spec.tooltip, providers);
+      const iconButtonSpec = renderCommonSpec(buttonSpec, Optional.some(action), extraBehaviours, dom, components, providers);
       return Button.sketch(iconButtonSpec);
     };
     const renderFooterButton = (spec, buttonType, backstage) => {
@@ -19914,7 +17207,6 @@
         const menuButtonSpec = spec;
         const fixedSpec = {
           ...spec,
-          buttonType: 'default',
           type: 'menubutton',
           search: Optional.none(),
           onSetup: api => {
@@ -19923,18 +17215,17 @@
           },
           fetch: getFetch(menuButtonSpec.items, getButton, backstage)
         };
-        const memButton = record(renderMenuButton(fixedSpec, 'tox-tbtn', backstage, Optional.none(), true, spec.text.or(spec.tooltip).getOrUndefined()));
+        const memButton = record(renderMenuButton(fixedSpec, 'tox-tbtn', backstage, Optional.none()));
         return memButton.asSpec();
       } else if (isNormalFooterButtonSpec(spec, buttonType)) {
         const action = getAction(spec.name, buttonType);
         const buttonSpec = {
           ...spec,
-          context: buttonType === 'cancel' ? 'any' : spec.context,
           borderless: false
         };
         return renderButton$1(buttonSpec, action, backstage.shared.providers, []);
       } else if (isToggleButtonSpec(spec, buttonType)) {
-        return renderToggleButton(spec, backstage.shared.providers, spec.text.or(spec.tooltip).getOrUndefined());
+        return renderToggleButton(spec, backstage.shared.providers);
       } else {
         console.error('Unknown footer button type: ', buttonType);
         throw new Error('Unknown footer button type');
@@ -20072,11 +17363,11 @@
               validateOnLoad: false
             }
           })).toArray(),
-          Disabling.config({ disabled: () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable }),
+          Disabling.config({ disabled: () => !spec.enabled || providersBackstage.isDisabled() }),
           Tabstopping.config({}),
           config('urlinput-events', [
             run$1(input(), comp => {
-              const currentValue = get$7(comp.element);
+              const currentValue = get$6(comp.element);
               const trimmedValue = currentValue.trim();
               if (trimmedValue !== currentValue) {
                 set$5(comp.element, trimmedValue);
@@ -20123,7 +17414,7 @@
         factory: Typeahead
       });
       const pLabel = spec.label.map(label => renderLabel$3(label, providersBackstage));
-      const makeIcon = (name, errId, icon = name, label = name) => render$4(icon, {
+      const makeIcon = (name, errId, icon = name, label = name) => render$3(icon, {
         tag: 'div',
         classes: [
           'tox-icon',
@@ -20154,13 +17445,12 @@
           pField,
           memStatus.asSpec()
         ],
-        behaviours: derive$1([Disabling.config({ disabled: () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable })])
+        behaviours: derive$1([Disabling.config({ disabled: () => !spec.enabled || providersBackstage.isDisabled() })])
       });
       const memUrlPickerButton = record(renderButton$1({
-        context: spec.context,
         name: spec.name,
         icon: Optional.some('browse'),
-        text: spec.picker_text.or(spec.label).getOr(''),
+        text: spec.label.getOr(''),
         enabled: spec.enabled,
         primary: false,
         buttonType: Optional.none(),
@@ -20196,7 +17486,7 @@
         components: pLabel.toArray().concat([controlHWrapper()]),
         fieldBehaviours: derive$1([
           Disabling.config({
-            disabled: () => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable,
+            disabled: () => !spec.enabled || providersBackstage.isDisabled(),
             onDisabled: comp => {
               FormField.getField(comp).each(Disabling.disable);
               memUrlPickerButton.getOpt(comp).each(Disabling.disable);
@@ -20206,14 +17496,14 @@
               memUrlPickerButton.getOpt(comp).each(Disabling.enable);
             }
           }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context)),
+          receivingConfig(),
           config('url-input-events', [run$1(browseUrlEvent, openUrlPicker)])
         ])
       });
     };
 
     const renderAlertBanner = (spec, providersBackstage) => {
-      const icon = get$3(spec.icon, providersBackstage.icons);
+      const icon = get$2(spec.icon, providersBackstage.icons);
       return Container.sketch({
         dom: {
           tag: 'div',
@@ -20263,7 +17553,7 @@
     const set$1 = (element, status) => {
       element.dom.checked = status;
     };
-    const get$2 = element => element.dom.checked;
+    const get$1 = element => element.dom.checked;
 
     const renderCheckbox = (spec, providerBackstage, initialData) => {
       const toggleCheckboxHandler = comp => {
@@ -20280,17 +17570,17 @@
         behaviours: derive$1([
           ComposingConfigs.self(),
           Disabling.config({
-            disabled: () => !spec.enabled || providerBackstage.checkUiComponentContext(spec.context).shouldDisable,
+            disabled: () => !spec.enabled || providerBackstage.isDisabled(),
             onDisabled: component => {
               parentElement(component.element).each(element => add$2(element, 'tox-checkbox--disabled'));
             },
             onEnabled: component => {
-              parentElement(component.element).each(element => remove$3(element, 'tox-checkbox--disabled'));
+              parentElement(component.element).each(element => remove$2(element, 'tox-checkbox--disabled'));
             }
           }),
           Tabstopping.config({}),
           Focusing.config({}),
-          withElement(initialData, get$2, set$1),
+          withElement(initialData, get$1, set$1),
           Keying.config({
             mode: 'special',
             onEnter: toggleCheckboxHandler,
@@ -20312,7 +17602,7 @@
       });
       const makeIcon = className => {
         const iconName = className === 'checked' ? 'selected' : 'unselected';
-        return render$4(iconName, {
+        return render$3(iconName, {
           tag: 'span',
           classes: [
             'tox-icon',
@@ -20341,91 +17631,43 @@
           pLabel
         ],
         fieldBehaviours: derive$1([
-          Disabling.config({ disabled: () => !spec.enabled || providerBackstage.checkUiComponentContext(spec.context).shouldDisable }),
-          toggleOnReceive(() => providerBackstage.checkUiComponentContext(spec.context))
+          Disabling.config({ disabled: () => !spec.enabled || providerBackstage.isDisabled() }),
+          receivingConfig()
         ])
       });
     };
 
-    const renderHtmlPanel = (spec, providersBackstage) => {
-      const classes = [
-        'tox-form__group',
-        ...spec.stretched ? ['tox-form__group--stretched'] : []
-      ];
-      const init = config('htmlpanel', [runOnAttached(comp => {
-          spec.onInit(comp.element.dom);
-        })]);
+    const renderHtmlPanel = spec => {
       if (spec.presets === 'presentation') {
         return Container.sketch({
           dom: {
             tag: 'div',
-            classes,
+            classes: ['tox-form__group'],
             innerHtml: spec.html
-          },
-          containerBehaviours: derive$1([
-            Tooltipping.config({
-              ...providersBackstage.tooltips.getConfig({
-                tooltipText: '',
-                onShow: comp => {
-                  descendant(comp.element, '[data-mce-tooltip]:hover').orThunk(() => search(comp.element)).each(current => {
-                    getOpt(current, 'data-mce-tooltip').each(text => {
-                      Tooltipping.setComponents(comp, providersBackstage.tooltips.getComponents({ tooltipText: text }));
-                    });
-                  });
-                }
-              }),
-              mode: 'children-normal',
-              anchor: comp => ({
-                type: 'node',
-                node: descendant(comp.element, '[data-mce-tooltip]:hover').orThunk(() => search(comp.element).filter(current => getOpt(current, 'data-mce-tooltip').isSome())),
-                root: comp.element,
-                layouts: {
-                  onLtr: constant$1([
-                    south$2,
-                    north$2,
-                    southeast$2,
-                    northeast$2,
-                    southwest$2,
-                    northwest$2
-                  ]),
-                  onRtl: constant$1([
-                    south$2,
-                    north$2,
-                    southeast$2,
-                    northeast$2,
-                    southwest$2,
-                    northwest$2
-                  ])
-                },
-                bubble: nu$5(0, -2, {})
-              })
-            }),
-            init
-          ])
+          }
         });
       } else {
         return Container.sketch({
           dom: {
             tag: 'div',
-            classes,
+            classes: ['tox-form__group'],
             innerHtml: spec.html,
             attributes: { role: 'document' }
           },
           containerBehaviours: derive$1([
             Tabstopping.config({}),
-            Focusing.config({}),
-            init
+            Focusing.config({})
           ])
         });
       }
     };
 
     const make$2 = render => {
-      return (parts, spec, dialogData, backstage, getCompByName) => get$h(spec, 'name').fold(() => render(spec, backstage, Optional.none(), getCompByName), fieldName => parts.field(fieldName, render(spec, backstage, get$h(dialogData, fieldName), getCompByName)));
+      return (parts, spec, dialogData, backstage) => get$g(spec, 'name').fold(() => render(spec, backstage, Optional.none()), fieldName => parts.field(fieldName, render(spec, backstage, get$g(dialogData, fieldName))));
     };
-    const makeIframe = render => (parts, spec, dialogData, backstage, getCompByName) => {
+    const makeIframe = render => (parts, spec, dialogData, backstage) => {
       const iframeSpec = deepMerge(spec, { source: 'dynamic' });
-      return make$2(render)(parts, iframeSpec, dialogData, backstage, getCompByName);
+      return make$2(render)(parts, iframeSpec, dialogData, backstage);
     };
     const factories = {
       bar: make$2((spec, backstage) => renderBar(spec, backstage.shared)),
@@ -20433,7 +17675,7 @@
       alertbanner: make$2((spec, backstage) => renderAlertBanner(spec, backstage.shared.providers)),
       input: make$2((spec, backstage, data) => renderInput(spec, backstage.shared.providers, data)),
       textarea: make$2((spec, backstage, data) => renderTextarea(spec, backstage.shared.providers, data)),
-      label: make$2((spec, backstage, _data, getCompByName) => renderLabel$2(spec, backstage.shared, getCompByName)),
+      label: make$2((spec, backstage) => renderLabel$2(spec, backstage.shared)),
       iframe: makeIframe((spec, backstage, data) => renderIFrame(spec, backstage.shared.providers, data)),
       button: make$2((spec, backstage) => renderDialogButton(spec, backstage.shared.providers)),
       checkbox: make$2((spec, backstage, data) => renderCheckbox(spec, backstage.shared.providers, data)),
@@ -20447,7 +17689,7 @@
       slider: make$2((spec, backstage, data) => renderSlider(spec, backstage.shared.providers, data)),
       urlinput: make$2((spec, backstage, data) => renderUrlInput(spec, backstage, backstage.urlinput, data)),
       customeditor: make$2(renderCustomEditor),
-      htmlpanel: make$2((spec, backstage) => renderHtmlPanel(spec, backstage.shared.providers)),
+      htmlpanel: make$2(renderHtmlPanel),
       imagepreview: make$2((spec, _, data) => renderImagePreview(spec, data)),
       table: make$2((spec, backstage) => renderTable(spec, backstage.shared.providers)),
       tree: make$2((spec, backstage) => renderTree(spec, backstage)),
@@ -20457,15 +17699,15 @@
       field: (_name, spec) => spec,
       record: constant$1([])
     };
-    const interpretInForm = (parts, spec, dialogData, oldBackstage, getCompByName) => {
-      const newBackstage = deepMerge(oldBackstage, { shared: { interpreter: childSpec => interpretParts(parts, childSpec, dialogData, newBackstage, getCompByName) } });
-      return interpretParts(parts, spec, dialogData, newBackstage, getCompByName);
+    const interpretInForm = (parts, spec, dialogData, oldBackstage) => {
+      const newBackstage = deepMerge(oldBackstage, { shared: { interpreter: childSpec => interpretParts(parts, childSpec, dialogData, newBackstage) } });
+      return interpretParts(parts, spec, dialogData, newBackstage);
     };
-    const interpretParts = (parts, spec, dialogData, backstage, getCompByName) => get$h(factories, spec.type).fold(() => {
+    const interpretParts = (parts, spec, dialogData, backstage) => get$g(factories, spec.type).fold(() => {
       console.error(`Unknown factory type "${ spec.type }", defaulting to container: `, spec);
       return spec;
-    }, factory => factory(parts, spec, dialogData, backstage, getCompByName));
-    const interpretWithoutForm = (spec, dialogData, backstage, getCompByName) => interpretParts(noFormParts, spec, dialogData, backstage, getCompByName);
+    }, factory => factory(parts, spec, dialogData, backstage));
+    const interpretWithoutForm = (spec, dialogData, backstage) => interpretParts(noFormParts, spec, dialogData, backstage);
 
     const labelPrefix = 'layout-inset';
     const westEdgeX = anchor => anchor.x;
@@ -20885,7 +18127,7 @@
       isSelected: isSelectedFor(item.format),
       getStylePreview: getPreviewFor(item.format)
     });
-    const register$b = (editor, formats, isSelectedFor, getPreviewFor) => {
+    const register$a = (editor, formats, isSelectedFor, getPreviewFor) => {
       const enrichSupported = item => processBasic(item, isSelectedFor, getPreviewFor);
       const enrichMenu = item => {
         const newItems = doEnrich(item.items);
@@ -20925,7 +18167,7 @@
       return doEnrich(formats);
     };
 
-    const init$6 = editor => {
+    const init$7 = editor => {
       const isSelectedFor = format => () => editor.formatter.match(format);
       const getPreviewFor = format => () => {
         const fmt = editor.formatter.get(format);
@@ -20939,11 +18181,11 @@
       const replaceSettings = Cell(false);
       editor.on('PreInit', _e => {
         const formats = getStyleFormats(editor);
-        const enriched = register$b(editor, formats, isSelectedFor, getPreviewFor);
+        const enriched = register$a(editor, formats, isSelectedFor, getPreviewFor);
         settingsFormats.set(enriched);
       });
       editor.on('addStyleModifications', e => {
-        const modifications = register$b(editor, e.items, isSelectedFor, getPreviewFor);
+        const modifications = register$a(editor, e.items, isSelectedFor, getPreviewFor);
         eventsFormats.set(modifications);
         replaceSettings.set(e.replace);
       });
@@ -20955,57 +18197,8 @@
       return { getData };
     };
 
-    const TooltipsBackstage = getSink => {
-      const tooltipDelay = 300;
-      const intervalDelay = tooltipDelay * 0.2;
-      let numActiveTooltips = 0;
-      const alreadyShowingTooltips = () => numActiveTooltips > 0;
-      const getComponents = spec => {
-        return [{
-            dom: {
-              tag: 'div',
-              classes: ['tox-tooltip__body']
-            },
-            components: [text$2(spec.tooltipText)]
-          }];
-      };
-      const getConfig = spec => {
-        return {
-          delayForShow: () => alreadyShowingTooltips() ? intervalDelay : tooltipDelay,
-          delayForHide: constant$1(tooltipDelay),
-          exclusive: true,
-          lazySink: getSink,
-          tooltipDom: {
-            tag: 'div',
-            classes: [
-              'tox-tooltip',
-              'tox-tooltip--up'
-            ]
-          },
-          tooltipComponents: getComponents(spec),
-          onShow: (comp, tooltip) => {
-            numActiveTooltips++;
-            if (spec.onShow) {
-              spec.onShow(comp, tooltip);
-            }
-          },
-          onHide: (comp, tooltip) => {
-            numActiveTooltips--;
-            if (spec.onHide) {
-              spec.onHide(comp, tooltip);
-            }
-          },
-          onSetup: spec.onSetup
-        };
-      };
-      return {
-        getConfig,
-        getComponents
-      };
-    };
-
     const isElement = node => isNonNullable(node) && node.nodeType === 1;
-    const trim = global$2.trim;
+    const trim = global$1.trim;
     const hasContentEditableState = value => {
       return node => {
         if (isElement(node)) {
@@ -21021,7 +18214,7 @@
     };
     const isContentEditableTrue = hasContentEditableState('true');
     const isContentEditableFalse = hasContentEditableState('false');
-    const create = (type, title, url, level, attach) => ({
+    const create$1 = (type, title, url, level, attach) => ({
       type,
       title,
       url,
@@ -21073,12 +18266,12 @@
       const attach = () => {
         elm.id = headerId;
       };
-      return create('header', (_a = getElementText(elm)) !== null && _a !== void 0 ? _a : '', '#' + headerId, getLevel(elm), attach);
+      return create$1('header', (_a = getElementText(elm)) !== null && _a !== void 0 ? _a : '', '#' + headerId, getLevel(elm), attach);
     };
     const anchorTarget = elm => {
       const anchorId = elm.id || elm.name;
       const anchorText = getElementText(elm);
-      return create('anchor', anchorText ? anchorText : '#' + anchorId, '#' + anchorId, 0, noop);
+      return create$1('anchor', anchorText ? anchorText : '#' + anchorId, '#' + anchorId, 0, noop);
     };
     const getHeaderTargets = elms => {
       return map$2(filter$2(elms, isValidHeader), headerTarget);
@@ -21105,7 +18298,7 @@
     const isArrayOfUrl = a => isArray(a) && a.length <= HISTORY_LENGTH && forall(a, isHttpUrl);
     const isRecordOfUrlArray = r => isObject(r) && find$4(r, value => !isArrayOfUrl(value)).isNone();
     const getAllHistory = () => {
-      const unparsedHistory = global$5.getItem(STORAGE_KEY);
+      const unparsedHistory = global$4.getItem(STORAGE_KEY);
       if (unparsedHistory === null) {
         return {};
       }
@@ -21129,25 +18322,25 @@
       if (!isRecordOfUrlArray(history)) {
         throw new Error('Bad format for history:\n' + JSON.stringify(history));
       }
-      global$5.setItem(STORAGE_KEY, JSON.stringify(history));
+      global$4.setItem(STORAGE_KEY, JSON.stringify(history));
     };
     const getHistory = fileType => {
       const history = getAllHistory();
-      return get$h(history, fileType).getOr([]);
+      return get$g(history, fileType).getOr([]);
     };
     const addToHistory = (url, fileType) => {
       if (!isHttpUrl(url)) {
         return;
       }
       const history = getAllHistory();
-      const items = get$h(history, fileType).getOr([]);
+      const items = get$g(history, fileType).getOr([]);
       const itemsWithoutUrl = filter$2(items, item => item !== url);
       history[fileType] = [url].concat(itemsWithoutUrl).slice(0, HISTORY_LENGTH);
       setAllHistory(history);
     };
 
     const isTruthy = value => !!value;
-    const makeMap = value => map$1(global$2.makeMap(value, /[, ]/), isTruthy);
+    const makeMap = value => map$1(global$1.makeMap(value, /[, ]/), isTruthy);
     const getPicker = editor => Optional.from(getFilePickerCallback(editor));
     const getPickerTypes = editor => {
       const optFileTypes = Optional.from(getFilePickerTypes(editor)).filter(isTruthy).map(makeMap);
@@ -21202,34 +18395,18 @@
       getUrlPicker: filetype => getUrlPicker(editor, filetype)
     });
 
-    const init$5 = (lazySinks, editor, lazyAnchorbar, lazyBottomAnchorBar) => {
+    const init$6 = (lazySinks, editor, lazyAnchorbar, lazyBottomAnchorBar) => {
       const contextMenuState = Cell(false);
       const toolbar = HeaderBackstage(editor);
       const providers = {
         icons: () => editor.ui.registry.getAll().icons,
         menuItems: () => editor.ui.registry.getAll().menuItems,
-        translate: global$6.translate,
-        isDisabled: () => !editor.ui.isEnabled(),
-        getOption: editor.options.get,
-        tooltips: TooltipsBackstage(lazySinks.dialog),
-        checkUiComponentContext: specContext => {
-          if (isDisabled(editor)) {
-            return {
-              contextType: 'disabled',
-              shouldDisable: true
-            };
-          }
-          const [key, value = ''] = specContext.split(':');
-          const contexts = editor.ui.registry.getAll().contexts;
-          const enabledInContext = get$h(contexts, key).fold(() => get$h(contexts, 'mode').map(pred => pred('design')).getOr(false), pred => value.charAt(0) === '!' ? !pred(value.slice(1)) : pred(value));
-          return {
-            contextType: key,
-            shouldDisable: !enabledInContext
-          };
-        }
+        translate: global$8.translate,
+        isDisabled: () => editor.mode.isReadOnly() || !editor.ui.isEnabled(),
+        getOption: editor.options.get
       };
       const urlinput = UrlInputBackstage(editor);
-      const styles = init$6(editor);
+      const styles = init$7(editor);
       const colorinput = ColorInputBackstage(editor);
       const dialogSettings = DialogBackstage(editor);
       const isContextMenuOpen = () => contextMenuState.get();
@@ -21247,12 +18424,11 @@
         isContextMenuOpen,
         setContextMenuState
       };
-      const getCompByName = _name => Optional.none();
       const popupBackstage = {
         ...commonBackstage,
         shared: {
           ...commonBackstage.shared,
-          interpreter: s => interpretWithoutForm(s, {}, popupBackstage, getCompByName),
+          interpreter: s => interpretWithoutForm(s, {}, popupBackstage),
           getSink: lazySinks.popup
         }
       };
@@ -21260,7 +18436,7 @@
         ...commonBackstage,
         shared: {
           ...commonBackstage.shared,
-          interpreter: s => interpretWithoutForm(s, {}, dialogBackstage, getCompByName),
+          interpreter: s => interpretWithoutForm(s, {}, dialogBackstage),
           getSink: lazySinks.dialog
         }
       };
@@ -21342,8 +18518,6 @@
       const onDismissPopups = event => {
         broadcastOn(dismissPopups(), { target: SugarElement.fromDom(event.relatedTarget.getContainer()) });
       };
-      const onFocusIn = event => editor.dispatch('focusin', event);
-      const onFocusOut = event => editor.dispatch('focusout', event);
       editor.on('PostRender', () => {
         editor.on('click', onContentClick);
         editor.on('tap', onContentClick);
@@ -21354,13 +18528,6 @@
         editor.on('ResizeEditor', onEditorResize);
         editor.on('AfterProgressState', onEditorProgress);
         editor.on('DismissPopups', onDismissPopups);
-        each$1([
-          mothership,
-          ...uiMotherships
-        ], gui => {
-          gui.element.dom.addEventListener('focusin', onFocusIn);
-          gui.element.dom.addEventListener('focusout', onFocusOut);
-        });
       });
       editor.on('remove', () => {
         editor.off('click', onContentClick);
@@ -21372,13 +18539,6 @@
         editor.off('ResizeEditor', onEditorResize);
         editor.off('AfterProgressState', onEditorProgress);
         editor.off('DismissPopups', onDismissPopups);
-        each$1([
-          mothership,
-          ...uiMotherships
-        ], gui => {
-          gui.element.dom.removeEventListener('focusin', onFocusIn);
-          gui.element.dom.removeEventListener('focusout', onFocusOut);
-        });
         onMousedown.unbind();
         onTouchstart.unbind();
         onTouchmove.unbind();
@@ -21515,14 +18675,405 @@
     });
 
     const setup$a = noop;
-    const isDocked$1 = never;
+    const isDocked$2 = never;
     const getBehaviours$1 = constant$1([]);
 
     var StaticHeader = /*#__PURE__*/Object.freeze({
         __proto__: null,
         setup: setup$a,
-        isDocked: isDocked$1,
+        isDocked: isDocked$2,
         getBehaviours: getBehaviours$1
+    });
+
+    const getOffsetParent = element => {
+      const isFixed = is$1(getRaw(element, 'position'), 'fixed');
+      const offsetParent$1 = isFixed ? Optional.none() : offsetParent(element);
+      return offsetParent$1.orThunk(() => {
+        const marker = SugarElement.fromTag('span');
+        return parent(element).bind(parent => {
+          append$2(parent, marker);
+          const offsetParent$1 = offsetParent(marker);
+          remove$5(marker);
+          return offsetParent$1;
+        });
+      });
+    };
+    const getOrigin = element => getOffsetParent(element).map(absolute$3).getOrThunk(() => SugarPosition(0, 0));
+
+    const appear = (component, contextualInfo) => {
+      const elem = component.element;
+      add$2(elem, contextualInfo.transitionClass);
+      remove$2(elem, contextualInfo.fadeOutClass);
+      add$2(elem, contextualInfo.fadeInClass);
+      contextualInfo.onShow(component);
+    };
+    const disappear = (component, contextualInfo) => {
+      const elem = component.element;
+      add$2(elem, contextualInfo.transitionClass);
+      remove$2(elem, contextualInfo.fadeInClass);
+      add$2(elem, contextualInfo.fadeOutClass);
+      contextualInfo.onHide(component);
+    };
+    const isPartiallyVisible = (box, bounds) => box.y < bounds.bottom && box.bottom > bounds.y;
+    const isTopCompletelyVisible = (box, bounds) => box.y >= bounds.y;
+    const isBottomCompletelyVisible = (box, bounds) => box.bottom <= bounds.bottom;
+    const forceTopPosition = (winBox, leftX, viewport) => ({
+      location: 'top',
+      leftX,
+      topY: viewport.bounds.y - winBox.y
+    });
+    const forceBottomPosition = (winBox, leftX, viewport) => ({
+      location: 'bottom',
+      leftX,
+      bottomY: winBox.bottom - viewport.bounds.bottom
+    });
+    const getDockedLeftPosition = bounds => {
+      return bounds.box.x - bounds.win.x;
+    };
+    const tryDockingPosition = (modes, bounds, viewport) => {
+      const winBox = bounds.win;
+      const box = bounds.box;
+      const leftX = getDockedLeftPosition(bounds);
+      return findMap(modes, mode => {
+        switch (mode) {
+        case 'bottom':
+          return !isBottomCompletelyVisible(box, viewport.bounds) ? Optional.some(forceBottomPosition(winBox, leftX, viewport)) : Optional.none();
+        case 'top':
+          return !isTopCompletelyVisible(box, viewport.bounds) ? Optional.some(forceTopPosition(winBox, leftX, viewport)) : Optional.none();
+        default:
+          return Optional.none();
+        }
+      }).getOr({ location: 'no-dock' });
+    };
+    const isVisibleForModes = (modes, box, viewport) => forall(modes, mode => {
+      switch (mode) {
+      case 'bottom':
+        return isBottomCompletelyVisible(box, viewport.bounds);
+      case 'top':
+        return isTopCompletelyVisible(box, viewport.bounds);
+      }
+    });
+    const getXYForRestoring = (pos, viewport) => {
+      const priorY = viewport.optScrollEnv.fold(constant$1(pos.bounds.y), scrollEnv => scrollEnv.scrollElmTop + (pos.bounds.y - scrollEnv.currentScrollTop));
+      return SugarPosition(pos.bounds.x, priorY);
+    };
+    const getXYForSaving = (box, viewport) => {
+      const priorY = viewport.optScrollEnv.fold(constant$1(box.y), scrollEnv => box.y + scrollEnv.currentScrollTop - scrollEnv.scrollElmTop);
+      return SugarPosition(box.x, priorY);
+    };
+    const getPrior = (elem, viewport, state) => state.getInitialPos().map(pos => {
+      const xy = getXYForRestoring(pos, viewport);
+      return {
+        box: bounds(xy.left, xy.top, get$c(elem), get$d(elem)),
+        location: pos.location
+      };
+    });
+    const storePrior = (elem, box, viewport, state, decision) => {
+      const xy = getXYForSaving(box, viewport);
+      const bounds$1 = bounds(xy.left, xy.top, box.width, box.height);
+      state.setInitialPos({
+        style: getAllRaw(elem),
+        position: get$e(elem, 'position') || 'static',
+        bounds: bounds$1,
+        location: decision.location
+      });
+    };
+    const storePriorIfNone = (elem, box, viewport, state, decision) => {
+      state.getInitialPos().fold(() => storePrior(elem, box, viewport, state, decision), () => noop);
+    };
+    const revertToOriginal = (elem, box, state) => state.getInitialPos().bind(position => {
+      var _a;
+      state.clearInitialPos();
+      switch (position.position) {
+      case 'static':
+        return Optional.some({ morph: 'static' });
+      case 'absolute':
+        const offsetParent = getOffsetParent(elem).getOr(body());
+        const offsetBox = box$1(offsetParent);
+        const scrollDelta = (_a = offsetParent.dom.scrollTop) !== null && _a !== void 0 ? _a : 0;
+        return Optional.some({
+          morph: 'absolute',
+          positionCss: NuPositionCss('absolute', get$g(position.style, 'left').map(_left => box.x - offsetBox.x), get$g(position.style, 'top').map(_top => box.y - offsetBox.y + scrollDelta), get$g(position.style, 'right').map(_right => offsetBox.right - box.right), get$g(position.style, 'bottom').map(_bottom => offsetBox.bottom - box.bottom))
+        });
+      default:
+        return Optional.none();
+      }
+    });
+    const tryMorphToOriginal = (elem, viewport, state) => getPrior(elem, viewport, state).filter(({box}) => isVisibleForModes(state.getModes(), box, viewport)).bind(({box}) => revertToOriginal(elem, box, state));
+    const tryDecisionToFixedMorph = decision => {
+      switch (decision.location) {
+      case 'top': {
+          return Optional.some({
+            morph: 'fixed',
+            positionCss: NuPositionCss('fixed', Optional.some(decision.leftX), Optional.some(decision.topY), Optional.none(), Optional.none())
+          });
+        }
+      case 'bottom': {
+          return Optional.some({
+            morph: 'fixed',
+            positionCss: NuPositionCss('fixed', Optional.some(decision.leftX), Optional.none(), Optional.none(), Optional.some(decision.bottomY))
+          });
+        }
+      default:
+        return Optional.none();
+      }
+    };
+    const tryMorphToFixed = (elem, viewport, state) => {
+      const box = box$1(elem);
+      const winBox = win();
+      const decision = tryDockingPosition(state.getModes(), {
+        win: winBox,
+        box
+      }, viewport);
+      if (decision.location === 'top' || decision.location === 'bottom') {
+        storePrior(elem, box, viewport, state, decision);
+        return tryDecisionToFixedMorph(decision);
+      } else {
+        return Optional.none();
+      }
+    };
+    const tryMorphToOriginalOrUpdateFixed = (elem, viewport, state) => {
+      return tryMorphToOriginal(elem, viewport, state).orThunk(() => {
+        return viewport.optScrollEnv.bind(_ => getPrior(elem, viewport, state)).bind(({box, location}) => {
+          const winBox = win();
+          const leftX = getDockedLeftPosition({
+            win: winBox,
+            box
+          });
+          const decision = location === 'top' ? forceTopPosition(winBox, leftX, viewport) : forceBottomPosition(winBox, leftX, viewport);
+          return tryDecisionToFixedMorph(decision);
+        });
+      });
+    };
+    const tryMorph = (component, viewport, state) => {
+      const elem = component.element;
+      const isDocked = is$1(getRaw(elem, 'position'), 'fixed');
+      return isDocked ? tryMorphToOriginalOrUpdateFixed(elem, viewport, state) : tryMorphToFixed(elem, viewport, state);
+    };
+    const calculateMorphToOriginal = (component, viewport, state) => {
+      const elem = component.element;
+      return getPrior(elem, viewport, state).bind(({box}) => revertToOriginal(elem, box, state));
+    };
+    const forceDockWith = (elem, viewport, state, getDecision) => {
+      const box = box$1(elem);
+      const winBox = win();
+      const leftX = getDockedLeftPosition({
+        win: winBox,
+        box
+      });
+      const decision = getDecision(winBox, leftX, viewport);
+      if (decision.location === 'bottom' || decision.location === 'top') {
+        storePriorIfNone(elem, box, viewport, state, decision);
+        return tryDecisionToFixedMorph(decision);
+      } else {
+        return Optional.none();
+      }
+    };
+
+    const morphToStatic = (component, config, state) => {
+      state.setDocked(false);
+      each$1([
+        'left',
+        'right',
+        'top',
+        'bottom',
+        'position'
+      ], prop => remove$6(component.element, prop));
+      config.onUndocked(component);
+    };
+    const morphToCoord = (component, config, state, position) => {
+      const isDocked = position.position === 'fixed';
+      state.setDocked(isDocked);
+      applyPositionCss(component.element, position);
+      const method = isDocked ? config.onDocked : config.onUndocked;
+      method(component);
+    };
+    const updateVisibility = (component, config, state, viewport, morphToDocked = false) => {
+      config.contextual.each(contextInfo => {
+        contextInfo.lazyContext(component).each(box => {
+          const isVisible = isPartiallyVisible(box, viewport.bounds);
+          if (isVisible !== state.isVisible()) {
+            state.setVisible(isVisible);
+            if (morphToDocked && !isVisible) {
+              add$1(component.element, [contextInfo.fadeOutClass]);
+              contextInfo.onHide(component);
+            } else {
+              const method = isVisible ? appear : disappear;
+              method(component, contextInfo);
+            }
+          }
+        });
+      });
+    };
+    const applyFixedMorph = (component, config, state, viewport, morph) => {
+      updateVisibility(component, config, state, viewport, true);
+      morphToCoord(component, config, state, morph.positionCss);
+    };
+    const applyMorph = (component, config, state, viewport, morph) => {
+      switch (morph.morph) {
+      case 'static': {
+          return morphToStatic(component, config, state);
+        }
+      case 'absolute': {
+          return morphToCoord(component, config, state, morph.positionCss);
+        }
+      case 'fixed': {
+          return applyFixedMorph(component, config, state, viewport, morph);
+        }
+      }
+    };
+    const refreshInternal = (component, config, state) => {
+      const viewport = config.lazyViewport(component);
+      updateVisibility(component, config, state, viewport);
+      tryMorph(component, viewport, state).each(morph => {
+        applyMorph(component, config, state, viewport, morph);
+      });
+    };
+    const resetInternal = (component, config, state) => {
+      const elem = component.element;
+      state.setDocked(false);
+      const viewport = config.lazyViewport(component);
+      calculateMorphToOriginal(component, viewport, state).each(staticOrAbsoluteMorph => {
+        switch (staticOrAbsoluteMorph.morph) {
+        case 'static': {
+            morphToStatic(component, config, state);
+            break;
+          }
+        case 'absolute': {
+            morphToCoord(component, config, state, staticOrAbsoluteMorph.positionCss);
+            break;
+          }
+        }
+      });
+      state.setVisible(true);
+      config.contextual.each(contextInfo => {
+        remove$1(elem, [
+          contextInfo.fadeInClass,
+          contextInfo.fadeOutClass,
+          contextInfo.transitionClass
+        ]);
+        contextInfo.onShow(component);
+      });
+      refresh$3(component, config, state);
+    };
+    const refresh$3 = (component, config, state) => {
+      if (component.getSystem().isConnected()) {
+        refreshInternal(component, config, state);
+      }
+    };
+    const reset = (component, config, state) => {
+      if (state.isDocked()) {
+        resetInternal(component, config, state);
+      }
+    };
+    const forceDockWithDecision = getDecision => (component, config, state) => {
+      const viewport = config.lazyViewport(component);
+      const optMorph = forceDockWith(component.element, viewport, state, getDecision);
+      optMorph.each(morph => {
+        applyFixedMorph(component, config, state, viewport, morph);
+      });
+    };
+    const forceDockToTop = forceDockWithDecision(forceTopPosition);
+    const forceDockToBottom = forceDockWithDecision(forceBottomPosition);
+    const isDocked$1 = (component, config, state) => state.isDocked();
+    const setModes = (component, config, state, modes) => state.setModes(modes);
+    const getModes = (component, config, state) => state.getModes();
+
+    var DockingApis = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        refresh: refresh$3,
+        reset: reset,
+        isDocked: isDocked$1,
+        getModes: getModes,
+        setModes: setModes,
+        forceDockToTop: forceDockToTop,
+        forceDockToBottom: forceDockToBottom
+    });
+
+    const events$4 = (dockInfo, dockState) => derive$2([
+      runOnSource(transitionend(), (component, simulatedEvent) => {
+        dockInfo.contextual.each(contextInfo => {
+          if (has(component.element, contextInfo.transitionClass)) {
+            remove$1(component.element, [
+              contextInfo.transitionClass,
+              contextInfo.fadeInClass
+            ]);
+            const notify = dockState.isVisible() ? contextInfo.onShown : contextInfo.onHidden;
+            notify(component);
+          }
+          simulatedEvent.stop();
+        });
+      }),
+      run$1(windowScroll(), (component, _) => {
+        refresh$3(component, dockInfo, dockState);
+      }),
+      run$1(externalElementScroll(), (component, _) => {
+        refresh$3(component, dockInfo, dockState);
+      }),
+      run$1(windowResize(), (component, _) => {
+        reset(component, dockInfo, dockState);
+      })
+    ]);
+
+    var ActiveDocking = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        events: events$4
+    });
+
+    var DockingSchema = [
+      optionObjOf('contextual', [
+        requiredString('fadeInClass'),
+        requiredString('fadeOutClass'),
+        requiredString('transitionClass'),
+        requiredFunction('lazyContext'),
+        onHandler('onShow'),
+        onHandler('onShown'),
+        onHandler('onHide'),
+        onHandler('onHidden')
+      ]),
+      defaultedFunction('lazyViewport', () => ({
+        bounds: win(),
+        optScrollEnv: Optional.none()
+      })),
+      defaultedArrayOf('modes', [
+        'top',
+        'bottom'
+      ], string),
+      onHandler('onDocked'),
+      onHandler('onUndocked')
+    ];
+
+    const init$5 = spec => {
+      const docked = Cell(false);
+      const visible = Cell(true);
+      const initialBounds = value$2();
+      const modes = Cell(spec.modes);
+      const readState = () => `docked:  ${ docked.get() }, visible: ${ visible.get() }, modes: ${ modes.get().join(',') }`;
+      return nu$8({
+        isDocked: docked.get,
+        setDocked: docked.set,
+        getInitialPos: initialBounds.get,
+        setInitialPos: initialBounds.set,
+        clearInitialPos: initialBounds.clear,
+        isVisible: visible.get,
+        setVisible: visible.set,
+        getModes: modes.get,
+        setModes: modes.set,
+        readState
+      });
+    };
+
+    var DockingState = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        init: init$5
+    });
+
+    const Docking = create$4({
+      fields: DockingSchema,
+      name: 'docking',
+      active: ActiveDocking,
+      apis: DockingApis,
+      state: DockingState
     });
 
     const toolbarHeightChange = constant$1(generate$6('toolbar-height-change'));
@@ -21538,14 +19089,14 @@
       const doc = owner$4(containerHeader);
       const win = defaultView(containerHeader);
       const viewHeight = win.dom.innerHeight;
-      const scrollPos = get$c(doc);
+      const scrollPos = get$b(doc);
       const markerElement = SugarElement.fromDom(e.elm);
       const markerPos = absolute$2(markerElement);
-      const markerHeight = get$e(markerElement);
+      const markerHeight = get$d(markerElement);
       const markerTop = markerPos.y;
       const markerBottom = markerTop + markerHeight;
       const editorHeaderPos = absolute$3(containerHeader);
-      const editorHeaderHeight = get$e(containerHeader);
+      const editorHeaderHeight = get$d(containerHeader);
       const editorHeaderTop = editorHeaderPos.top;
       const editorHeaderBottom = editorHeaderTop + editorHeaderHeight;
       const editorHeaderDockedAtTop = Math.abs(editorHeaderTop - scrollPos.top) < 2;
@@ -21559,29 +19110,29 @@
     };
     const isDockedMode = (header, mode) => contains$2(Docking.getModes(header), mode);
     const updateIframeContentFlow = header => {
-      const getOccupiedHeight = elm => getOuter$2(elm) + (parseInt(get$f(elm, 'margin-top'), 10) || 0) + (parseInt(get$f(elm, 'margin-bottom'), 10) || 0);
+      const getOccupiedHeight = elm => getOuter$2(elm) + (parseInt(get$e(elm, 'margin-top'), 10) || 0) + (parseInt(get$e(elm, 'margin-bottom'), 10) || 0);
       const elm = header.element;
       parentElement(elm).each(parentElem => {
         const padding = 'padding-' + Docking.getModes(header)[0];
         if (Docking.isDocked(header)) {
-          const parentWidth = get$d(parentElem);
+          const parentWidth = get$c(parentElem);
           set$8(elm, 'width', parentWidth + 'px');
           set$8(parentElem, padding, getOccupiedHeight(elm) + 'px');
         } else {
-          remove$7(elm, 'width');
-          remove$7(parentElem, padding);
+          remove$6(elm, 'width');
+          remove$6(parentElem, padding);
         }
       });
     };
     const updateSinkVisibility = (sinkElem, visible) => {
       if (visible) {
-        remove$3(sinkElem, visibility.fadeOutClass);
+        remove$2(sinkElem, visibility.fadeOutClass);
         add$1(sinkElem, [
           visibility.transitionClass,
           visibility.fadeInClass
         ]);
       } else {
-        remove$3(sinkElem, visibility.fadeInClass);
+        remove$2(sinkElem, visibility.fadeInClass);
         add$1(sinkElem, [
           visibility.fadeOutClass,
           visibility.transitionClass
@@ -21592,10 +19143,10 @@
       const editorContainer = SugarElement.fromDom(editor.getContainer());
       if (docked) {
         add$2(editorContainer, editorStickyOnClass);
-        remove$3(editorContainer, editorStickyOffClass);
+        remove$2(editorContainer, editorStickyOffClass);
       } else {
         add$2(editorContainer, editorStickyOffClass);
-        remove$3(editorContainer, editorStickyOnClass);
+        remove$2(editorContainer, editorStickyOnClass);
       }
     };
     const restoreFocus = (headerElem, focusedElem) => {
@@ -21638,7 +19189,7 @@
     const isDocked = lazyHeader => lazyHeader().map(Docking.isDocked).getOr(false);
     const getIframeBehaviours = () => [Receiving.config({ channels: { [toolbarHeightChange()]: { onReceive: updateIframeContentFlow } } })];
     const getBehaviours = (editor, sharedBackstage) => {
-      const focusedElm = value$4();
+      const focusedElm = value$2();
       const lazySink = sharedBackstage.getSink;
       const runOnSinkElement = f => {
         lazySink().each(sink => f(sink.element));
@@ -21677,7 +19228,7 @@
               runOnSinkElement(elem => updateSinkVisibility(elem, true));
             },
             onShown: comp => {
-              runOnSinkElement(elem => remove$2(elem, [
+              runOnSinkElement(elem => remove$1(elem, [
                 visibility.transitionClass,
                 visibility.fadeInClass
               ]));
@@ -21691,7 +19242,7 @@
               runOnSinkElement(elem => updateSinkVisibility(elem, false));
             },
             onHidden: () => {
-              runOnSinkElement(elem => remove$2(elem, [visibility.transitionClass]));
+              runOnSinkElement(elem => remove$1(elem, [visibility.transitionClass]));
             },
             ...visibility
           },
@@ -21700,7 +19251,7 @@
             return optScrollingContext.fold(() => {
               const boundsWithoutOffset = win();
               const offset = getStickyToolbarOffset(editor);
-              const top = boundsWithoutOffset.y + (isDockedMode(comp, 'top') && !isFullscreen(editor) ? offset : 0);
+              const top = boundsWithoutOffset.y + (isDockedMode(comp, 'top') ? offset : 0);
               const height = boundsWithoutOffset.height - (isDockedMode(comp, 'bottom') ? offset : 0);
               return {
                 bounds: bounds(boundsWithoutOffset.x, top, boundsWithoutOffset.width, height),
@@ -21756,7 +19307,6 @@
     const createGroupToolbarButton = spec => asRaw('GroupToolbarButton', groupToolbarButtonSchema, spec);
 
     const baseMenuButtonFields = [
-      defaultedString('buttonType', 'default'),
       optionString('text'),
       optionString('tooltip'),
       optionString('icon'),
@@ -21771,8 +19321,7 @@
         }
       })),
       requiredFunction('fetch'),
-      defaultedFunction('onSetup', () => noop),
-      defaultedString('context', 'mode:design')
+      defaultedFunction('onSetup', () => noop)
     ];
 
     const MenuButtonSchema = objOf([
@@ -21796,8 +19345,7 @@
       ]),
       defaultedColumns(1),
       onAction,
-      onItemAction,
-      defaultedString('context', 'mode:design')
+      onItemAction
     ]);
     const createSplitButton = spec => asRaw('SplitButton', splitButtonSchema, spec);
 
@@ -21809,8 +19357,7 @@
             text: m.text,
             fetch: callback => {
               callback(m.getItems());
-            },
-            context: 'any'
+            }
           };
           const internal = createMenuButton(buttonSpec).mapError(errInfo => formatError(errInfo)).getOrDie();
           return renderMenuButton(internal, 'tox-mbtn', spec.backstage, Optional.some('menuitem'));
@@ -21833,7 +19380,7 @@
             }),
             run$1(mouseover(), (comp, se) => {
               descendant(comp.element, '.' + 'tox-mbtn--active').each(activeButton => {
-                closest$3(se.event.target, '.' + 'tox-mbtn').each(hoveredButton => {
+                closest$1(se.event.target, '.' + 'tox-mbtn').each(hoveredButton => {
                   if (!eq(activeButton, hoveredButton)) {
                     comp.getSystem().getByDom(activeButton).each(activeComp => {
                       comp.getSystem().getByDom(hoveredButton).each(hoveredComp => {
@@ -21891,26 +19438,25 @@
       }
     });
 
-    const promotionMessage = '\uD83D\uDC9DGet all features';
-    const promotionLink = 'https://www.tiny.cloud/tinymce-upgrade-to-cloud/?utm_campaign=self_hosted_upgrade_promo&utm_source=tiny&utm_medium=referral';
+    const promotionMessage = '\u26A1\ufe0fUpgrade';
+    const promotionLink = 'https://www.tiny.cloud/tinymce-self-hosted-premium-features/?utm_source=TinyMCE&utm_medium=SPAP&utm_campaign=SPAP&utm_id=editorreferral';
     const renderPromotion = spec => {
-      const components = spec.promotionLink ? [{
-          dom: {
-            tag: 'a',
-            attributes: {
-              'href': promotionLink,
-              'rel': 'noopener',
-              'target': '_blank',
-              'aria-hidden': 'true'
-            },
-            classes: ['tox-promotion-link'],
-            innerHtml: promotionMessage
-          }
-        }] : [];
       return {
         uid: spec.uid,
         dom: spec.dom,
-        components
+        components: [{
+            dom: {
+              tag: 'a',
+              attributes: {
+                'href': promotionLink,
+                'rel': 'noopener',
+                'target': '_blank',
+                'aria-hidden': 'true'
+              },
+              classes: ['tox-promotion-link'],
+              innerHtml: promotionMessage
+            }
+          }]
       };
     };
 
@@ -21944,12 +19490,12 @@
       const onSlots = f => (container, keys) => {
         each$1(keys, key => f(container, key));
       };
-      const doShowing = (comp, _key) => get$g(comp.element, 'aria-hidden') !== 'true';
+      const doShowing = (comp, _key) => get$f(comp.element, 'aria-hidden') !== 'true';
       const doShow = (comp, key) => {
         if (!doShowing(comp)) {
           const element = comp.element;
-          remove$7(element, 'display');
-          remove$8(element, 'aria-hidden');
+          remove$6(element, 'display');
+          remove$7(element, 'aria-hidden');
           emitWith(comp, slotVisibility(), {
             name: key,
             visible: true
@@ -21984,7 +19530,7 @@
         uid: detail.uid,
         dom: detail.dom,
         components,
-        behaviours: get$4(detail.slotBehaviours),
+        behaviours: get$3(detail.slotBehaviours),
         apis
       };
     };
@@ -22029,8 +19575,7 @@
             return () => {
               editor.off('ToggleSidebar', handleToggle);
             };
-          },
-          context: 'any'
+          }
         });
       });
     };
@@ -22086,7 +19631,7 @@
           Composing.getCurrent(slider).each(slotContainer => {
             SlotContainer.showSlot(slotContainer, configKey);
             Sliding.immediateGrow(slider);
-            remove$7(slider.element, 'width');
+            remove$6(slider.element, 'width');
             updateSidebarRoleOnToggle(sidebar.element, 'region');
           });
         }
@@ -22166,7 +19711,7 @@
                 emitWith(slider, fixSize, { width: getRaw(slider.element, 'width').getOr('') });
               },
               onStartShrink: slider => {
-                emitWith(slider, fixSize, { width: get$d(slider.element) + 'px' });
+                emitWith(slider, fixSize, { width: get$c(slider.element) + 'px' });
               }
             }),
             Replacing.config({}),
@@ -22185,7 +19730,7 @@
             set$8(comp.element, 'width', se.event.width);
           }),
           run$1(autoSize, (comp, _se) => {
-            remove$7(comp.element, 'width');
+            remove$6(comp.element, 'width');
           })
         ])
       ])
@@ -22214,7 +19759,7 @@
       state.blockWith(() => Replacing.remove(root, blocker));
     };
     const unblock = (component, config, state) => {
-      remove$8(component.element, 'aria-busy');
+      remove$7(component.element, 'aria-busy');
       if (state.isBlocked()) {
         config.onUnblock(component);
       }
@@ -22241,7 +19786,7 @@
       const blockWith = destroy => {
         blocker.set({ destroy });
       };
-      return nu$7({
+      return nu$8({
         readState: blocker.isSet,
         blockWith,
         clear: blocker.clear,
@@ -22261,6 +19806,34 @@
       state: BlockingState
     });
 
+    const getAttrs = elem => {
+      const attributes = elem.dom.attributes !== undefined ? elem.dom.attributes : [];
+      return foldl(attributes, (b, attr) => {
+        if (attr.name === 'class') {
+          return b;
+        } else {
+          return {
+            ...b,
+            [attr.name]: attr.value
+          };
+        }
+      }, {});
+    };
+    const getClasses = elem => Array.prototype.slice.call(elem.dom.classList, 0);
+    const fromHtml = html => {
+      const elem = SugarElement.fromHtml(html);
+      const children$1 = children(elem);
+      const attrs = getAttrs(elem);
+      const classes = getClasses(elem);
+      const contents = children$1.length === 0 ? {} : { innerHtml: get$9(elem) };
+      return {
+        tag: name$3(elem),
+        classes,
+        attributes: attrs,
+        ...contents
+      };
+    };
+
     const getBusySpec$1 = providerBackstage => (_root, _behaviours) => ({
       dom: {
         tag: 'div',
@@ -22272,7 +19845,7 @@
       },
       components: [{ dom: fromHtml('<div class="tox-spinner"><div></div><div></div><div></div></div>') }]
     });
-    const focusBusyComponent = throbber => Composing.getCurrent(throbber).each(comp => focus$3(comp.element, true));
+    const focusBusyComponent = throbber => Composing.getCurrent(throbber).each(comp => focus$3(comp.element));
     const toggleEditorTabIndex = (editor, state) => {
       const tabIndexAttr = 'tabindex';
       const dataTabIndexAttr = `data-mce-${ tabIndexAttr }`;
@@ -22281,10 +19854,10 @@
           getOpt(iframe, tabIndexAttr).each(tabIndex => set$9(iframe, dataTabIndexAttr, tabIndex));
           set$9(iframe, tabIndexAttr, -1);
         } else {
-          remove$8(iframe, tabIndexAttr);
+          remove$7(iframe, tabIndexAttr);
           getOpt(iframe, dataTabIndexAttr).each(tabIndex => {
             set$9(iframe, tabIndexAttr, tabIndex);
-            remove$8(iframe, dataTabIndexAttr);
+            remove$7(iframe, dataTabIndexAttr);
           });
         }
       });
@@ -22294,8 +19867,8 @@
       toggleEditorTabIndex(editor, state);
       if (state) {
         Blocking.block(comp, getBusySpec$1(providerBackstage));
-        remove$7(element, 'display');
-        remove$8(element, 'aria-hidden');
+        remove$6(element, 'display');
+        remove$7(element, 'aria-hidden');
         if (editor.hasFocus()) {
           focusBusyComponent(comp);
         }
@@ -22335,7 +19908,7 @@
     };
     const setup$7 = (editor, lazyThrobber, sharedBackstage) => {
       const throbberState = Cell(false);
-      const timer = value$4();
+      const timer = value$2();
       const stealFocus = e => {
         if (throbberState.get() && !isPasteBinTarget(e)) {
           e.preventDefault();
@@ -22363,7 +19936,7 @@
       editor.on('ProgressState', e => {
         timer.on(clearTimeout);
         if (isNumber(e.time)) {
-          const timerId = global$a.setEditorTimeout(editor, () => toggle(e.state), e.time);
+          const timerId = global$9.setEditorTimeout(editor, () => toggle(e.state), e.time);
           timer.set(timerId);
         } else {
           toggle(e.state);
@@ -22456,8 +20029,8 @@
       const focusedComp = findFocusedComp(groups);
       setOverflow([]);
       setGroups$1(primary, groups);
-      const availableWidth = get$d(primary.element);
-      const overflows = partition(availableWidth, detail.builtGroups.get(), comp => Math.ceil(comp.element.dom.getBoundingClientRect().width), overflowGroup);
+      const availableWidth = get$c(primary.element);
+      const overflows = partition(availableWidth, detail.builtGroups.get(), comp => get$c(comp.element), overflowGroup);
       if (overflows.extra.length === 0) {
         Replacing.remove(primary, overflowGroup);
         setOverflow([]);
@@ -22465,7 +20038,7 @@
         setGroups$1(primary, overflows.within);
         setOverflow(overflows.extra);
       }
-      remove$7(primary.element, 'visibility');
+      remove$6(primary.element, 'visibility');
       reflow(primary.element);
       focusedComp.each(Focusing.focus);
     };
@@ -22541,7 +20114,7 @@
       })
     ]);
 
-    const shouldSkipFocus = value$4();
+    const shouldSkipFocus = value$2();
     const toggleWithoutFocusing = (button, externals) => {
       shouldSkipFocus.set(true);
       toggle(button, externals);
@@ -22861,10 +20434,12 @@
                 onShrunk: comp => {
                   getPart(comp, detail, 'overflow-button').each(button => {
                     Toggling.off(button);
+                    Focusing.focus(button);
                   });
                   detail.onClosed(comp);
                 },
                 onGrown: comp => {
+                  Keying.focusIn(comp);
                   detail.onOpened(comp);
                 },
                 onStartGrow: comp => {
@@ -22887,7 +20462,7 @@
         overrides: detail => ({
           buttonBehaviours: derive$1([Toggling.config({
               toggleClass: detail.markers.overflowToggledClass,
-              aria: { mode: 'expanded' },
+              aria: { mode: 'pressed' },
               toggleOnExecute: false
             })])
         })
@@ -22896,31 +20471,10 @@
     ]);
 
     const isOpen = (toolbar, detail) => getPart(toolbar, detail, 'overflow').map(Sliding.hasGrown).getOr(false);
-    const toggleToolbar = (toolbar, detail, skipFocus) => {
-      getPart(toolbar, detail, 'overflow-button').each(oveflowButton => {
-        getPart(toolbar, detail, 'overflow').each(overf => {
-          refresh(toolbar, detail);
-          if (Sliding.hasShrunk(overf)) {
-            const fn = detail.onOpened;
-            detail.onOpened = comp => {
-              if (!skipFocus) {
-                Keying.focusIn(overf);
-              }
-              fn(comp);
-              detail.onOpened = fn;
-            };
-          } else {
-            const fn = detail.onClosed;
-            detail.onClosed = comp => {
-              if (!skipFocus) {
-                Focusing.focus(oveflowButton);
-              }
-              fn(comp);
-              detail.onClosed = fn;
-            };
-          }
-          Sliding.toggleGrow(overf);
-        });
+    const toggleToolbar = (toolbar, detail) => {
+      getPart(toolbar, detail, 'overflow-button').bind(() => getPart(toolbar, detail, 'overflow')).each(overf => {
+        refresh(toolbar, detail);
+        Sliding.toggleGrow(overf);
       });
     };
     const refresh = (toolbar, detail) => {
@@ -22964,7 +20518,7 @@
             }
           }),
           config('toolbar-toggle-events', [run$1(toolbarToggleEvent, toolbar => {
-              toggleToolbar(toolbar, detail, false);
+              toggleToolbar(toolbar, detail);
             })])
         ]),
         apis: {
@@ -22973,12 +20527,7 @@
             refresh(toolbar, detail);
           },
           refresh: toolbar => refresh(toolbar, detail),
-          toggle: toolbar => {
-            toggleToolbar(toolbar, detail, false);
-          },
-          toggleWithoutFocusing: toolbar => {
-            toggleToolbar(toolbar, detail, true);
-          },
+          toggle: toolbar => toggleToolbar(toolbar, detail),
           isOpen: toolbar => isOpen(toolbar, detail)
         },
         domModification: { attributes: { role: 'group' } }
@@ -23004,33 +20553,19 @@
     });
 
     const renderToolbarGroupCommon = toolbarGroup => {
-      const attributes = toolbarGroup.label.isNone() ? toolbarGroup.title.fold(() => ({}), title => ({ attributes: { 'aria-label': title } })) : toolbarGroup.label.fold(() => ({}), label => ({ attributes: { 'aria-label': label } }));
+      const attributes = toolbarGroup.title.fold(() => ({}), title => ({ attributes: { title } }));
       return {
         dom: {
           tag: 'div',
-          classes: ['tox-toolbar__group'].concat(toolbarGroup.label.isSome() ? ['tox-toolbar__group_with_label'] : []),
+          classes: ['tox-toolbar__group'],
           ...attributes
         },
-        components: [
-          ...toolbarGroup.label.map(label => {
-            return {
-              dom: {
-                tag: 'span',
-                classes: [
-                  'tox-label',
-                  'tox-label--context-toolbar'
-                ]
-              },
-              components: [text$2(label)]
-            };
-          }).toArray(),
-          ToolbarGroup.parts.items({})
-        ],
+        components: [ToolbarGroup.parts.items({})],
         items: toolbarGroup.items,
-        markers: { itemSelector: '*:not(.tox-split-button) > .tox-tbtn:not([disabled]), ' + '.tox-split-button:not([disabled]), ' + '.tox-toolbar-nav-item:not([disabled]), ' + '.tox-number-input:not([disabled])' },
+        markers: { itemSelector: '*:not(.tox-split-button) > .tox-tbtn:not([disabled]), ' + '.tox-split-button:not([disabled]), ' + '.tox-toolbar-nav-js:not([disabled]), ' + '.tox-number-input:not([disabled])' },
         tgroupBehaviours: derive$1([
           Tabstopping.config({}),
-          Focusing.config({ ignore: true })
+          Focusing.config({})
         ])
       };
     };
@@ -23041,12 +20576,11 @@
         Toolbar.setGroups(component, groups);
       });
       return derive$1([
-        DisablingConfigs.toolbarButton(() => toolbarSpec.providers.checkUiComponentContext('any').shouldDisable),
-        toggleOnReceive(() => toolbarSpec.providers.checkUiComponentContext('any')),
+        DisablingConfigs.toolbarButton(toolbarSpec.providers.isDisabled),
+        receivingConfig(),
         Keying.config({
           mode: modeName,
           onEscape: toolbarSpec.onEscape,
-          visibilitySelector: '.tox-toolbar__overflow',
           selector: '.tox-toolbar__group'
         }),
         config('toolbar-events', [onAttached])
@@ -23063,11 +20597,9 @@
         parts: {
           'overflow-group': renderToolbarGroupCommon({
             title: Optional.none(),
-            label: Optional.none(),
             items: []
           }),
           'overflow-button': renderIconButtonSpec({
-            context: 'any',
             name: 'more',
             icon: Optional.some('more-drawer'),
             enabled: true,
@@ -23075,7 +20607,7 @@
             primary: false,
             buttonType: Optional.none(),
             borderless: false
-          }, Optional.none(), toolbarSpec.providers, [], 'overflow-button')
+          }, Optional.none(), toolbarSpec.providers)
         },
         splitToolbarBehaviours: getToolbarBehaviours(toolbarSpec, modeName)
       };
@@ -23175,12 +20707,11 @@
         'secondary'
       ]),
       defaultedBoolean('borderless', false),
-      requiredFunction('onAction'),
-      defaultedString('context', 'mode:design')
+      requiredFunction('onAction')
     ];
     const normalButtonFields = [
       ...baseButtonFields,
-      text,
+      text$1,
       requiredStringEnum('type', ['button'])
     ];
     const toggleButtonFields = [
@@ -23224,18 +20755,16 @@
             add$2(elm, 'tox-button--enabled');
             set$9(elm, 'aria-pressed', true);
           } else {
-            remove$3(elm, 'tox-button--enabled');
-            remove$8(elm, 'aria-pressed');
+            remove$2(elm, 'tox-button--enabled');
+            remove$7(elm, 'aria-pressed');
           }
         };
         const isActive = () => has(comp.element, 'tox-button--enabled');
-        const focus = () => focus$3(comp.element);
         if (isToggleButton) {
           return spec.onAction({
             setIcon,
             setActive,
-            isActive,
-            focus
+            isActive
           });
         }
         if (spec.type === 'button') {
@@ -23256,7 +20785,10 @@
       const buttonTypeClasses = calculateClassesFromButtonType((_b = spec.buttonType) !== null && _b !== void 0 ? _b : 'secondary');
       const optTranslatedText = isToggleButton ? spec.text.map(providers.translate) : Optional.some(providers.translate(spec.text));
       const optTranslatedTextComponed = optTranslatedText.map(text$2);
-      const ariaLabelAttributes = buttonSpec.tooltip.or(optTranslatedText).map(al => ({ 'aria-label': providers.translate(al) })).getOr({});
+      const tooltipAttributes = buttonSpec.tooltip.or(optTranslatedText).map(tooltip => ({
+        'aria-label': providers.translate(tooltip),
+        'title': providers.translate(tooltip)
+      })).getOr({});
       const optIconSpec = optMemIcon.map(memIcon => memIcon.asSpec());
       const components = componentRenderPipeline([
         optIconSpec,
@@ -23266,10 +20798,10 @@
       const dom = {
         tag: 'button',
         classes: buttonTypeClasses.concat(...spec.icon.isSome() && !hasIconAndText ? ['tox-button--icon'] : []).concat(...hasIconAndText ? ['tox-button--icon-and-text'] : []).concat(...spec.borderless ? ['tox-button--naked'] : []).concat(...spec.type === 'togglebutton' && spec.active ? ['tox-button--enabled'] : []),
-        attributes: ariaLabelAttributes
+        attributes: tooltipAttributes
       };
       const extraBehaviours = [];
-      const iconButtonSpec = renderCommonSpec(buttonSpec, Optional.some(action), extraBehaviours, dom, components, spec.tooltip, providers);
+      const iconButtonSpec = renderCommonSpec(buttonSpec, Optional.some(action), extraBehaviours, dom, components, providers);
       return Button.sketch(iconButtonSpec);
     };
 
@@ -23283,7 +20815,7 @@
         components: map$2(spec.buttons, button => renderViewButton(button, providers))
       };
     };
-    const deviceDetection = detect$1().deviceType;
+    const deviceDetection = detect$2().deviceType;
     const isPhone = deviceDetection.isPhone();
     const isTablet = deviceDetection.isTablet();
     const renderViewHeader = spec => {
@@ -23337,10 +20869,6 @@
     const renderViewPane = spec => {
       return {
         uid: spec.uid,
-        behaviours: derive$1([
-          Focusing.config({}),
-          Tabstopping.config({})
-        ]),
         dom: {
           tag: 'div',
           classes: ['tox-view__pane']
@@ -23357,13 +20885,6 @@
         uid: detail.uid,
         dom: detail.dom,
         components,
-        behaviours: derive$1([
-          Focusing.config({}),
-          Keying.config({
-            mode: 'cyclic',
-            focusInside: FocusInsideModes.OnEnterOrSpaceMode
-          })
-        ]),
         apis
       };
     };
@@ -23430,8 +20951,8 @@
     };
     const showContainer = comp => {
       const element = comp.element;
-      remove$7(element, 'display');
-      remove$8(element, 'aria-hidden');
+      remove$6(element, 'display');
+      remove$7(element, 'aria-hidden');
     };
     const makeViewInstanceApi = slot => ({ getContainer: constant$1(slot) });
     const runOnPaneWithInstanceApi = (slotContainer, name, get) => {
@@ -23511,17 +21032,6 @@
 
     const factory$6 = (detail, components, _spec) => {
       let toolbarDrawerOpenState = false;
-      const toggleStatusbar = editorContainer => {
-        sibling(editorContainer, '.tox-statusbar').each(statusBar => {
-          if (get$f(statusBar, 'display') === 'none' && get$g(statusBar, 'aria-hidden') === 'true') {
-            remove$7(statusBar, 'display');
-            remove$8(statusBar, 'aria-hidden');
-          } else {
-            set$8(statusBar, 'display', 'none');
-            set$9(statusBar, 'aria-hidden', 'true');
-          }
-        });
-      };
       const apis = {
         getSocket: comp => {
           return parts$a.getPart(comp, detail, 'socket');
@@ -23607,7 +21117,6 @@
           }
           parts$a.getPart(comp, detail, 'editorContainer').each(editorContainer => {
             const element = editorContainer.element;
-            toggleStatusbar(element);
             set$8(element, 'display', 'none');
             set$9(element, 'aria-hidden', 'true');
           });
@@ -23618,9 +21127,8 @@
           }
           parts$a.getPart(comp, detail, 'editorContainer').each(editorContainer => {
             const element = editorContainer.element;
-            toggleStatusbar(element);
-            remove$7(element, 'display');
-            remove$8(element, 'aria-hidden');
+            remove$6(element, 'display');
+            remove$7(element, 'aria-hidden');
           });
         }
       };
@@ -23719,10 +21227,7 @@
     const partPromotion = partType.optional({
       factory: { sketch: renderPromotion },
       name: 'promotion',
-      schema: [
-        required$1('dom'),
-        required$1('promotionLink')
-      ]
+      schema: [required$1('dom')]
     });
     const partSocket = partType.optional({
       name: 'socket',
@@ -23840,7 +21345,7 @@
     const defaultMenus = {
       file: {
         title: 'File',
-        items: 'newdocument restoredraft | preview | importword exportpdf exportword | export print | deleteallconversations'
+        items: 'newdocument restoredraft | preview | export print | deleteallconversations'
       },
       edit: {
         title: 'Edit',
@@ -23848,11 +21353,11 @@
       },
       view: {
         title: 'View',
-        items: 'code revisionhistory | visualaid visualchars visualblocks | spellchecker | preview fullscreen | showcomments'
+        items: 'code | visualaid visualchars visualblocks | spellchecker | preview fullscreen | showcomments'
       },
       insert: {
         title: 'Insert',
-        items: 'image link media addcomment pageembed inserttemplate codesample inserttable accordion math | charmap emoticons hr | pagebreak nonbreaking anchor tableofcontents footnotes | mergetags | insertdatetime'
+        items: 'image link media addcomment pageembed template inserttemplate codesample inserttable accordion | charmap emoticons hr | pagebreak nonbreaking anchor tableofcontents footnotes | mergetags | insertdatetime'
       },
       format: {
         title: 'Format',
@@ -23904,7 +21409,7 @@
       const validMenus = filter$2(menubar, menuName => {
         const isDefaultMenu = has$2(defaultMenus, menuName);
         if (userDefinedMenus) {
-          return isDefaultMenu || get$h(registry.menus, menuName).exists(menu => has$2(menu, 'items'));
+          return isDefaultMenu || get$g(registry.menus, menuName).exists(menu => has$2(menu, 'items'));
         } else {
           return isDefaultMenu;
         }
@@ -23937,116 +21442,843 @@
     };
     const fireSkinLoadError = (editor, err) => () => fireSkinLoadError$1(editor, { message: err });
 
-    const getSkinResourceIdentifier = editor => {
-      const skin = getSkin(editor);
-      if (!skin) {
-        return Optional.none();
-      } else {
-        return Optional.from(skin);
-      }
-    };
     const loadStylesheet = (editor, stylesheetUrl, styleSheetLoader) => {
       editor.on('remove', () => styleSheetLoader.unload(stylesheetUrl));
       return styleSheetLoader.load(stylesheetUrl);
     };
-    const loadRawCss = (editor, key, css, styleSheetLoader) => {
-      editor.on('remove', () => styleSheetLoader.unloadRawCss(key));
-      return styleSheetLoader.loadRawCss(key, css);
-    };
-    const skinIdentifierToResourceKey = (identifier, filename) => 'ui/' + identifier + '/' + filename;
-    const getResourceValue = resourceKey => Optional.from(tinymce.Resource.get(resourceKey)).filter(isString);
-    const determineCSSDecision = (editor, filenameBase, skinUrl = '') => {
-      const resourceKey = getSkinResourceIdentifier(editor).map(identifier => skinIdentifierToResourceKey(identifier, `${ filenameBase }.css`));
-      const resourceValue = resourceKey.bind(getResourceValue);
-      return lift2(resourceKey, resourceValue, (key, css) => {
-        return {
-          _kind: 'load-raw',
-          key,
-          css
-        };
-      }).getOrThunk(() => {
-        const suffix = editor.editorManager.suffix;
-        const skinUiCssUrl = skinUrl + `/${ filenameBase }${ suffix }.css`;
-        return {
-          _kind: 'load-stylesheet',
-          url: skinUiCssUrl
-        };
-      });
-    };
     const loadUiSkins = (editor, skinUrl) => {
-      const loader = editor.ui.styleSheetLoader;
-      const decision = determineCSSDecision(editor, 'skin', skinUrl);
-      switch (decision._kind) {
-      case 'load-raw':
-        const {key, css} = decision;
-        loadRawCss(editor, key, css, loader);
-        return Promise.resolve();
-      case 'load-stylesheet':
-        const {url} = decision;
-        return loadStylesheet(editor, url, loader);
-      default:
-        return Promise.resolve();
-      }
+      const skinUiCss = skinUrl + '/skin.min.css';
+      return loadStylesheet(editor, skinUiCss, editor.ui.styleSheetLoader);
     };
     const loadShadowDomUiSkins = (editor, skinUrl) => {
       const isInShadowRoot$1 = isInShadowRoot(SugarElement.fromDom(editor.getElement()));
-      if (!isInShadowRoot$1) {
-        return Promise.resolve();
+      if (isInShadowRoot$1) {
+        const shadowDomSkinCss = skinUrl + '/skin.shadowdom.min.css';
+        return loadStylesheet(editor, shadowDomSkinCss, global$7.DOM.styleSheetLoader);
       } else {
-        const loader = global$9.DOM.styleSheetLoader;
-        const decision = determineCSSDecision(editor, 'skin.shadowdom', skinUrl);
-        switch (decision._kind) {
-        case 'load-raw':
-          const {key, css} = decision;
-          loadRawCss(editor, key, css, loader);
-          return Promise.resolve();
-        case 'load-stylesheet':
-          const {url} = decision;
-          return loadStylesheet(editor, url, loader);
-        default:
-          return Promise.resolve();
-        }
-      }
-    };
-    const loadUiContentCSS = (editor, isInline, skinUrl) => {
-      const filenameBase = isInline ? 'content.inline' : 'content';
-      const decision = determineCSSDecision(editor, filenameBase, skinUrl);
-      switch (decision._kind) {
-      case 'load-raw':
-        const {key, css} = decision;
-        if (isInline) {
-          loadRawCss(editor, key, css, editor.ui.styleSheetLoader);
-        } else {
-          editor.on('PostRender', () => {
-            loadRawCss(editor, key, css, editor.dom.styleSheetLoader);
-          });
-        }
-        return Promise.resolve();
-      case 'load-stylesheet':
-        const {url} = decision;
-        if (skinUrl) {
-          editor.contentCSS.push(url);
-        }
-        return Promise.resolve();
-      default:
         return Promise.resolve();
       }
     };
-    const loadUrlSkin = async (isInline, editor) => {
+    const loadSkin = (isInline, editor) => {
       const skinUrl = getSkinUrl(editor);
-      await loadUiContentCSS(editor, isInline, skinUrl);
+      if (skinUrl) {
+        editor.contentCSS.push(skinUrl + (isInline ? '/content.inline' : '/content') + '.min.css');
+      }
       if (!isSkinDisabled(editor) && isString(skinUrl)) {
         return Promise.all([
           loadUiSkins(editor, skinUrl),
           loadShadowDomUiSkins(editor, skinUrl)
-        ]).then();
+        ]).then(fireSkinLoaded(editor), fireSkinLoadError(editor, 'Skin could not be loaded'));
+      } else {
+        return Promise.resolve(fireSkinLoaded(editor)());
       }
-    };
-    const loadSkin = (isInline, editor) => {
-      return loadUrlSkin(isInline, editor).then(fireSkinLoaded(editor), fireSkinLoadError(editor, 'Skin could not be loaded'));
     };
     const iframe = curry(loadSkin, false);
     const inline = curry(loadSkin, true);
+
+    const generateSelectItems = (_editor, backstage, spec) => {
+      const generateItem = (rawItem, response, invalid, value) => {
+        const translatedText = backstage.shared.providers.translate(rawItem.title);
+        if (rawItem.type === 'separator') {
+          return Optional.some({
+            type: 'separator',
+            text: translatedText
+          });
+        } else if (rawItem.type === 'submenu') {
+          const items = bind$3(rawItem.getStyleItems(), si => validate(si, response, value));
+          if (response === 0 && items.length <= 0) {
+            return Optional.none();
+          } else {
+            return Optional.some({
+              type: 'nestedmenuitem',
+              text: translatedText,
+              enabled: items.length > 0,
+              getSubmenuItems: () => bind$3(rawItem.getStyleItems(), si => validate(si, response, value))
+            });
+          }
+        } else {
+          return Optional.some({
+            type: 'togglemenuitem',
+            text: translatedText,
+            icon: rawItem.icon,
+            active: rawItem.isSelected(value),
+            enabled: !invalid,
+            onAction: spec.onAction(rawItem),
+            ...rawItem.getStylePreview().fold(() => ({}), preview => ({ meta: { style: preview } }))
+          });
+        }
+      };
+      const validate = (item, response, value) => {
+        const invalid = item.type === 'formatter' && spec.isInvalid(item);
+        if (response === 0) {
+          return invalid ? [] : generateItem(item, response, false, value).toArray();
+        } else {
+          return generateItem(item, response, invalid, value).toArray();
+        }
+      };
+      const validateItems = preItems => {
+        const value = spec.getCurrentValue();
+        const response = spec.shouldHide ? 0 : 1;
+        return bind$3(preItems, item => validate(item, response, value));
+      };
+      const getFetch = (backstage, getStyleItems) => (comp, callback) => {
+        const preItems = getStyleItems();
+        const items = validateItems(preItems);
+        const menu = build(items, ItemResponse$1.CLOSE_ON_EXECUTE, backstage, {
+          isHorizontalMenu: false,
+          search: Optional.none()
+        });
+        callback(menu);
+      };
+      return {
+        validateItems,
+        getFetch
+      };
+    };
+    const createMenuItems = (editor, backstage, spec) => {
+      const dataset = spec.dataset;
+      const getStyleItems = dataset.type === 'basic' ? () => map$2(dataset.data, d => processBasic(d, spec.isSelectedFor, spec.getPreviewFor)) : dataset.getData;
+      return {
+        items: generateSelectItems(editor, backstage, spec),
+        getStyleItems
+      };
+    };
+    const createSelectButton = (editor, backstage, spec) => {
+      const {items, getStyleItems} = createMenuItems(editor, backstage, spec);
+      const getApi = comp => ({ getComponent: constant$1(comp) });
+      const onSetup = onSetupEvent(editor, 'NodeChange', api => {
+        const comp = api.getComponent();
+        spec.updateText(comp);
+        Disabling.set(api.getComponent(), !editor.selection.isEditable());
+      });
+      return renderCommonDropdown({
+        text: spec.icon.isSome() ? Optional.none() : spec.text,
+        icon: spec.icon,
+        tooltip: Optional.from(spec.tooltip),
+        role: Optional.none(),
+        fetch: items.getFetch(backstage, getStyleItems),
+        onSetup,
+        getApi,
+        columns: 1,
+        presets: 'normal',
+        classes: spec.icon.isSome() ? [] : ['bespoke'],
+        dropdownBehaviours: []
+      }, 'tox-tbtn', backstage.shared);
+    };
+
+    const process = rawFormats => map$2(rawFormats, item => {
+      let title = item, format = item;
+      const values = item.split('=');
+      if (values.length > 1) {
+        title = values[0];
+        format = values[1];
+      }
+      return {
+        title,
+        format
+      };
+    });
+    const buildBasicStaticDataset = data => ({
+      type: 'basic',
+      data
+    });
+    var Delimiter;
+    (function (Delimiter) {
+      Delimiter[Delimiter['SemiColon'] = 0] = 'SemiColon';
+      Delimiter[Delimiter['Space'] = 1] = 'Space';
+    }(Delimiter || (Delimiter = {})));
+    const split = (rawFormats, delimiter) => {
+      if (delimiter === Delimiter.SemiColon) {
+        return rawFormats.replace(/;$/, '').split(';');
+      } else {
+        return rawFormats.split(' ');
+      }
+    };
+    const buildBasicSettingsDataset = (editor, settingName, delimiter) => {
+      const rawFormats = editor.options.get(settingName);
+      const data = process(split(rawFormats, delimiter));
+      return {
+        type: 'basic',
+        data
+      };
+    };
+
+    const alignMenuItems = [
+      {
+        title: 'Left',
+        icon: 'align-left',
+        format: 'alignleft',
+        command: 'JustifyLeft'
+      },
+      {
+        title: 'Center',
+        icon: 'align-center',
+        format: 'aligncenter',
+        command: 'JustifyCenter'
+      },
+      {
+        title: 'Right',
+        icon: 'align-right',
+        format: 'alignright',
+        command: 'JustifyRight'
+      },
+      {
+        title: 'Justify',
+        icon: 'align-justify',
+        format: 'alignjustify',
+        command: 'JustifyFull'
+      }
+    ];
+    const getSpec$4 = editor => {
+      const getMatchingValue = () => find$5(alignMenuItems, item => editor.formatter.match(item.format));
+      const isSelectedFor = format => () => editor.formatter.match(format);
+      const getPreviewFor = _format => Optional.none;
+      const updateSelectMenuIcon = comp => {
+        const match = getMatchingValue();
+        const alignment = match.fold(constant$1('left'), item => item.title.toLowerCase());
+        emitWith(comp, updateMenuIcon, { icon: `align-${ alignment }` });
+      };
+      const dataset = buildBasicStaticDataset(alignMenuItems);
+      const onAction = rawItem => () => find$5(alignMenuItems, item => item.format === rawItem.format).each(item => editor.execCommand(item.command));
+      return {
+        tooltip: 'Align',
+        text: Optional.none(),
+        icon: Optional.some('align-left'),
+        isSelectedFor,
+        getCurrentValue: Optional.none,
+        getPreviewFor,
+        onAction,
+        updateText: updateSelectMenuIcon,
+        dataset,
+        shouldHide: false,
+        isInvalid: item => !editor.formatter.canApply(item.format)
+      };
+    };
+    const createAlignButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$4(editor));
+    const createAlignMenu = (editor, backstage) => {
+      const menuItems = createMenuItems(editor, backstage, getSpec$4(editor));
+      editor.ui.registry.addNestedMenuItem('align', {
+        text: backstage.shared.providers.translate('Align'),
+        onSetup: onSetupEditableToggle(editor),
+        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
+      });
+    };
+
+    const findNearest = (editor, getStyles) => {
+      const styles = getStyles();
+      const formats = map$2(styles, style => style.format);
+      return Optional.from(editor.formatter.closest(formats)).bind(fmt => find$5(styles, data => data.format === fmt)).orThunk(() => someIf(editor.formatter.match('p'), {
+        title: 'Paragraph',
+        format: 'p'
+      }));
+    };
+
+    const getSpec$3 = editor => {
+      const fallbackFormat = 'Paragraph';
+      const isSelectedFor = format => () => editor.formatter.match(format);
+      const getPreviewFor = format => () => {
+        const fmt = editor.formatter.get(format);
+        if (fmt) {
+          return Optional.some({
+            tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
+            styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
+          });
+        } else {
+          return Optional.none();
+        }
+      };
+      const updateSelectMenuText = comp => {
+        const detectedFormat = findNearest(editor, () => dataset.data);
+        const text = detectedFormat.fold(constant$1(fallbackFormat), fmt => fmt.title);
+        emitWith(comp, updateMenuText, { text });
+      };
+      const dataset = buildBasicSettingsDataset(editor, 'block_formats', Delimiter.SemiColon);
+      return {
+        tooltip: 'Blocks',
+        text: Optional.some(fallbackFormat),
+        icon: Optional.none(),
+        isSelectedFor,
+        getCurrentValue: Optional.none,
+        getPreviewFor,
+        onAction: onActionToggleFormat$1(editor),
+        updateText: updateSelectMenuText,
+        dataset,
+        shouldHide: false,
+        isInvalid: item => !editor.formatter.canApply(item.format)
+      };
+    };
+    const createBlocksButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$3(editor));
+    const createBlocksMenu = (editor, backstage) => {
+      const menuItems = createMenuItems(editor, backstage, getSpec$3(editor));
+      editor.ui.registry.addNestedMenuItem('blocks', {
+        text: 'Blocks',
+        onSetup: onSetupEditableToggle(editor),
+        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
+      });
+    };
+
+    const systemStackFonts = [
+      '-apple-system',
+      'Segoe UI',
+      'Roboto',
+      'Helvetica Neue',
+      'sans-serif'
+    ];
+    const splitFonts = fontFamily => {
+      const fonts = fontFamily.split(/\s*,\s*/);
+      return map$2(fonts, font => font.replace(/^['"]+|['"]+$/g, ''));
+    };
+    const isSystemFontStack = fontFamily => {
+      const matchesSystemStack = () => {
+        const fonts = splitFonts(fontFamily.toLowerCase());
+        return forall(systemStackFonts, font => fonts.indexOf(font.toLowerCase()) > -1);
+      };
+      return fontFamily.indexOf('-apple-system') === 0 && matchesSystemStack();
+    };
+    const getSpec$2 = editor => {
+      const systemFont = 'System Font';
+      const getMatchingValue = () => {
+        const getFirstFont = fontFamily => fontFamily ? splitFonts(fontFamily)[0] : '';
+        const fontFamily = editor.queryCommandValue('FontName');
+        const items = dataset.data;
+        const font = fontFamily ? fontFamily.toLowerCase() : '';
+        const matchOpt = find$5(items, item => {
+          const format = item.format;
+          return format.toLowerCase() === font || getFirstFont(format).toLowerCase() === getFirstFont(font).toLowerCase();
+        }).orThunk(() => {
+          return someIf(isSystemFontStack(font), {
+            title: systemFont,
+            format: font
+          });
+        });
+        return {
+          matchOpt,
+          font: fontFamily
+        };
+      };
+      const isSelectedFor = item => valueOpt => valueOpt.exists(value => value.format === item);
+      const getCurrentValue = () => {
+        const {matchOpt} = getMatchingValue();
+        return matchOpt;
+      };
+      const getPreviewFor = item => () => Optional.some({
+        tag: 'div',
+        styles: item.indexOf('dings') === -1 ? { 'font-family': item } : {}
+      });
+      const onAction = rawItem => () => {
+        editor.undoManager.transact(() => {
+          editor.focus();
+          editor.execCommand('FontName', false, rawItem.format);
+        });
+      };
+      const updateSelectMenuText = comp => {
+        const {matchOpt, font} = getMatchingValue();
+        const text = matchOpt.fold(constant$1(font), item => item.title);
+        emitWith(comp, updateMenuText, { text });
+      };
+      const dataset = buildBasicSettingsDataset(editor, 'font_family_formats', Delimiter.SemiColon);
+      return {
+        tooltip: 'Fonts',
+        text: Optional.some(systemFont),
+        icon: Optional.none(),
+        isSelectedFor,
+        getCurrentValue,
+        getPreviewFor,
+        onAction,
+        updateText: updateSelectMenuText,
+        dataset,
+        shouldHide: false,
+        isInvalid: never
+      };
+    };
+    const createFontFamilyButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$2(editor));
+    const createFontFamilyMenu = (editor, backstage) => {
+      const menuItems = createMenuItems(editor, backstage, getSpec$2(editor));
+      editor.ui.registry.addNestedMenuItem('fontfamily', {
+        text: backstage.shared.providers.translate('Fonts'),
+        onSetup: onSetupEditableToggle(editor),
+        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
+      });
+    };
+
+    const units = {
+      unsupportedLength: [
+        'em',
+        'ex',
+        'cap',
+        'ch',
+        'ic',
+        'rem',
+        'lh',
+        'rlh',
+        'vw',
+        'vh',
+        'vi',
+        'vb',
+        'vmin',
+        'vmax',
+        'cm',
+        'mm',
+        'Q',
+        'in',
+        'pc',
+        'pt',
+        'px'
+      ],
+      fixed: [
+        'px',
+        'pt'
+      ],
+      relative: ['%'],
+      empty: ['']
+    };
+    const pattern = (() => {
+      const decimalDigits = '[0-9]+';
+      const signedInteger = '[+-]?' + decimalDigits;
+      const exponentPart = '[eE]' + signedInteger;
+      const dot = '\\.';
+      const opt = input => `(?:${ input })?`;
+      const unsignedDecimalLiteral = [
+        'Infinity',
+        decimalDigits + dot + opt(decimalDigits) + opt(exponentPart),
+        dot + decimalDigits + opt(exponentPart),
+        decimalDigits + opt(exponentPart)
+      ].join('|');
+      const float = `[+-]?(?:${ unsignedDecimalLiteral })`;
+      return new RegExp(`^(${ float })(.*)$`);
+    })();
+    const isUnit = (unit, accepted) => exists(accepted, acc => exists(units[acc], check => unit === check));
+    const parse = (input, accepted) => {
+      const match = Optional.from(pattern.exec(input));
+      return match.bind(array => {
+        const value = Number(array[1]);
+        const unitRaw = array[2];
+        if (isUnit(unitRaw, accepted)) {
+          return Optional.some({
+            value,
+            unit: unitRaw
+          });
+        } else {
+          return Optional.none();
+        }
+      });
+    };
+    const normalise = (input, accepted) => parse(input, accepted).map(({value, unit}) => value + unit);
+
+    const Keys = {
+      tab: constant$1(9),
+      escape: constant$1(27),
+      enter: constant$1(13),
+      backspace: constant$1(8),
+      delete: constant$1(46),
+      left: constant$1(37),
+      up: constant$1(38),
+      right: constant$1(39),
+      down: constant$1(40),
+      space: constant$1(32),
+      home: constant$1(36),
+      end: constant$1(35),
+      pageUp: constant$1(33),
+      pageDown: constant$1(34)
+    };
+
+    const createBespokeNumberInput = (editor, backstage, spec) => {
+      let currentComp = Optional.none();
+      const getValueFromCurrentComp = comp => comp.map(alloyComp => Representing.getValue(alloyComp)).getOr('');
+      const onSetup = onSetupEvent(editor, 'NodeChange SwitchMode', api => {
+        const comp = api.getComponent();
+        currentComp = Optional.some(comp);
+        spec.updateInputValue(comp);
+        Disabling.set(comp, !editor.selection.isEditable());
+      });
+      const getApi = comp => ({ getComponent: constant$1(comp) });
+      const editorOffCell = Cell(noop);
+      const customEvents = generate$6('custom-number-input-events');
+      const changeValue = (f, fromInput, focusBack) => {
+        const text = getValueFromCurrentComp(currentComp);
+        const newValue = spec.getNewValue(text, f);
+        const lenghtDelta = text.length - `${ newValue }`.length;
+        const oldStart = currentComp.map(comp => comp.element.dom.selectionStart - lenghtDelta);
+        const oldEnd = currentComp.map(comp => comp.element.dom.selectionEnd - lenghtDelta);
+        spec.onAction(newValue, focusBack);
+        currentComp.each(comp => {
+          Representing.setValue(comp, newValue);
+          if (fromInput) {
+            oldStart.each(oldStart => comp.element.dom.selectionStart = oldStart);
+            oldEnd.each(oldEnd => comp.element.dom.selectionEnd = oldEnd);
+          }
+        });
+      };
+      const decrease = (fromInput, focusBack) => changeValue((n, s) => n - s, fromInput, focusBack);
+      const increase = (fromInput, focusBack) => changeValue((n, s) => n + s, fromInput, focusBack);
+      const goToParent = comp => parentElement(comp.element).fold(Optional.none, parent => {
+        focus$3(parent);
+        return Optional.some(true);
+      });
+      const focusInput = comp => {
+        if (hasFocus(comp.element)) {
+          firstChild(comp.element).each(input => focus$3(input));
+          return Optional.some(true);
+        } else {
+          return Optional.none();
+        }
+      };
+      const makeStepperButton = (action, title, tooltip, classes) => {
+        const translatedTooltip = backstage.shared.providers.translate(tooltip);
+        const altExecuting = generate$6('altExecuting');
+        const onSetup = onSetupEvent(editor, 'NodeChange SwitchMode', api => {
+          Disabling.set(api.getComponent(), !editor.selection.isEditable());
+        });
+        const onClick = comp => {
+          if (!Disabling.isDisabled(comp)) {
+            action(true);
+          }
+        };
+        return Button.sketch({
+          dom: {
+            tag: 'button',
+            attributes: {
+              'title': translatedTooltip,
+              'aria-label': translatedTooltip
+            },
+            classes: classes.concat(title)
+          },
+          components: [renderIconFromPack$1(title, backstage.shared.providers.icons)],
+          buttonBehaviours: derive$1([
+            Disabling.config({}),
+            config(altExecuting, [
+              onControlAttached({
+                onSetup,
+                getApi
+              }, editorOffCell),
+              onControlDetached({ getApi }, editorOffCell),
+              run$1(keydown(), (comp, se) => {
+                if (se.event.raw.keyCode === Keys.space() || se.event.raw.keyCode === Keys.enter()) {
+                  if (!Disabling.isDisabled(comp)) {
+                    action(false);
+                  }
+                }
+              }),
+              run$1(click(), onClick),
+              run$1(touchend(), onClick)
+            ])
+          ]),
+          eventOrder: {
+            [keydown()]: [
+              altExecuting,
+              'keying'
+            ],
+            [click()]: [
+              altExecuting,
+              'alloy.base.behaviour'
+            ],
+            [touchend()]: [
+              altExecuting,
+              'alloy.base.behaviour'
+            ]
+          }
+        });
+      };
+      const memMinus = record(makeStepperButton(focusBack => decrease(false, focusBack), 'minus', 'Decrease font size', ['highlight-on-focus']));
+      const memPlus = record(makeStepperButton(focusBack => increase(false, focusBack), 'plus', 'Increase font size', ['highlight-on-focus']));
+      const memInput = record({
+        dom: {
+          tag: 'div',
+          classes: [
+            'tox-input-wrapper',
+            'highlight-on-focus'
+          ]
+        },
+        components: [Input.sketch({
+            inputBehaviours: derive$1([
+              Disabling.config({}),
+              config(customEvents, [
+                onControlAttached({
+                  onSetup,
+                  getApi
+                }, editorOffCell),
+                onControlDetached({ getApi }, editorOffCell)
+              ]),
+              config('input-update-display-text', [
+                run$1(updateMenuText, (comp, se) => {
+                  Representing.setValue(comp, se.event.text);
+                }),
+                run$1(focusout(), comp => {
+                  spec.onAction(Representing.getValue(comp));
+                }),
+                run$1(change(), comp => {
+                  spec.onAction(Representing.getValue(comp));
+                })
+              ]),
+              Keying.config({
+                mode: 'special',
+                onEnter: _comp => {
+                  changeValue(identity, true, true);
+                  return Optional.some(true);
+                },
+                onEscape: goToParent,
+                onUp: _comp => {
+                  increase(true, false);
+                  return Optional.some(true);
+                },
+                onDown: _comp => {
+                  decrease(true, false);
+                  return Optional.some(true);
+                },
+                onLeft: (_comp, se) => {
+                  se.cut();
+                  return Optional.none();
+                },
+                onRight: (_comp, se) => {
+                  se.cut();
+                  return Optional.none();
+                }
+              })
+            ])
+          })],
+        behaviours: derive$1([
+          Focusing.config({}),
+          Keying.config({
+            mode: 'special',
+            onEnter: focusInput,
+            onSpace: focusInput,
+            onEscape: goToParent
+          }),
+          config('input-wrapper-events', [run$1(mouseover(), comp => {
+              each$1([
+                memMinus,
+                memPlus
+              ], button => {
+                const buttonNode = SugarElement.fromDom(button.get(comp).element.dom);
+                if (hasFocus(buttonNode)) {
+                  blur$1(buttonNode);
+                }
+              });
+            })])
+        ])
+      });
+      return {
+        dom: {
+          tag: 'div',
+          classes: ['tox-number-input']
+        },
+        components: [
+          memMinus.asSpec(),
+          memInput.asSpec(),
+          memPlus.asSpec()
+        ],
+        behaviours: derive$1([
+          Focusing.config({}),
+          Keying.config({
+            mode: 'flow',
+            focusInside: FocusInsideModes.OnEnterOrSpaceMode,
+            cycles: false,
+            selector: 'button, .tox-input-wrapper',
+            onEscape: wrapperComp => {
+              if (hasFocus(wrapperComp.element)) {
+                return Optional.none();
+              } else {
+                focus$3(wrapperComp.element);
+                return Optional.some(true);
+              }
+            }
+          })
+        ])
+      };
+    };
+
+    const legacyFontSizes = {
+      '8pt': '1',
+      '10pt': '2',
+      '12pt': '3',
+      '14pt': '4',
+      '18pt': '5',
+      '24pt': '6',
+      '36pt': '7'
+    };
+    const keywordFontSizes = {
+      'xx-small': '7pt',
+      'x-small': '8pt',
+      'small': '10pt',
+      'medium': '12pt',
+      'large': '14pt',
+      'x-large': '18pt',
+      'xx-large': '24pt'
+    };
+    const round = (number, precision) => {
+      const factor = Math.pow(10, precision);
+      return Math.round(number * factor) / factor;
+    };
+    const toPt = (fontSize, precision) => {
+      if (/[0-9.]+px$/.test(fontSize)) {
+        return round(parseInt(fontSize, 10) * 72 / 96, precision || 0) + 'pt';
+      } else {
+        return get$g(keywordFontSizes, fontSize).getOr(fontSize);
+      }
+    };
+    const toLegacy = fontSize => get$g(legacyFontSizes, fontSize).getOr('');
+    const getSpec$1 = editor => {
+      const getMatchingValue = () => {
+        let matchOpt = Optional.none();
+        const items = dataset.data;
+        const fontSize = editor.queryCommandValue('FontSize');
+        if (fontSize) {
+          for (let precision = 3; matchOpt.isNone() && precision >= 0; precision--) {
+            const pt = toPt(fontSize, precision);
+            const legacy = toLegacy(pt);
+            matchOpt = find$5(items, item => item.format === fontSize || item.format === pt || item.format === legacy);
+          }
+        }
+        return {
+          matchOpt,
+          size: fontSize
+        };
+      };
+      const isSelectedFor = item => valueOpt => valueOpt.exists(value => value.format === item);
+      const getCurrentValue = () => {
+        const {matchOpt} = getMatchingValue();
+        return matchOpt;
+      };
+      const getPreviewFor = constant$1(Optional.none);
+      const onAction = rawItem => () => {
+        editor.undoManager.transact(() => {
+          editor.focus();
+          editor.execCommand('FontSize', false, rawItem.format);
+        });
+      };
+      const updateSelectMenuText = comp => {
+        const {matchOpt, size} = getMatchingValue();
+        const text = matchOpt.fold(constant$1(size), match => match.title);
+        emitWith(comp, updateMenuText, { text });
+      };
+      const dataset = buildBasicSettingsDataset(editor, 'font_size_formats', Delimiter.Space);
+      return {
+        tooltip: 'Font sizes',
+        text: Optional.some('12pt'),
+        icon: Optional.none(),
+        isSelectedFor,
+        getPreviewFor,
+        getCurrentValue,
+        onAction,
+        updateText: updateSelectMenuText,
+        dataset,
+        shouldHide: false,
+        isInvalid: never
+      };
+    };
+    const createFontSizeButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$1(editor));
+    const getConfigFromUnit = unit => {
+      var _a;
+      const baseConfig = { step: 1 };
+      const configs = {
+        em: { step: 0.1 },
+        cm: { step: 0.1 },
+        in: { step: 0.1 },
+        pc: { step: 0.1 },
+        ch: { step: 0.1 },
+        rem: { step: 0.1 }
+      };
+      return (_a = configs[unit]) !== null && _a !== void 0 ? _a : baseConfig;
+    };
+    const defaultValue = 16;
+    const isValidValue = value => value >= 0;
+    const getNumberInputSpec = editor => {
+      const getCurrentValue = () => editor.queryCommandValue('FontSize');
+      const updateInputValue = comp => emitWith(comp, updateMenuText, { text: getCurrentValue() });
+      return {
+        updateInputValue,
+        onAction: (format, focusBack) => editor.execCommand('FontSize', false, format, { skip_focus: !focusBack }),
+        getNewValue: (text, updateFunction) => {
+          parse(text, [
+            'unsupportedLength',
+            'empty'
+          ]);
+          const parsedText = parse(text, [
+            'unsupportedLength',
+            'empty'
+          ]).or(parse(getCurrentValue(), [
+            'unsupportedLength',
+            'empty'
+          ]));
+          const value = parsedText.map(res => res.value).getOr(defaultValue);
+          const defaultUnit = getFontSizeInputDefaultUnit(editor);
+          const unit = parsedText.map(res => res.unit).filter(u => u !== '').getOr(defaultUnit);
+          const newValue = updateFunction(value, getConfigFromUnit(unit).step);
+          return `${ isValidValue(newValue) ? newValue : value }${ unit }`;
+        }
+      };
+    };
+    const createFontSizeInputButton = (editor, backstage) => createBespokeNumberInput(editor, backstage, getNumberInputSpec(editor));
+    const createFontSizeMenu = (editor, backstage) => {
+      const menuItems = createMenuItems(editor, backstage, getSpec$1(editor));
+      editor.ui.registry.addNestedMenuItem('fontsize', {
+        text: 'Font sizes',
+        onSetup: onSetupEditableToggle(editor),
+        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
+      });
+    };
+
+    const getSpec = (editor, dataset) => {
+      const fallbackFormat = 'Paragraph';
+      const isSelectedFor = format => () => editor.formatter.match(format);
+      const getPreviewFor = format => () => {
+        const fmt = editor.formatter.get(format);
+        return fmt !== undefined ? Optional.some({
+          tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
+          styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
+        }) : Optional.none();
+      };
+      const updateSelectMenuText = comp => {
+        const getFormatItems = fmt => {
+          if (isNestedFormat(fmt)) {
+            return bind$3(fmt.items, getFormatItems);
+          } else if (isFormatReference(fmt)) {
+            return [{
+                title: fmt.title,
+                format: fmt.format
+              }];
+          } else {
+            return [];
+          }
+        };
+        const flattenedItems = bind$3(getStyleFormats(editor), getFormatItems);
+        const detectedFormat = findNearest(editor, constant$1(flattenedItems));
+        const text = detectedFormat.fold(constant$1(fallbackFormat), fmt => fmt.title);
+        emitWith(comp, updateMenuText, { text });
+      };
+      return {
+        tooltip: 'Formats',
+        text: Optional.some(fallbackFormat),
+        icon: Optional.none(),
+        isSelectedFor,
+        getCurrentValue: Optional.none,
+        getPreviewFor,
+        onAction: onActionToggleFormat$1(editor),
+        updateText: updateSelectMenuText,
+        shouldHide: shouldAutoHideStyleFormats(editor),
+        isInvalid: item => !editor.formatter.canApply(item.format),
+        dataset
+      };
+    };
+    const createStylesButton = (editor, backstage) => {
+      const dataset = {
+        type: 'advanced',
+        ...backstage.styles
+      };
+      return createSelectButton(editor, backstage, getSpec(editor, dataset));
+    };
+    const createStylesMenu = (editor, backstage) => {
+      const dataset = {
+        type: 'advanced',
+        ...backstage.styles
+      };
+      const menuItems = createMenuItems(editor, backstage, getSpec(editor, dataset));
+      editor.ui.registry.addNestedMenuItem('styles', {
+        text: 'Formats',
+        onSetup: onSetupEditableToggle(editor),
+        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
+      });
+    };
 
     const schema$7 = constant$1([
       required$1('toggleClass'),
@@ -24067,8 +22299,7 @@
       defaulted('matchWidth', false),
       defaulted('useMinWidth', false),
       defaulted('eventOrder', {}),
-      option$3('role'),
-      option$3('listRole')
+      option$3('role')
     ].concat(sandboxFields()));
     const arrowPart = required({
       factory: Button,
@@ -24179,7 +22410,7 @@
               set$9(component.element, 'aria-describedby', descriptorId);
             });
           })]),
-        ...events$9(Optional.some(action))
+        ...events$a(Optional.some(action))
       };
       const apis = {
         repositionMenus: comp => {
@@ -24265,19 +22496,19 @@
       setText: text => emitWith(component, updateMenuText, { text }),
       setIcon: icon => emitWith(component, updateMenuIcon, { icon })
     });
-    const getTooltipAttributes = (tooltip, providersBackstage) => tooltip.map(tooltip => ({ 'aria-label': providersBackstage.translate(tooltip) })).getOr({});
+    const getTooltipAttributes = (tooltip, providersBackstage) => tooltip.map(tooltip => ({
+      'aria-label': providersBackstage.translate(tooltip),
+      'title': providersBackstage.translate(tooltip)
+    })).getOr({});
     const focusButtonEvent = generate$6('focus-button');
-    const renderCommonStructure = (optIcon, optText, tooltip, behaviours, providersBackstage, context, btnName) => {
+    const renderCommonStructure = (optIcon, optText, tooltip, behaviours, providersBackstage) => {
       const optMemDisplayText = optText.map(text => record(renderLabel$1(text, 'tox-tbtn', providersBackstage)));
       const optMemDisplayIcon = optIcon.map(icon => record(renderReplaceableIconFromPack(icon, providersBackstage.icons)));
       return {
         dom: {
           tag: 'button',
           classes: ['tox-tbtn'].concat(optText.isSome() ? ['tox-tbtn--select'] : []),
-          attributes: {
-            ...getTooltipAttributes(tooltip, providersBackstage),
-            ...isNonNullable(btnName) ? { 'data-mce-name': btnName } : {}
-          }
+          attributes: getTooltipAttributes(tooltip, providersBackstage)
         },
         components: componentRenderPipeline([
           optMemDisplayIcon.map(mem => mem.asSpec()),
@@ -24292,16 +22523,11 @@
           [attachedToDom()]: [
             commonButtonDisplayEvent,
             'toolbar-group-button-events'
-          ],
-          [detachedFromDom()]: [
-            commonButtonDisplayEvent,
-            'toolbar-group-button-events',
-            'tooltipping'
           ]
         },
         buttonBehaviours: derive$1([
-          DisablingConfigs.toolbarButton(() => providersBackstage.checkUiComponentContext(context).shouldDisable),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext(context)),
+          DisablingConfigs.toolbarButton(providersBackstage.isDisabled),
+          receivingConfig(),
           config(commonButtonDisplayEvent, [
             runOnAttached((comp, _se) => forceInitialSize(comp)),
             run$1(updateMenuText, (comp, se) => {
@@ -24322,7 +22548,7 @@
         ].concat(behaviours.getOr([])))
       };
     };
-    const renderFloatingToolbarButton = (spec, backstage, identifyButtons, attributes, btnName) => {
+    const renderFloatingToolbarButton = (spec, backstage, identifyButtons, attributes) => {
       const sharedBackstage = backstage.shared;
       const editorOffCell = Cell(noop);
       const specialisation = {
@@ -24330,13 +22556,10 @@
         getApi: getButtonApi,
         onSetup: spec.onSetup
       };
-      const behaviours = [
-        config('toolbar-group-button-events', [
+      const behaviours = [config('toolbar-group-button-events', [
           onControlAttached(specialisation, editorOffCell),
           onControlDetached(specialisation, editorOffCell)
-        ]),
-        ...spec.tooltip.map(t => Tooltipping.config(backstage.shared.providers.tooltips.getConfig({ tooltipText: backstage.shared.providers.translate(t) }))).toArray()
-      ];
+        ])];
       return FloatingToolbarButton.sketch({
         lazySink: sharedBackstage.getSink,
         fetch: () => Future.nu(resolve => {
@@ -24344,7 +22567,7 @@
         }),
         markers: { toggledClass: 'tox-tbtn--enabled' },
         parts: {
-          button: renderCommonStructure(spec.icon, spec.text, spec.tooltip, Optional.some(behaviours), sharedBackstage.providers, spec.context, btnName),
+          button: renderCommonStructure(spec.icon, spec.text, spec.tooltip, Optional.some(behaviours), sharedBackstage.providers),
           toolbar: {
             dom: {
               tag: 'div',
@@ -24355,10 +22578,10 @@
         }
       });
     };
-    const renderCommonToolbarButton = (spec, specialisation, providersBackstage, btnName) => {
+    const renderCommonToolbarButton = (spec, specialisation, providersBackstage) => {
       var _d;
       const editorOffCell = Cell(noop);
-      const structure = renderCommonStructure(spec.icon, spec.text, spec.tooltip, Optional.none(), providersBackstage, spec.context, btnName);
+      const structure = renderCommonStructure(spec.icon, spec.text, spec.tooltip, Optional.none(), providersBackstage);
       return Button.sketch({
         dom: structure.dom,
         components: structure.components,
@@ -24373,22 +22596,21 @@
               onControlAttached(specialisation, editorOffCell),
               onControlDetached(specialisation, editorOffCell)
             ]),
-            ...spec.tooltip.map(t => Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: providersBackstage.translate(t) + spec.shortcut.map(shortcut => ` (${ convertText(shortcut) })`).getOr('') }))).toArray(),
-            DisablingConfigs.toolbarButton(() => !spec.enabled || providersBackstage.checkUiComponentContext(spec.context).shouldDisable),
-            toggleOnReceive(() => providersBackstage.checkUiComponentContext(spec.context))
+            DisablingConfigs.toolbarButton(() => !spec.enabled || providersBackstage.isDisabled()),
+            receivingConfig()
           ].concat(specialisation.toolbarButtonBehaviours)),
           [commonButtonDisplayEvent]: (_d = structure.buttonBehaviours) === null || _d === void 0 ? void 0 : _d[commonButtonDisplayEvent]
         }
       });
     };
-    const renderToolbarButton = (spec, providersBackstage, btnName) => renderToolbarButtonWith(spec, providersBackstage, [], btnName);
-    const renderToolbarButtonWith = (spec, providersBackstage, bonusEvents, btnName) => renderCommonToolbarButton(spec, {
+    const renderToolbarButton = (spec, providersBackstage) => renderToolbarButtonWith(spec, providersBackstage, []);
+    const renderToolbarButtonWith = (spec, providersBackstage, bonusEvents) => renderCommonToolbarButton(spec, {
       toolbarButtonBehaviours: bonusEvents.length > 0 ? [config('toolbarButtonWith', bonusEvents)] : [],
       getApi: getButtonApi,
       onSetup: spec.onSetup
-    }, providersBackstage, btnName);
-    const renderToolbarToggleButton = (spec, providersBackstage, btnName) => renderToolbarToggleButtonWith(spec, providersBackstage, [], btnName);
-    const renderToolbarToggleButtonWith = (spec, providersBackstage, bonusEvents, btnName) => renderCommonToolbarButton(spec, {
+    }, providersBackstage);
+    const renderToolbarToggleButton = (spec, providersBackstage) => renderToolbarToggleButtonWith(spec, providersBackstage, []);
+    const renderToolbarToggleButtonWith = (spec, providersBackstage, bonusEvents) => renderCommonToolbarButton(spec, {
       toolbarButtonBehaviours: [
         Replacing.config({}),
         Toggling.config({
@@ -24399,7 +22621,7 @@
       ].concat(bonusEvents.length > 0 ? [config('toolbarToggleButtonWith', bonusEvents)] : []),
       getApi: getToggleApi,
       onSetup: spec.onSetup
-    }, providersBackstage, btnName);
+    }, providersBackstage);
     const fetchChoices = (getApi, spec, providersBackstage) => comp => Future.nu(callback => spec.fetch(callback)).map(items => Optional.from(createTieredDataFrom(deepMerge(createPartialChoiceMenu(generate$6('menu-value'), items, value => {
       spec.onItemAction(getApi(comp), value);
     }, spec.columns, spec.presets, ItemResponse$1.CLOSE_ON_EXECUTE, spec.select.getOr(never), providersBackstage), {
@@ -24410,8 +22632,7 @@
           });
         })])
     }))));
-    const renderSplitButton = (spec, sharedBackstage, btnName) => {
-      const tooltipString = Cell(spec.tooltip.getOr(''));
+    const renderSplitButton = (spec, sharedBackstage) => {
       const getApi = comp => ({
         isEnabled: () => !Disabling.isDisabled(comp),
         setEnabled: state => Disabling.set(comp, !state),
@@ -24428,12 +22649,7 @@
         },
         isActive: () => descendant(comp.element, 'span').exists(button => comp.getSystem().getByDom(button).exists(Toggling.isOn)),
         setText: text => descendant(comp.element, 'span').each(button => comp.getSystem().getByDom(button).each(buttonComp => emitWith(buttonComp, updateMenuText, { text }))),
-        setIcon: icon => descendant(comp.element, 'span').each(button => comp.getSystem().getByDom(button).each(buttonComp => emitWith(buttonComp, updateMenuIcon, { icon }))),
-        setTooltip: tooltip => {
-          const translatedTooltip = sharedBackstage.providers.translate(tooltip);
-          set$9(comp.element, 'aria-label', translatedTooltip);
-          tooltipString.set(tooltip);
-        }
+        setIcon: icon => descendant(comp.element, 'span').each(button => comp.getSystem().getByDom(button).each(buttonComp => emitWith(buttonComp, updateMenuIcon, { icon })))
       });
       const editorOffCell = Cell(noop);
       const specialisation = {
@@ -24446,8 +22662,7 @@
           classes: ['tox-split-button'],
           attributes: {
             'aria-pressed': false,
-            ...getTooltipAttributes(spec.tooltip, sharedBackstage.providers),
-            ...isNonNullable(btnName) ? { 'data-mce-name': btnName } : {}
+            ...getTooltipAttributes(spec.tooltip, sharedBackstage.providers)
           }
         },
         onExecute: button => {
@@ -24459,38 +22674,20 @@
         onItemExecute: (_a, _b, _c) => {
         },
         splitDropdownBehaviours: derive$1([
+          DisablingConfigs.splitButton(sharedBackstage.providers.isDisabled),
+          receivingConfig(),
           config('split-dropdown-events', [
             runOnAttached((comp, _se) => forceInitialSize(comp)),
             run$1(focusButtonEvent, Focusing.focus),
             onControlAttached(specialisation, editorOffCell),
             onControlDetached(specialisation, editorOffCell)
           ]),
-          DisablingConfigs.splitButton(() => sharedBackstage.providers.isDisabled() || sharedBackstage.providers.checkUiComponentContext(spec.context).shouldDisable),
-          toggleOnReceive(() => sharedBackstage.providers.checkUiComponentContext(spec.context)),
-          Unselecting.config({}),
-          ...spec.tooltip.map(tooltip => {
-            return Tooltipping.config({
-              ...sharedBackstage.providers.tooltips.getConfig({
-                tooltipText: sharedBackstage.providers.translate(tooltip),
-                onShow: comp => {
-                  if (tooltipString.get() !== tooltip) {
-                    const translatedTooltip = sharedBackstage.providers.translate(tooltipString.get());
-                    Tooltipping.setComponents(comp, sharedBackstage.providers.tooltips.getComponents({ tooltipText: translatedTooltip }));
-                  }
-                }
-              })
-            });
-          }).toArray()
+          Unselecting.config({})
         ]),
         eventOrder: {
           [attachedToDom()]: [
             'alloy.base.behaviour',
-            'split-dropdown-events',
-            'tooltipping'
-          ],
-          [detachedFromDom()]: [
-            'split-dropdown-events',
-            'tooltipping'
+            'split-dropdown-events'
           ]
         },
         toggleClass: 'tox-tbtn--enabled',
@@ -24498,17 +22695,10 @@
         fetch: fetchChoices(getApi, spec, sharedBackstage.providers),
         parts: { menu: part(false, spec.columns, spec.presets) },
         components: [
-          SplitDropdown.parts.button(renderCommonStructure(spec.icon, spec.text, Optional.none(), Optional.some([
-            Toggling.config({
+          SplitDropdown.parts.button(renderCommonStructure(spec.icon, spec.text, Optional.none(), Optional.some([Toggling.config({
               toggleClass: 'tox-tbtn--enabled',
               toggleOnExecute: false
-            }),
-            DisablingConfigs.toolbarButton(never),
-            toggleOnReceive(constant$1({
-              contextType: 'any',
-              shouldDisable: false
-            }))
-          ]), sharedBackstage.providers, spec.context)),
+            })]), sharedBackstage.providers)),
           SplitDropdown.parts.arrow({
             dom: {
               tag: 'button',
@@ -24516,1013 +22706,16 @@
                 'tox-tbtn',
                 'tox-split-button__chevron'
               ],
-              innerHtml: get$3('chevron-down', sharedBackstage.providers.icons)
+              innerHtml: get$2('chevron-down', sharedBackstage.providers.icons)
             },
             buttonBehaviours: derive$1([
-              DisablingConfigs.splitButton(never),
-              toggleOnReceive(constant$1({
-                contextType: 'any',
-                shouldDisable: false
-              }))
+              DisablingConfigs.splitButton(sharedBackstage.providers.isDisabled),
+              receivingConfig(),
+              addFocusableBehaviour()
             ])
           }),
           SplitDropdown.parts['aria-descriptor']({ text: sharedBackstage.providers.translate('To open the popup, press Shift+Enter') })
         ]
-      });
-    };
-
-    const contextFormInputSelector = '.tox-toolbar-slider__input,.tox-toolbar-textfield';
-    const focusIn = contextbar => {
-      InlineView.getContent(contextbar).each(comp => {
-        descendant(comp.element, contextFormInputSelector).fold(() => Keying.focusIn(comp), focus$3);
-      });
-    };
-    const focusParent = comp => search(comp.element).each(focus => {
-      ancestor$1(focus, '[tabindex="-1"]').each(parent => {
-        focus$3(parent);
-      });
-    });
-
-    const forwardSlideEvent = generate$6('forward-slide');
-    const backSlideEvent = generate$6('backward-slide');
-    const changeSlideEvent = generate$6('change-slide-event');
-    const resizingClass = 'tox-pop--resizing';
-    const renderContextToolbar = spec => {
-      const stack = Cell([]);
-      const sketch = InlineView.sketch({
-        dom: {
-          tag: 'div',
-          classes: ['tox-pop']
-        },
-        fireDismissalEventInstead: { event: 'doNotDismissYet' },
-        onShow: comp => {
-          stack.set([]);
-          InlineView.getContent(comp).each(c => {
-            remove$7(c.element, 'visibility');
-          });
-          remove$3(comp.element, resizingClass);
-          remove$7(comp.element, 'width');
-        },
-        onHide: () => {
-          stack.set([]);
-          spec.onHide();
-        },
-        inlineBehaviours: derive$1([
-          config('context-toolbar-events', [
-            runOnSource(transitionend(), (comp, se) => {
-              if (se.event.raw.propertyName === 'width') {
-                remove$3(comp.element, resizingClass);
-                remove$7(comp.element, 'width');
-              }
-            }),
-            run$1(changeSlideEvent, (comp, se) => {
-              const elem = comp.element;
-              remove$7(elem, 'width');
-              const currentWidth = get$d(elem);
-              const hadFocus = search(comp.element).isSome();
-              remove$7(elem, 'left');
-              remove$7(elem, 'right');
-              remove$7(elem, 'max-width');
-              InlineView.setContent(comp, se.event.contents);
-              add$2(elem, resizingClass);
-              const newWidth = get$d(elem);
-              set$8(elem, 'transition', 'none');
-              InlineView.reposition(comp);
-              remove$7(elem, 'transition');
-              set$8(elem, 'width', currentWidth + 'px');
-              se.event.focus.fold(() => {
-                if (hadFocus) {
-                  focusIn(comp);
-                }
-              }, f => {
-                active$1(getRootNode(comp.element)).fold(() => focus$3(f), active => {
-                  if (!eq(active, f)) {
-                    focus$3(f);
-                  }
-                });
-              });
-              setTimeout(() => {
-                set$8(comp.element, 'width', newWidth + 'px');
-              }, 0);
-            }),
-            run$1(forwardSlideEvent, (comp, se) => {
-              InlineView.getContent(comp).each(oldContents => {
-                stack.set(stack.get().concat([{
-                    bar: oldContents,
-                    focus: active$1(getRootNode(comp.element))
-                  }]));
-              });
-              emitWith(comp, changeSlideEvent, {
-                contents: se.event.forwardContents,
-                focus: Optional.none()
-              });
-            }),
-            run$1(backSlideEvent, (comp, _se) => {
-              spec.onBack();
-              last$1(stack.get()).each(last => {
-                stack.set(stack.get().slice(0, stack.get().length - 1));
-                emitWith(comp, changeSlideEvent, {
-                  contents: premade(last.bar),
-                  focus: last.focus
-                });
-              });
-            })
-          ]),
-          Keying.config({
-            mode: 'special',
-            onEscape: comp => last$1(stack.get()).fold(() => spec.onEscape(), _ => {
-              emit(comp, backSlideEvent);
-              return Optional.some(true);
-            })
-          })
-        ]),
-        lazySink: () => Result.value(spec.sink)
-      });
-      return {
-        sketch,
-        inSubtoolbar: () => stack.get().length > 0
-      };
-    };
-
-    const createNavigateBackButton = (editor, backstage) => {
-      const bridged = getOrDie(createToolbarButton({
-        type: 'button',
-        icon: 'chevron-left',
-        tooltip: 'Back',
-        onAction: noop
-      }));
-      return renderToolbarButtonWith(bridged, backstage.shared.providers, [run$1(internalToolbarButtonExecute, comp => {
-          emit(comp, backSlideEvent);
-        })]);
-    };
-
-    const makeTooltipText = (editor, labelWithPlaceholder, value) => isEmpty(value) ? editor.translate(labelWithPlaceholder) : editor.translate([
-      labelWithPlaceholder,
-      editor.translate(value)
-    ]);
-
-    const generateSelectItems = (backstage, spec) => {
-      const generateItem = (rawItem, response, invalid, value) => {
-        const translatedText = backstage.shared.providers.translate(rawItem.title);
-        if (rawItem.type === 'separator') {
-          return Optional.some({
-            type: 'separator',
-            text: translatedText
-          });
-        } else if (rawItem.type === 'submenu') {
-          const items = bind$3(rawItem.getStyleItems(), si => validate(si, response, value));
-          if (response === 0 && items.length <= 0) {
-            return Optional.none();
-          } else {
-            return Optional.some({
-              type: 'nestedmenuitem',
-              text: translatedText,
-              enabled: items.length > 0,
-              getSubmenuItems: () => bind$3(rawItem.getStyleItems(), si => validate(si, response, value))
-            });
-          }
-        } else {
-          return Optional.some({
-            type: 'togglemenuitem',
-            text: translatedText,
-            icon: rawItem.icon,
-            active: rawItem.isSelected(value),
-            enabled: !invalid,
-            onAction: spec.onAction(rawItem),
-            ...rawItem.getStylePreview().fold(() => ({}), preview => ({ meta: { style: preview } }))
-          });
-        }
-      };
-      const validate = (item, response, value) => {
-        const invalid = item.type === 'formatter' && spec.isInvalid(item);
-        if (response === 0) {
-          return invalid ? [] : generateItem(item, response, false, value).toArray();
-        } else {
-          return generateItem(item, response, invalid, value).toArray();
-        }
-      };
-      const validateItems = preItems => {
-        const value = spec.getCurrentValue();
-        const response = spec.shouldHide ? 0 : 1;
-        return bind$3(preItems, item => validate(item, response, value));
-      };
-      const getFetch = (backstage, getStyleItems) => (comp, callback) => {
-        const preItems = getStyleItems();
-        const items = validateItems(preItems);
-        const menu = build(items, ItemResponse$1.CLOSE_ON_EXECUTE, backstage, {
-          isHorizontalMenu: false,
-          search: Optional.none()
-        });
-        callback(menu);
-      };
-      return {
-        validateItems,
-        getFetch
-      };
-    };
-    const createMenuItems = (backstage, spec) => {
-      const dataset = spec.dataset;
-      const getStyleItems = dataset.type === 'basic' ? () => map$2(dataset.data, d => processBasic(d, spec.isSelectedFor, spec.getPreviewFor)) : dataset.getData;
-      return {
-        items: generateSelectItems(backstage, spec),
-        getStyleItems
-      };
-    };
-    const createSelectButton = (editor, backstage, spec, getTooltip, textUpdateEventName, btnName) => {
-      const {items, getStyleItems} = createMenuItems(backstage, spec);
-      const tooltipString = Cell(spec.tooltip);
-      const getApi = comp => ({
-        getComponent: constant$1(comp),
-        setTooltip: tooltip => {
-          const translatedTooltip = backstage.shared.providers.translate(tooltip);
-          set$9(comp.element, 'aria-label', translatedTooltip);
-          tooltipString.set(tooltip);
-        }
-      });
-      const onSetup = api => {
-        const handler = e => api.setTooltip(makeTooltipText(editor, getTooltip(e.value), e.value));
-        editor.on(textUpdateEventName, handler);
-        return composeUnbinders(onSetupEvent(editor, 'NodeChange', api => {
-          const comp = api.getComponent();
-          spec.updateText(comp);
-          Disabling.set(api.getComponent(), !editor.selection.isEditable());
-        })(api), () => editor.off(textUpdateEventName, handler));
-      };
-      return renderCommonDropdown({
-        context: 'mode:design',
-        text: spec.icon.isSome() ? Optional.none() : spec.text,
-        icon: spec.icon,
-        ariaLabel: Optional.some(spec.tooltip),
-        tooltip: Optional.none(),
-        role: Optional.none(),
-        fetch: items.getFetch(backstage, getStyleItems),
-        onSetup,
-        getApi,
-        columns: 1,
-        presets: 'normal',
-        classes: spec.icon.isSome() ? [] : ['bespoke'],
-        dropdownBehaviours: [Tooltipping.config({
-            ...backstage.shared.providers.tooltips.getConfig({
-              tooltipText: backstage.shared.providers.translate(spec.tooltip),
-              onShow: comp => {
-                if (spec.tooltip !== tooltipString.get()) {
-                  const translatedTooltip = backstage.shared.providers.translate(tooltipString.get());
-                  Tooltipping.setComponents(comp, backstage.shared.providers.tooltips.getComponents({ tooltipText: translatedTooltip }));
-                }
-              }
-            })
-          })]
-      }, 'tox-tbtn', backstage.shared, btnName);
-    };
-
-    const process = rawFormats => map$2(rawFormats, item => {
-      let title = item, format = item;
-      const values = item.split('=');
-      if (values.length > 1) {
-        title = values[0];
-        format = values[1];
-      }
-      return {
-        title,
-        format
-      };
-    });
-    const buildBasicStaticDataset = data => ({
-      type: 'basic',
-      data
-    });
-    var Delimiter;
-    (function (Delimiter) {
-      Delimiter[Delimiter['SemiColon'] = 0] = 'SemiColon';
-      Delimiter[Delimiter['Space'] = 1] = 'Space';
-    }(Delimiter || (Delimiter = {})));
-    const split = (rawFormats, delimiter) => {
-      if (delimiter === Delimiter.SemiColon) {
-        return rawFormats.replace(/;$/, '').split(';');
-      } else {
-        return rawFormats.split(' ');
-      }
-    };
-    const buildBasicSettingsDataset = (editor, settingName, delimiter) => {
-      const rawFormats = editor.options.get(settingName);
-      const data = process(split(rawFormats, delimiter));
-      return {
-        type: 'basic',
-        data
-      };
-    };
-
-    const menuTitle$4 = 'Align';
-    const getTooltipPlaceholder$4 = constant$1('Alignment {0}');
-    const fallbackAlignment = 'left';
-    const alignMenuItems = [
-      {
-        title: 'Left',
-        icon: 'align-left',
-        format: 'alignleft',
-        command: 'JustifyLeft'
-      },
-      {
-        title: 'Center',
-        icon: 'align-center',
-        format: 'aligncenter',
-        command: 'JustifyCenter'
-      },
-      {
-        title: 'Right',
-        icon: 'align-right',
-        format: 'alignright',
-        command: 'JustifyRight'
-      },
-      {
-        title: 'Justify',
-        icon: 'align-justify',
-        format: 'alignjustify',
-        command: 'JustifyFull'
-      }
-    ];
-    const getSpec$4 = editor => {
-      const getMatchingValue = () => find$5(alignMenuItems, item => editor.formatter.match(item.format));
-      const isSelectedFor = format => () => editor.formatter.match(format);
-      const getPreviewFor = _format => Optional.none;
-      const updateSelectMenuIcon = comp => {
-        const match = getMatchingValue();
-        const alignment = match.fold(constant$1(fallbackAlignment), item => item.title.toLowerCase());
-        emitWith(comp, updateMenuIcon, { icon: `align-${ alignment }` });
-        fireAlignTextUpdate(editor, { value: alignment });
-      };
-      const dataset = buildBasicStaticDataset(alignMenuItems);
-      const onAction = rawItem => () => find$5(alignMenuItems, item => item.format === rawItem.format).each(item => editor.execCommand(item.command));
-      return {
-        tooltip: makeTooltipText(editor, getTooltipPlaceholder$4(), fallbackAlignment),
-        text: Optional.none(),
-        icon: Optional.some('align-left'),
-        isSelectedFor,
-        getCurrentValue: Optional.none,
-        getPreviewFor,
-        onAction,
-        updateText: updateSelectMenuIcon,
-        dataset,
-        shouldHide: false,
-        isInvalid: item => !editor.formatter.canApply(item.format)
-      };
-    };
-    const createAlignButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$4(editor), getTooltipPlaceholder$4, 'AlignTextUpdate', 'align');
-    const createAlignMenu = (editor, backstage) => {
-      const menuItems = createMenuItems(backstage, getSpec$4(editor));
-      editor.ui.registry.addNestedMenuItem('align', {
-        text: backstage.shared.providers.translate(menuTitle$4),
-        onSetup: onSetupEditableToggle(editor),
-        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
-      });
-    };
-
-    const findNearest = (editor, getStyles) => {
-      const styles = getStyles();
-      const formats = map$2(styles, style => style.format);
-      return Optional.from(editor.formatter.closest(formats)).bind(fmt => find$5(styles, data => data.format === fmt));
-    };
-
-    const menuTitle$3 = 'Blocks';
-    const getTooltipPlaceholder$3 = constant$1('Block {0}');
-    const fallbackFormat = 'Paragraph';
-    const getSpec$3 = editor => {
-      const isSelectedFor = format => () => editor.formatter.match(format);
-      const getPreviewFor = format => () => {
-        const fmt = editor.formatter.get(format);
-        if (fmt) {
-          return Optional.some({
-            tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
-            styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
-          });
-        } else {
-          return Optional.none();
-        }
-      };
-      const updateSelectMenuText = comp => {
-        const detectedFormat = findNearest(editor, () => dataset.data);
-        const text = detectedFormat.fold(constant$1(fallbackFormat), fmt => fmt.title);
-        emitWith(comp, updateMenuText, { text });
-        fireBlocksTextUpdate(editor, { value: text });
-      };
-      const dataset = buildBasicSettingsDataset(editor, 'block_formats', Delimiter.SemiColon);
-      return {
-        tooltip: makeTooltipText(editor, getTooltipPlaceholder$3(), fallbackFormat),
-        text: Optional.some(fallbackFormat),
-        icon: Optional.none(),
-        isSelectedFor,
-        getCurrentValue: Optional.none,
-        getPreviewFor,
-        onAction: onActionToggleFormat$1(editor),
-        updateText: updateSelectMenuText,
-        dataset,
-        shouldHide: false,
-        isInvalid: item => !editor.formatter.canApply(item.format)
-      };
-    };
-    const createBlocksButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$3(editor), getTooltipPlaceholder$3, 'BlocksTextUpdate', 'blocks');
-    const createBlocksMenu = (editor, backstage) => {
-      const menuItems = createMenuItems(backstage, getSpec$3(editor));
-      editor.ui.registry.addNestedMenuItem('blocks', {
-        text: menuTitle$3,
-        onSetup: onSetupEditableToggle(editor),
-        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
-      });
-    };
-
-    const menuTitle$2 = 'Fonts';
-    const getTooltipPlaceholder$2 = constant$1('Font {0}');
-    const systemFont = 'System Font';
-    const systemStackFonts = [
-      '-apple-system',
-      'Segoe UI',
-      'Roboto',
-      'Helvetica Neue',
-      'sans-serif'
-    ];
-    const splitFonts = fontFamily => {
-      const fonts = fontFamily.split(/\s*,\s*/);
-      return map$2(fonts, font => font.replace(/^['"]+|['"]+$/g, ''));
-    };
-    const matchesStack = (fonts, stack) => stack.length > 0 && forall(stack, font => fonts.indexOf(font.toLowerCase()) > -1);
-    const isSystemFontStack = (fontFamily, userStack) => {
-      if (fontFamily.indexOf('-apple-system') === 0 || userStack.length > 0) {
-        const fonts = splitFonts(fontFamily.toLowerCase());
-        return matchesStack(fonts, systemStackFonts) || matchesStack(fonts, userStack);
-      } else {
-        return false;
-      }
-    };
-    const getSpec$2 = editor => {
-      const getMatchingValue = () => {
-        const getFirstFont = fontFamily => fontFamily ? splitFonts(fontFamily)[0] : '';
-        const fontFamily = editor.queryCommandValue('FontName');
-        const items = dataset.data;
-        const font = fontFamily ? fontFamily.toLowerCase() : '';
-        const userStack = getDefaultFontStack(editor);
-        const matchOpt = find$5(items, item => {
-          const format = item.format;
-          return format.toLowerCase() === font || getFirstFont(format).toLowerCase() === getFirstFont(font).toLowerCase();
-        }).orThunk(() => {
-          return someIf(isSystemFontStack(font, userStack), {
-            title: systemFont,
-            format: font
-          });
-        });
-        return {
-          matchOpt,
-          font: fontFamily
-        };
-      };
-      const isSelectedFor = item => valueOpt => valueOpt.exists(value => value.format === item);
-      const getCurrentValue = () => {
-        const {matchOpt} = getMatchingValue();
-        return matchOpt;
-      };
-      const getPreviewFor = item => () => Optional.some({
-        tag: 'div',
-        styles: item.indexOf('dings') === -1 ? { 'font-family': item } : {}
-      });
-      const onAction = rawItem => () => {
-        editor.undoManager.transact(() => {
-          editor.focus();
-          editor.execCommand('FontName', false, rawItem.format);
-        });
-      };
-      const updateSelectMenuText = comp => {
-        const {matchOpt, font} = getMatchingValue();
-        const text = matchOpt.fold(constant$1(font), item => item.title);
-        emitWith(comp, updateMenuText, { text });
-        fireFontFamilyTextUpdate(editor, { value: text });
-      };
-      const dataset = buildBasicSettingsDataset(editor, 'font_family_formats', Delimiter.SemiColon);
-      return {
-        tooltip: makeTooltipText(editor, getTooltipPlaceholder$2(), systemFont),
-        text: Optional.some(systemFont),
-        icon: Optional.none(),
-        isSelectedFor,
-        getCurrentValue,
-        getPreviewFor,
-        onAction,
-        updateText: updateSelectMenuText,
-        dataset,
-        shouldHide: false,
-        isInvalid: never
-      };
-    };
-    const createFontFamilyButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$2(editor), getTooltipPlaceholder$2, 'FontFamilyTextUpdate', 'fontfamily');
-    const createFontFamilyMenu = (editor, backstage) => {
-      const menuItems = createMenuItems(backstage, getSpec$2(editor));
-      editor.ui.registry.addNestedMenuItem('fontfamily', {
-        text: backstage.shared.providers.translate(menuTitle$2),
-        onSetup: onSetupEditableToggle(editor),
-        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
-      });
-    };
-
-    const units = {
-      unsupportedLength: [
-        'em',
-        'ex',
-        'cap',
-        'ch',
-        'ic',
-        'rem',
-        'lh',
-        'rlh',
-        'vw',
-        'vh',
-        'vi',
-        'vb',
-        'vmin',
-        'vmax',
-        'cm',
-        'mm',
-        'Q',
-        'in',
-        'pc',
-        'pt',
-        'px'
-      ],
-      fixed: [
-        'px',
-        'pt'
-      ],
-      relative: ['%'],
-      empty: ['']
-    };
-    const pattern = (() => {
-      const decimalDigits = '[0-9]+';
-      const signedInteger = '[+-]?' + decimalDigits;
-      const exponentPart = '[eE]' + signedInteger;
-      const dot = '\\.';
-      const opt = input => `(?:${ input })?`;
-      const unsignedDecimalLiteral = [
-        'Infinity',
-        decimalDigits + dot + opt(decimalDigits) + opt(exponentPart),
-        dot + decimalDigits + opt(exponentPart),
-        decimalDigits + opt(exponentPart)
-      ].join('|');
-      const float = `[+-]?(?:${ unsignedDecimalLiteral })`;
-      return new RegExp(`^(${ float })(.*)$`);
-    })();
-    const isUnit = (unit, accepted) => exists(accepted, acc => exists(units[acc], check => unit === check));
-    const parse = (input, accepted) => {
-      const match = Optional.from(pattern.exec(input));
-      return match.bind(array => {
-        const value = Number(array[1]);
-        const unitRaw = array[2];
-        if (isUnit(unitRaw, accepted)) {
-          return Optional.some({
-            value,
-            unit: unitRaw
-          });
-        } else {
-          return Optional.none();
-        }
-      });
-    };
-    const normalise = (input, accepted) => parse(input, accepted).map(({value, unit}) => value + unit);
-
-    const Keys = {
-      tab: constant$1(9),
-      escape: constant$1(27),
-      enter: constant$1(13),
-      backspace: constant$1(8),
-      delete: constant$1(46),
-      left: constant$1(37),
-      up: constant$1(38),
-      right: constant$1(39),
-      down: constant$1(40),
-      space: constant$1(32),
-      home: constant$1(36),
-      end: constant$1(35),
-      pageUp: constant$1(33),
-      pageDown: constant$1(34)
-    };
-
-    const createBespokeNumberInput = (editor, backstage, spec, btnName) => {
-      let currentComp = Optional.none();
-      const getValueFromCurrentComp = comp => comp.map(alloyComp => Representing.getValue(alloyComp)).getOr('');
-      const onSetup = onSetupEvent(editor, 'NodeChange SwitchMode DisabledStateChange', api => {
-        const comp = api.getComponent();
-        currentComp = Optional.some(comp);
-        spec.updateInputValue(comp);
-        Disabling.set(comp, !editor.selection.isEditable() || isDisabled(editor));
-      });
-      const getApi = comp => ({ getComponent: constant$1(comp) });
-      const editorOffCell = Cell(noop);
-      const customEvents = generate$6('custom-number-input-events');
-      const changeValue = (f, fromInput, focusBack) => {
-        const text = getValueFromCurrentComp(currentComp);
-        const newValue = spec.getNewValue(text, f);
-        const lenghtDelta = text.length - `${ newValue }`.length;
-        const oldStart = currentComp.map(comp => comp.element.dom.selectionStart - lenghtDelta);
-        const oldEnd = currentComp.map(comp => comp.element.dom.selectionEnd - lenghtDelta);
-        spec.onAction(newValue, focusBack);
-        currentComp.each(comp => {
-          Representing.setValue(comp, newValue);
-          if (fromInput) {
-            oldStart.each(oldStart => comp.element.dom.selectionStart = oldStart);
-            oldEnd.each(oldEnd => comp.element.dom.selectionEnd = oldEnd);
-          }
-        });
-      };
-      const decrease = (fromInput, focusBack) => changeValue((n, s) => n - s, fromInput, focusBack);
-      const increase = (fromInput, focusBack) => changeValue((n, s) => n + s, fromInput, focusBack);
-      const goToParent = comp => parentElement(comp.element).fold(Optional.none, parent => {
-        focus$3(parent);
-        return Optional.some(true);
-      });
-      const focusInput = comp => {
-        if (hasFocus(comp.element)) {
-          firstChild(comp.element).each(input => focus$3(input));
-          return Optional.some(true);
-        } else {
-          return Optional.none();
-        }
-      };
-      const makeStepperButton = (action, title, tooltip, classes) => {
-        const editorOffCellStepButton = Cell(noop);
-        const translatedTooltip = backstage.shared.providers.translate(tooltip);
-        const altExecuting = generate$6('altExecuting');
-        const onSetup = onSetupEvent(editor, 'NodeChange SwitchMode DisabledStateChange', api => {
-          Disabling.set(api.getComponent(), !editor.selection.isEditable() || isDisabled(editor));
-        });
-        const onClick = comp => {
-          if (!Disabling.isDisabled(comp)) {
-            action(true);
-          }
-        };
-        return Button.sketch({
-          dom: {
-            tag: 'button',
-            attributes: {
-              'aria-label': translatedTooltip,
-              'data-mce-name': title
-            },
-            classes: classes.concat(title)
-          },
-          components: [renderIconFromPack$1(title, backstage.shared.providers.icons)],
-          buttonBehaviours: derive$1([
-            Disabling.config({}),
-            Tooltipping.config(backstage.shared.providers.tooltips.getConfig({ tooltipText: translatedTooltip })),
-            config(altExecuting, [
-              onControlAttached({
-                onSetup,
-                getApi
-              }, editorOffCellStepButton),
-              onControlDetached({ getApi }, editorOffCellStepButton),
-              run$1(keydown(), (comp, se) => {
-                if (se.event.raw.keyCode === Keys.space() || se.event.raw.keyCode === Keys.enter()) {
-                  if (!Disabling.isDisabled(comp)) {
-                    action(false);
-                  }
-                }
-              }),
-              run$1(click(), onClick),
-              run$1(touchend(), onClick)
-            ])
-          ]),
-          eventOrder: {
-            [keydown()]: [
-              altExecuting,
-              'keying'
-            ],
-            [click()]: [
-              altExecuting,
-              'alloy.base.behaviour'
-            ],
-            [touchend()]: [
-              altExecuting,
-              'alloy.base.behaviour'
-            ],
-            [attachedToDom()]: [
-              'alloy.base.behaviour',
-              altExecuting,
-              'tooltipping'
-            ],
-            [detachedFromDom()]: [
-              altExecuting,
-              'tooltipping'
-            ]
-          }
-        });
-      };
-      const memMinus = record(makeStepperButton(focusBack => decrease(false, focusBack), 'minus', 'Decrease font size', []));
-      const memPlus = record(makeStepperButton(focusBack => increase(false, focusBack), 'plus', 'Increase font size', []));
-      const memInput = record({
-        dom: {
-          tag: 'div',
-          classes: ['tox-input-wrapper']
-        },
-        components: [Input.sketch({
-            inputBehaviours: derive$1([
-              Disabling.config({}),
-              config(customEvents, [
-                onControlAttached({
-                  onSetup,
-                  getApi
-                }, editorOffCell),
-                onControlDetached({ getApi }, editorOffCell)
-              ]),
-              config('input-update-display-text', [
-                run$1(updateMenuText, (comp, se) => {
-                  Representing.setValue(comp, se.event.text);
-                }),
-                run$1(focusout(), comp => {
-                  spec.onAction(Representing.getValue(comp));
-                }),
-                run$1(change(), comp => {
-                  spec.onAction(Representing.getValue(comp));
-                })
-              ]),
-              Keying.config({
-                mode: 'special',
-                onEnter: _comp => {
-                  changeValue(identity, true, true);
-                  return Optional.some(true);
-                },
-                onEscape: goToParent,
-                onUp: _comp => {
-                  increase(true, false);
-                  return Optional.some(true);
-                },
-                onDown: _comp => {
-                  decrease(true, false);
-                  return Optional.some(true);
-                },
-                onLeft: (_comp, se) => {
-                  se.cut();
-                  return Optional.none();
-                },
-                onRight: (_comp, se) => {
-                  se.cut();
-                  return Optional.none();
-                }
-              })
-            ])
-          })],
-        behaviours: derive$1([
-          Focusing.config({}),
-          Keying.config({
-            mode: 'special',
-            onEnter: focusInput,
-            onSpace: focusInput,
-            onEscape: goToParent
-          }),
-          config('input-wrapper-events', [run$1(mouseover(), comp => {
-              each$1([
-                memMinus,
-                memPlus
-              ], button => {
-                const buttonNode = SugarElement.fromDom(button.get(comp).element.dom);
-                if (hasFocus(buttonNode)) {
-                  blur$1(buttonNode);
-                }
-              });
-            })])
-        ])
-      });
-      return {
-        dom: {
-          tag: 'div',
-          classes: ['tox-number-input'],
-          attributes: { ...isNonNullable(btnName) ? { 'data-mce-name': btnName } : {} }
-        },
-        components: [
-          memMinus.asSpec(),
-          memInput.asSpec(),
-          memPlus.asSpec()
-        ],
-        behaviours: derive$1([
-          Focusing.config({}),
-          Keying.config({
-            mode: 'flow',
-            focusInside: FocusInsideModes.OnEnterOrSpaceMode,
-            cycles: false,
-            selector: 'button, .tox-input-wrapper',
-            onEscape: wrapperComp => {
-              if (hasFocus(wrapperComp.element)) {
-                return Optional.none();
-              } else {
-                focus$3(wrapperComp.element);
-                return Optional.some(true);
-              }
-            }
-          })
-        ])
-      };
-    };
-
-    const menuTitle$1 = 'Font sizes';
-    const getTooltipPlaceholder$1 = constant$1('Font size {0}');
-    const fallbackFontSize = '12pt';
-    const legacyFontSizes = {
-      '8pt': '1',
-      '10pt': '2',
-      '12pt': '3',
-      '14pt': '4',
-      '18pt': '5',
-      '24pt': '6',
-      '36pt': '7'
-    };
-    const keywordFontSizes = {
-      'xx-small': '7pt',
-      'x-small': '8pt',
-      'small': '10pt',
-      'medium': '12pt',
-      'large': '14pt',
-      'x-large': '18pt',
-      'xx-large': '24pt'
-    };
-    const round = (number, precision) => {
-      const factor = Math.pow(10, precision);
-      return Math.round(number * factor) / factor;
-    };
-    const toPt = (fontSize, precision) => {
-      if (/[0-9.]+px$/.test(fontSize)) {
-        return round(parseInt(fontSize, 10) * 72 / 96, precision || 0) + 'pt';
-      } else {
-        return get$h(keywordFontSizes, fontSize).getOr(fontSize);
-      }
-    };
-    const toLegacy = fontSize => get$h(legacyFontSizes, fontSize).getOr('');
-    const getSpec$1 = editor => {
-      const getMatchingValue = () => {
-        let matchOpt = Optional.none();
-        const items = dataset.data;
-        const fontSize = editor.queryCommandValue('FontSize');
-        if (fontSize) {
-          for (let precision = 3; matchOpt.isNone() && precision >= 0; precision--) {
-            const pt = toPt(fontSize, precision);
-            const legacy = toLegacy(pt);
-            matchOpt = find$5(items, item => item.format === fontSize || item.format === pt || item.format === legacy);
-          }
-        }
-        return {
-          matchOpt,
-          size: fontSize
-        };
-      };
-      const isSelectedFor = item => valueOpt => valueOpt.exists(value => value.format === item);
-      const getCurrentValue = () => {
-        const {matchOpt} = getMatchingValue();
-        return matchOpt;
-      };
-      const getPreviewFor = constant$1(Optional.none);
-      const onAction = rawItem => () => {
-        editor.undoManager.transact(() => {
-          editor.focus();
-          editor.execCommand('FontSize', false, rawItem.format);
-        });
-      };
-      const updateSelectMenuText = comp => {
-        const {matchOpt, size} = getMatchingValue();
-        const text = matchOpt.fold(constant$1(size), match => match.title);
-        emitWith(comp, updateMenuText, { text });
-        fireFontSizeTextUpdate(editor, { value: text });
-      };
-      const dataset = buildBasicSettingsDataset(editor, 'font_size_formats', Delimiter.Space);
-      return {
-        tooltip: makeTooltipText(editor, getTooltipPlaceholder$1(), fallbackFontSize),
-        text: Optional.some(fallbackFontSize),
-        icon: Optional.none(),
-        isSelectedFor,
-        getPreviewFor,
-        getCurrentValue,
-        onAction,
-        updateText: updateSelectMenuText,
-        dataset,
-        shouldHide: false,
-        isInvalid: never
-      };
-    };
-    const createFontSizeButton = (editor, backstage) => createSelectButton(editor, backstage, getSpec$1(editor), getTooltipPlaceholder$1, 'FontSizeTextUpdate', 'fontsize');
-    const getConfigFromUnit = unit => {
-      var _a;
-      const baseConfig = { step: 1 };
-      const configs = {
-        em: { step: 0.1 },
-        cm: { step: 0.1 },
-        in: { step: 0.1 },
-        pc: { step: 0.1 },
-        ch: { step: 0.1 },
-        rem: { step: 0.1 }
-      };
-      return (_a = configs[unit]) !== null && _a !== void 0 ? _a : baseConfig;
-    };
-    const defaultValue = 16;
-    const isValidValue = value => value >= 0;
-    const getNumberInputSpec = editor => {
-      const getCurrentValue = () => editor.queryCommandValue('FontSize');
-      const updateInputValue = comp => emitWith(comp, updateMenuText, { text: getCurrentValue() });
-      return {
-        updateInputValue,
-        onAction: (format, focusBack) => editor.execCommand('FontSize', false, format, { skip_focus: !focusBack }),
-        getNewValue: (text, updateFunction) => {
-          parse(text, [
-            'unsupportedLength',
-            'empty'
-          ]);
-          const currentValue = getCurrentValue();
-          const parsedText = parse(text, [
-            'unsupportedLength',
-            'empty'
-          ]).or(parse(currentValue, [
-            'unsupportedLength',
-            'empty'
-          ]));
-          const value = parsedText.map(res => res.value).getOr(defaultValue);
-          const defaultUnit = getFontSizeInputDefaultUnit(editor);
-          const unit = parsedText.map(res => res.unit).filter(u => u !== '').getOr(defaultUnit);
-          const newValue = updateFunction(value, getConfigFromUnit(unit).step);
-          const res = `${ isValidValue(newValue) ? newValue : value }${ unit }`;
-          if (res !== currentValue) {
-            fireFontSizeInputTextUpdate(editor, { value: res });
-          }
-          return res;
-        }
-      };
-    };
-    const createFontSizeInputButton = (editor, backstage) => createBespokeNumberInput(editor, backstage, getNumberInputSpec(editor), 'fontsizeinput');
-    const createFontSizeMenu = (editor, backstage) => {
-      const menuItems = createMenuItems(backstage, getSpec$1(editor));
-      editor.ui.registry.addNestedMenuItem('fontsize', {
-        text: menuTitle$1,
-        onSetup: onSetupEditableToggle(editor),
-        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
-      });
-    };
-
-    const menuTitle = 'Formats';
-    const getTooltipPlaceholder = value => isEmpty(value) ? 'Formats' : 'Format {0}';
-    const getSpec = (editor, dataset) => {
-      const fallbackFormat = 'Formats';
-      const isSelectedFor = format => () => editor.formatter.match(format);
-      const getPreviewFor = format => () => {
-        const fmt = editor.formatter.get(format);
-        return fmt !== undefined ? Optional.some({
-          tag: fmt.length > 0 ? fmt[0].inline || fmt[0].block || 'div' : 'div',
-          styles: editor.dom.parseStyle(editor.formatter.getCssText(format))
-        }) : Optional.none();
-      };
-      const updateSelectMenuText = comp => {
-        const getFormatItems = fmt => {
-          if (isNestedFormat(fmt)) {
-            return bind$3(fmt.items, getFormatItems);
-          } else if (isFormatReference(fmt)) {
-            return [{
-                title: fmt.title,
-                format: fmt.format
-              }];
-          } else {
-            return [];
-          }
-        };
-        const flattenedItems = bind$3(getStyleFormats(editor), getFormatItems);
-        const detectedFormat = findNearest(editor, constant$1(flattenedItems));
-        const text = detectedFormat.fold(constant$1({
-          title: fallbackFormat,
-          tooltipLabel: ''
-        }), fmt => ({
-          title: fmt.title,
-          tooltipLabel: fmt.title
-        }));
-        emitWith(comp, updateMenuText, { text: text.title });
-        fireStylesTextUpdate(editor, { value: text.tooltipLabel });
-      };
-      return {
-        tooltip: makeTooltipText(editor, getTooltipPlaceholder(''), ''),
-        text: Optional.some(fallbackFormat),
-        icon: Optional.none(),
-        isSelectedFor,
-        getCurrentValue: Optional.none,
-        getPreviewFor,
-        onAction: onActionToggleFormat$1(editor),
-        updateText: updateSelectMenuText,
-        shouldHide: shouldAutoHideStyleFormats(editor),
-        isInvalid: item => !editor.formatter.canApply(item.format),
-        dataset
-      };
-    };
-    const createStylesButton = (editor, backstage) => {
-      const dataset = {
-        type: 'advanced',
-        ...backstage.styles
-      };
-      return createSelectButton(editor, backstage, getSpec(editor, dataset), getTooltipPlaceholder, 'StylesTextUpdate', 'styles');
-    };
-    const createStylesMenu = (editor, backstage) => {
-      const dataset = {
-        type: 'advanced',
-        ...backstage.styles
-      };
-      const menuItems = createMenuItems(backstage, getSpec(editor, dataset));
-      editor.ui.registry.addNestedMenuItem('styles', {
-        text: menuTitle,
-        onSetup: onSetupEditableToggle(editor),
-        getSubmenuItems: () => menuItems.items.validateItems(menuItems.getStyleItems())
       });
     };
 
@@ -25577,16 +22770,16 @@
         items: ['addcomment']
       }
     ];
-    const renderFromBridge = (bridgeBuilder, render) => (spec, backstage, editor, btnName) => {
+    const renderFromBridge = (bridgeBuilder, render) => (spec, backstage, editor) => {
       const internal = bridgeBuilder(spec).mapError(errInfo => formatError(errInfo)).getOrDie();
-      return render(internal, backstage, editor, btnName);
+      return render(internal, backstage, editor);
     };
     const types = {
-      button: renderFromBridge(createToolbarButton, (s, backstage, _, btnName) => renderToolbarButton(s, backstage.shared.providers, btnName)),
-      togglebutton: renderFromBridge(createToggleButton, (s, backstage, _, btnName) => renderToolbarToggleButton(s, backstage.shared.providers, btnName)),
-      menubutton: renderFromBridge(createMenuButton, (s, backstage, _, btnName) => renderMenuButton(s, 'tox-tbtn', backstage, Optional.none(), false, btnName)),
-      splitbutton: renderFromBridge(createSplitButton, (s, backstage, _, btnName) => renderSplitButton(s, backstage.shared, btnName)),
-      grouptoolbarbutton: renderFromBridge(createGroupToolbarButton, (s, backstage, editor, btnName) => {
+      button: renderFromBridge(createToolbarButton, (s, backstage) => renderToolbarButton(s, backstage.shared.providers)),
+      togglebutton: renderFromBridge(createToggleButton, (s, backstage) => renderToolbarToggleButton(s, backstage.shared.providers)),
+      menubutton: renderFromBridge(createMenuButton, (s, backstage) => renderMenuButton(s, 'tox-tbtn', backstage, Optional.none(), false)),
+      splitbutton: renderFromBridge(createSplitButton, (s, backstage) => renderSplitButton(s, backstage.shared)),
+      grouptoolbarbutton: renderFromBridge(createGroupToolbarButton, (s, backstage, editor) => {
         const buttons = editor.ui.registry.getAll().buttons;
         const identify = toolbar => identifyButtons(editor, {
           buttons,
@@ -25596,24 +22789,23 @@
         const attributes = { [Attribute]: backstage.shared.header.isPositionedAtTop() ? AttributeValue.TopToBottom : AttributeValue.BottomToTop };
         switch (getToolbarMode(editor)) {
         case ToolbarMode$1.floating:
-          return renderFloatingToolbarButton(s, backstage, identify, attributes, btnName);
+          return renderFloatingToolbarButton(s, backstage, identify, attributes);
         default:
           throw new Error('Toolbar groups are only supported when using floating toolbar mode');
         }
       })
     };
-    const extractFrom = (spec, backstage, editor, btnName) => get$h(types, spec.type).fold(() => {
+    const extractFrom = (spec, backstage, editor) => get$g(types, spec.type).fold(() => {
       console.error('skipping button defined by', spec);
       return Optional.none();
-    }, render => Optional.some(render(spec, backstage, editor, btnName)));
+    }, render => Optional.some(render(spec, backstage, editor)));
     const bespokeButtons = {
       styles: createStylesButton,
       fontsize: createFontSizeButton,
       fontsizeinput: createFontSizeInputButton,
       fontfamily: createFontFamilyButton,
       blocks: createBlocksButton,
-      align: createAlignButton,
-      navigateback: createNavigateBackButton
+      align: createAlignButton
     };
     const removeUnusedDefaults = buttons => {
       const filteredItemGroups = map$2(defaultToolbar, group => {
@@ -25629,7 +22821,7 @@
       const groupsStrings = strToolbar.split('|');
       return map$2(groupsStrings, g => ({ items: g.trim().split(' ') }));
     };
-    const isToolbarGroupSettingArray = toolbar => isArrayOf(toolbar, t => (has$2(t, 'name') || has$2(t, 'label')) && has$2(t, 'items'));
+    const isToolbarGroupSettingArray = toolbar => isArrayOf(toolbar, t => has$2(t, 'name') && has$2(t, 'items'));
     const createToolbar = toolbarConfig => {
       const toolbar = toolbarConfig.toolbar;
       const buttons = toolbarConfig.buttons;
@@ -25646,12 +22838,12 @@
         return [];
       }
     };
-    const lookupButton = (editor, buttons, toolbarItem, allowToolbarGroups, backstage, prefixes) => get$h(buttons, toolbarItem.toLowerCase()).orThunk(() => prefixes.bind(ps => findMap(ps, prefix => get$h(buttons, prefix + toolbarItem.toLowerCase())))).fold(() => get$h(bespokeButtons, toolbarItem.toLowerCase()).map(r => r(editor, backstage)), spec => {
+    const lookupButton = (editor, buttons, toolbarItem, allowToolbarGroups, backstage, prefixes) => get$g(buttons, toolbarItem.toLowerCase()).orThunk(() => prefixes.bind(ps => findMap(ps, prefix => get$g(buttons, prefix + toolbarItem.toLowerCase())))).fold(() => get$g(bespokeButtons, toolbarItem.toLowerCase()).map(r => r(editor, backstage)), spec => {
       if (spec.type === 'grouptoolbarbutton' && !allowToolbarGroups) {
         console.warn(`Ignoring the '${ toolbarItem }' toolbar button. Group toolbar buttons are only supported when using floating toolbar mode and cannot be nested.`);
         return Optional.none();
       } else {
-        return extractFrom(spec, backstage, editor, toolbarItem.toLowerCase());
+        return extractFrom(spec, backstage, editor);
       }
     });
     const identifyButtons = (editor, toolbarConfig, backstage, prefixes) => {
@@ -25662,7 +22854,6 @@
         });
         return {
           title: Optional.from(editor.translate(group.name)),
-          label: someIf(group.label !== undefined, editor.translate(group.label)),
           items
         };
       });
@@ -25688,7 +22879,7 @@
       }
     };
 
-    const detection = detect$1();
+    const detection = detect$2();
     const isiOS12 = detection.os.isiOS() && detection.os.version.major <= 12;
     const setupEvents$1 = (editor, uiRefs) => {
       const {uiMotherships} = uiRefs;
@@ -25725,7 +22916,7 @@
       });
       editor.on('show', () => {
         each$1(uiMotherships, m => {
-          remove$7(m.element, 'display');
+          remove$6(m.element, 'display');
         });
       });
       editor.on('NodeChange', resizeDocument);
@@ -25742,19 +22933,17 @@
       }
       attachSystem(uiRoot, uiRefs.dialogUi.mothership);
     };
-    const render$1 = (editor, uiRefs, rawUiConfig, backstage, args) => {
+    const render$1 = async (editor, uiRefs, rawUiConfig, backstage, args) => {
       const {mainUi, uiMotherships} = uiRefs;
       const lastToolbarWidth = Cell(0);
       const outerContainer = mainUi.outerContainer;
-      iframe(editor);
+      await iframe(editor);
       const eTargetNode = SugarElement.fromDom(args.targetNode);
       const uiRoot = getContentContainer(getRootNode(eTargetNode));
       attachSystemAfter(eTargetNode, mainUi.mothership);
       attachUiMotherships(editor, uiRoot, uiRefs);
       editor.on('PostRender', () => {
         OuterContainer.setSidebar(outerContainer, rawUiConfig.sidebar, getSidebarShow(editor));
-      });
-      editor.on('SkinLoaded', () => {
         setToolbar(editor, uiRefs, rawUiConfig, backstage);
         lastToolbarWidth.set(editor.getWin().innerWidth);
         OuterContainer.setMenubar(outerContainer, identifyMenus(editor, rawUiConfig));
@@ -25773,10 +22962,10 @@
         const unbinder = bind(socket.element, 'scroll', limit.throttle);
         editor.on('remove', unbinder.unbind);
       }
-      setupEventsForUi(editor, uiRefs);
+      setupReadonlyModeSwitch(editor, uiRefs);
       editor.addCommand('ToggleSidebar', (_ui, value) => {
         OuterContainer.toggleSidebar(outerContainer, value);
-        fireToggleSidebar(editor);
+        editor.dispatch('ToggleSidebar');
       });
       editor.addQueryValueHandler('ToggleSidebar', () => {
         var _a;
@@ -25794,7 +22983,6 @@
             editor.nodeChanged();
             OuterContainer.refreshToolbar(outerContainer);
           }
-          fireToggleView(editor);
         }
       });
       editor.addQueryValueHandler('ToggleView', () => {
@@ -25816,8 +23004,7 @@
       }
       const api = {
         setEnabled: state => {
-          const eventType = state ? 'setEnabled' : 'setDisabled';
-          broadcastEvents(uiRefs, eventType);
+          broadcastReadonly(uiRefs, !state);
         },
         isEnabled: () => !Disabling.isDisabled(outerContainer)
       };
@@ -25846,35 +23033,16 @@
       const maxOverride = maxSize.filter(max => size > max);
       return minOverride.or(maxOverride).getOr(size);
     };
-    const convertValueToPx = (element, value) => {
-      if (typeof value === 'number') {
-        return Optional.from(value);
-      }
-      const splitValue = /^([0-9.]+)(pt|em|px)$/.exec(value.trim());
-      if (splitValue) {
-        const type = splitValue[2];
-        const parsed = Number.parseFloat(splitValue[1]);
-        if (Number.isNaN(parsed) || parsed < 0) {
-          return Optional.none();
-        } else if (type === 'em') {
-          return Optional.from(parsed * Number.parseFloat(window.getComputedStyle(element.dom).fontSize));
-        } else if (type === 'pt') {
-          return Optional.from(parsed * (72 / 96));
-        } else if (type === 'px') {
-          return Optional.from(parsed);
-        }
-      }
-      return Optional.none();
-    };
 
     const getHeight = editor => {
-      const baseHeight = convertValueToPx(SugarElement.fromDom(editor.targetElm), getHeightOption(editor));
+      const baseHeight = getHeightOption(editor);
       const minHeight = getMinHeightOption(editor);
       const maxHeight = getMaxHeightOption(editor);
-      return baseHeight.map(height => calcCappedSize(height, minHeight, maxHeight));
+      return parseToInt(baseHeight).map(height => calcCappedSize(height, minHeight, maxHeight));
     };
     const getHeightWithFallback = editor => {
-      return getHeight(editor).getOr(getHeightOption(editor));
+      const height = getHeight(editor);
+      return height.getOr(getHeightOption(editor));
     };
     const getWidth = editor => {
       const baseWidth = getWidthOption(editor);
@@ -25891,31 +23059,30 @@
     const maximumDistanceToEdge = 40;
     const InlineHeader = (editor, targetElm, uiRefs, backstage, floatContainer) => {
       const {mainUi, uiMotherships} = uiRefs;
-      const DOM = global$9.DOM;
+      const DOM = global$7.DOM;
       const useFixedToolbarContainer = useFixedContainer(editor);
       const isSticky = isStickyToolbar(editor);
       const editorMaxWidthOpt = getMaxWidthOption(editor).or(getWidth(editor));
       const headerBackstage = backstage.shared.header;
       const isPositionedAtTop = headerBackstage.isPositionedAtTop;
-      const minimumToolbarWidth = 150;
       const toolbarMode = getToolbarMode(editor);
       const isSplitToolbar = toolbarMode === ToolbarMode.sliding || toolbarMode === ToolbarMode.floating;
       const visible = Cell(false);
       const isVisible = () => visible.get() && !editor.removed;
-      const calcToolbarOffset = toolbar => isSplitToolbar ? toolbar.fold(constant$1(0), tbar => tbar.components().length > 1 ? get$e(tbar.components()[1].element) : 0) : 0;
+      const calcToolbarOffset = toolbar => isSplitToolbar ? toolbar.fold(constant$1(0), tbar => tbar.components().length > 1 ? get$d(tbar.components()[1].element) : 0) : 0;
       const calcMode = container => {
         switch (getToolbarLocation(editor)) {
         case ToolbarLocation.auto:
           const toolbar = OuterContainer.getToolbar(mainUi.outerContainer);
           const offset = calcToolbarOffset(toolbar);
-          const toolbarHeight = get$e(container.element) - offset;
+          const toolbarHeight = get$d(container.element) - offset;
           const targetBounds = box$1(targetElm);
           const roomAtTop = targetBounds.y > toolbarHeight;
           if (roomAtTop) {
             return 'top';
           } else {
             const doc = documentElement(targetElm);
-            const docHeight = Math.max(doc.dom.scrollHeight, get$e(doc));
+            const docHeight = Math.max(doc.dom.scrollHeight, get$d(doc));
             const roomAtBottom = targetBounds.bottom < docHeight - toolbarHeight;
             if (roomAtBottom) {
               return 'bottom';
@@ -25943,45 +23110,45 @@
       const updateChromeWidth = () => {
         floatContainer.on(container => {
           const maxWidth = editorMaxWidthOpt.getOrThunk(() => {
-            return getBounds$3().width - viewport$1(targetElm).left - 10;
+            const bodyMargin = parseToInt(get$e(body(), 'margin-left')).getOr(0);
+            return get$c(body()) - absolute$3(targetElm).left + bodyMargin;
           });
           set$8(container.element, 'max-width', maxWidth + 'px');
         });
       };
-      const updateChromePosition = (isOuterContainerWidthRestored, prevScroll) => {
+      const updateChromePosition = optToolbarWidth => {
         floatContainer.on(container => {
           const toolbar = OuterContainer.getToolbar(mainUi.outerContainer);
           const offset = calcToolbarOffset(toolbar);
           const targetBounds = box$1(targetElm);
-          const offsetParent = getOffsetParent$1(editor, mainUi.outerContainer.element);
-          const getLeft = () => offsetParent.fold(() => targetBounds.x, offsetParent => {
-            const offsetBox = box$1(offsetParent);
-            const isOffsetParentBody = eq(offsetParent, body());
-            return isOffsetParentBody ? targetBounds.x : targetBounds.x - offsetBox.x;
-          });
-          const getTop = () => offsetParent.fold(() => isPositionedAtTop() ? Math.max(targetBounds.y - get$e(container.element) + offset, 0) : targetBounds.bottom, offsetParent => {
+          const {top, left} = getOffsetParent$1(editor, mainUi.outerContainer.element).fold(() => {
+            return {
+              top: isPositionedAtTop() ? Math.max(targetBounds.y - get$d(container.element) + offset, 0) : targetBounds.bottom,
+              left: targetBounds.x
+            };
+          }, offsetParent => {
             var _a;
             const offsetBox = box$1(offsetParent);
             const scrollDelta = (_a = offsetParent.dom.scrollTop) !== null && _a !== void 0 ? _a : 0;
             const isOffsetParentBody = eq(offsetParent, body());
-            const topValue = isOffsetParentBody ? Math.max(targetBounds.y - get$e(container.element) + offset, 0) : targetBounds.y - offsetBox.y + scrollDelta - get$e(container.element) + offset;
-            return isPositionedAtTop() ? topValue : targetBounds.bottom;
+            const topValue = isOffsetParentBody ? Math.max(targetBounds.y - get$d(container.element) + offset, 0) : targetBounds.y - offsetBox.y + scrollDelta - get$d(container.element) + offset;
+            return {
+              top: isPositionedAtTop() ? topValue : targetBounds.bottom,
+              left: isOffsetParentBody ? targetBounds.x : targetBounds.x - offsetBox.x
+            };
           });
-          const left = getLeft();
-          const widthProperties = someIf(isOuterContainerWidthRestored, Math.ceil(mainUi.outerContainer.element.dom.getBoundingClientRect().width)).filter(w => w > minimumToolbarWidth).map(toolbarWidth => {
-            const scroll = prevScroll.getOr(get$c());
-            const availableWidth = window.innerWidth - (left - scroll.left);
-            const width = Math.max(Math.min(toolbarWidth, availableWidth), minimumToolbarWidth);
-            if (availableWidth < toolbarWidth) {
-              set$8(mainUi.outerContainer.element, 'width', width + 'px');
-            }
-            return { width: width + 'px' };
-          }).getOr({ width: 'max-content' });
           const baseProperties = {
             position: 'absolute',
             left: Math.round(left) + 'px',
-            top: getTop() + 'px'
+            top: Math.round(top) + 'px'
           };
+          const widthProperties = optToolbarWidth.map(toolbarWidth => {
+            const scroll = get$b();
+            const minimumToolbarWidth = 150;
+            const availableWidth = window.innerWidth - (left - scroll.left);
+            const width = Math.max(Math.min(toolbarWidth, availableWidth), minimumToolbarWidth);
+            return { width: width + 'px' };
+          }).getOr({});
           setAll(mainUi.outerContainer.element, {
             ...baseProperties,
             ...widthProperties
@@ -25994,17 +23161,21 @@
           m.broadcastOn([repositionPopups()], {});
         });
       };
-      const restoreOuterContainerWidth = () => {
+      const restoreAndGetCompleteOuterContainerWidth = () => {
         if (!useFixedToolbarContainer) {
           const toolbarCurrentRightsidePosition = absolute$3(mainUi.outerContainer.element).left + getOuter$1(mainUi.outerContainer.element);
           if (toolbarCurrentRightsidePosition >= window.innerWidth - maximumDistanceToEdge || getRaw(mainUi.outerContainer.element, 'width').isSome()) {
             set$8(mainUi.outerContainer.element, 'position', 'absolute');
             set$8(mainUi.outerContainer.element, 'left', '0px');
-            remove$7(mainUi.outerContainer.element, 'width');
-            return true;
+            remove$6(mainUi.outerContainer.element, 'width');
+            const w = getOuter$1(mainUi.outerContainer.element);
+            return Optional.some(w);
+          } else {
+            return Optional.none();
           }
+        } else {
+          return Optional.none();
         }
-        return false;
       };
       const update = stickyAction => {
         if (!isVisible()) {
@@ -26013,18 +23184,12 @@
         if (!useFixedToolbarContainer) {
           updateChromeWidth();
         }
-        const prevScroll = get$c();
-        const isOuterContainerWidthRestored = useFixedToolbarContainer ? false : restoreOuterContainerWidth();
+        const optToolbarWidth = useFixedToolbarContainer ? Optional.none() : restoreAndGetCompleteOuterContainerWidth();
         if (isSplitToolbar) {
           OuterContainer.refreshToolbar(mainUi.outerContainer);
         }
         if (!useFixedToolbarContainer) {
-          const currentScroll = get$c();
-          const optScroll = someIf(prevScroll.left !== currentScroll.left, prevScroll);
-          updateChromePosition(isOuterContainerWidthRestored, optScroll);
-          optScroll.each(scroll => {
-            to(scroll.left, currentScroll.top);
-          });
+          updateChromePosition(optToolbarWidth);
         }
         if (isSticky) {
           floatContainer.on(stickyAction);
@@ -26051,7 +23216,7 @@
         set$8(mainUi.outerContainer.element, 'display', 'flex');
         DOM.addClass(editor.getBody(), 'mce-edit-focus');
         each$1(uiMotherships, m => {
-          remove$7(m.element, 'display');
+          remove$6(m.element, 'display');
         });
         doUpdateMode();
         if (isSplitUiMode(editor)) {
@@ -26128,7 +23293,7 @@
       let lastScrollX = 0;
       const updateUi = last(() => ui.update(Docking.refresh), 33);
       editor.on('ScrollWindow', () => {
-        const newScrollX = get$c().left;
+        const newScrollX = get$b().left;
         if (newScrollX !== lastScrollX) {
           lastScrollX = newScrollX;
           updateUi.throttle();
@@ -26146,13 +23311,13 @@
         elementLoad.clear();
       });
     };
-    const render = (editor, uiRefs, rawUiConfig, backstage, args) => {
+    const render = async (editor, uiRefs, rawUiConfig, backstage, args) => {
       const {mainUi} = uiRefs;
-      const floatContainer = value$4();
+      const floatContainer = value$2();
       const targetElm = SugarElement.fromDom(args.targetNode);
       const ui = InlineHeader(editor, targetElm, uiRefs, backstage, floatContainer);
       const toolbarPersist = isToolbarPersist(editor);
-      inline(editor);
+      await inline(editor);
       const render = () => {
         if (floatContainer.isSet()) {
           ui.show();
@@ -26167,18 +23332,11 @@
           attachSystem(uiContainer, mainUi.mothership);
         }
         attachSystem(uiContainer, uiRefs.dialogUi.mothership);
-        const setup = () => {
-          setToolbar(editor, uiRefs, rawUiConfig, backstage);
-          OuterContainer.setMenubar(mainUi.outerContainer, identifyMenus(editor, rawUiConfig));
-          ui.show();
-          setupEvents(editor, targetElm, ui, toolbarPersist);
-          editor.nodeChanged();
-        };
-        if (toolbarPersist) {
-          editor.once('SkinLoaded', setup);
-        } else {
-          setup();
-        }
+        setToolbar(editor, uiRefs, rawUiConfig, backstage);
+        OuterContainer.setMenubar(mainUi.outerContainer, identifyMenus(editor, rawUiConfig));
+        ui.show();
+        setupEvents(editor, targetElm, ui, toolbarPersist);
+        editor.nodeChanged();
       };
       editor.on('show', render);
       editor.on('hide', ui.hide);
@@ -26191,13 +23349,12 @@
           render();
         }
       });
-      setupEventsForUi(editor, uiRefs);
+      setupReadonlyModeSwitch(editor, uiRefs);
       const api = {
         show: render,
         hide: ui.hide,
         setEnabled: state => {
-          const eventType = state ? 'setEnabled' : 'setDisabled';
-          broadcastEvents(uiRefs, eventType);
+          broadcastReadonly(uiRefs, !state);
         },
         isEnabled: () => !Disabling.isDisabled(mainUi.outerContainer)
       };
@@ -26213,9 +23370,9 @@
     });
 
     const LazyUiReferences = () => {
-      const dialogUi = value$4();
-      const popupUi = value$4();
-      const mainUi = value$4();
+      const dialogUi = value$2();
+      const popupUi = value$2();
+      const mainUi = value$2();
       const lazyGetInOuterOrDie = (label, f) => () => mainUi.get().bind(oc => f(oc.outerContainer)).getOrDie(`Could not find ${ label } element in OuterContainer`);
       const getUiMotherships = () => {
         const optDialogMothership = dialogUi.get().map(ui => ui.mothership);
@@ -26234,72 +23391,46 @@
       };
     };
 
-    var global$1 = tinymce.util.Tools.resolve('tinymce.util.VK');
-
     const showContextToolbarEvent = 'contexttoolbar-show';
     const hideContextToolbarEvent = 'contexttoolbar-hide';
 
-    const getFormApi = (input, valueState, focusfallbackElement) => {
-      return {
-        setInputEnabled: state => {
-          if (!state && focusfallbackElement) {
-            focus$3(focusfallbackElement);
-          }
-          Disabling.set(input, !state);
-        },
-        isInputEnabled: () => !Disabling.isDisabled(input),
-        hide: () => {
-          emit(input, sandboxClose());
-        },
-        back: () => {
-          emit(input, backSlideEvent);
-        },
-        getValue: () => {
-          return valueState.get().getOrThunk(() => Representing.getValue(input));
-        },
-        setValue: value => {
-          if (input.getSystem().isConnected()) {
-            Representing.setValue(input, value);
-          } else {
-            valueState.set(value);
-          }
-        }
-      };
-    };
-
-    const runOnExecute = (memInput, original, valueState) => run$1(internalToolbarButtonExecute, (comp, se) => {
+    const getFormApi = input => ({
+      hide: () => emit(input, sandboxClose()),
+      getValue: () => Representing.getValue(input)
+    });
+    const runOnExecute = (memInput, original) => run$1(internalToolbarButtonExecute, (comp, se) => {
       const input = memInput.get(comp);
-      const formApi = getFormApi(input, valueState, comp.element);
+      const formApi = getFormApi(input);
       original.onAction(formApi, se.event.buttonApi);
     });
-    const renderContextButton = (memInput, button, providers, valueState) => {
+    const renderContextButton = (memInput, button, providers) => {
       const {primary, ...rest} = button.original;
       const bridged = getOrDie(createToolbarButton({
         ...rest,
         type: 'button',
         onAction: noop
       }));
-      return renderToolbarButtonWith(bridged, providers, [runOnExecute(memInput, button, valueState)]);
+      return renderToolbarButtonWith(bridged, providers, [runOnExecute(memInput, button)]);
     };
-    const renderContextToggleButton = (memInput, button, providers, valueState) => {
+    const renderContextToggleButton = (memInput, button, providers) => {
       const {primary, ...rest} = button.original;
       const bridged = getOrDie(createToggleButton({
         ...rest,
         type: 'togglebutton',
         onAction: noop
       }));
-      return renderToolbarToggleButtonWith(bridged, providers, [runOnExecute(memInput, button, valueState)]);
+      return renderToolbarToggleButtonWith(bridged, providers, [runOnExecute(memInput, button)]);
     };
     const isToggleButton = button => button.type === 'contextformtogglebutton';
-    const generateOne = (memInput, button, providersBackstage, valueState) => {
+    const generateOne = (memInput, button, providersBackstage) => {
       if (isToggleButton(button)) {
-        return renderContextToggleButton(memInput, button, providersBackstage, valueState);
+        return renderContextToggleButton(memInput, button, providersBackstage);
       } else {
-        return renderContextButton(memInput, button, providersBackstage, valueState);
+        return renderContextButton(memInput, button, providersBackstage);
       }
     };
-    const generate = (memInput, buttons, providersBackstage, valueState) => {
-      const mementos = map$2(buttons, button => record(generateOne(memInput, button, providersBackstage, valueState)));
+    const generate = (memInput, buttons, providersBackstage) => {
+      const mementos = map$2(buttons, button => record(generateOne(memInput, button, providersBackstage)));
       const asSpecs = () => map$2(mementos, mem => mem.asSpec());
       const findPrimary = compInSystem => findMap(buttons, (button, i) => {
         if (button.primary) {
@@ -26314,296 +23445,22 @@
       };
     };
 
-    const renderContextFormSizeInput = (ctx, providersBackstage, onEnter, valueState) => {
-      const {width, height} = ctx.initValue();
-      let converter = noSizeConversion;
-      const enabled = true;
-      const ratioEvent = generate$6('ratio-event');
-      const getApi = comp => getFormApi(comp, valueState);
-      const makeIcon = iconName => render$4(iconName, {
-        tag: 'span',
-        classes: [
-          'tox-icon',
-          'tox-lock-icon__' + iconName
-        ]
-      }, providersBackstage.icons);
-      const disabled = () => !enabled;
-      const label = ctx.label.getOr('Constrain proportions');
-      const translatedLabel = providersBackstage.translate(label);
-      const pLock = FormCoupledInputs.parts.lock({
-        dom: {
-          tag: 'button',
-          classes: [
-            'tox-lock',
-            'tox-button',
-            'tox-button--naked',
-            'tox-button--icon'
-          ],
-          attributes: {
-            'aria-label': translatedLabel,
-            'data-mce-name': label
-          }
-        },
-        components: [
-          makeIcon('lock'),
-          makeIcon('unlock')
-        ],
-        buttonBehaviours: derive$1([
-          Disabling.config({ disabled }),
-          Tabstopping.config({}),
-          Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: translatedLabel }))
-        ])
-      });
-      const formGroup = components => ({
-        dom: {
-          tag: 'div',
-          classes: ['tox-context-form__group']
-        },
-        components
-      });
-      const goToParent = comp => {
-        const focussableWrapperOpt = ancestor$1(comp.element, 'div.tox-focusable-wrapper');
-        return focussableWrapperOpt.fold(Optional.none, focussableWrapper => {
-          focus$3(focussableWrapper);
-          return Optional.some(true);
-        });
-      };
-      const getFieldPart = isField1 => FormField.parts.field({
-        factory: Input,
-        inputClasses: [
-          'tox-textfield',
-          'tox-toolbar-textfield',
-          'tox-textfield-size'
-        ],
-        data: isField1 ? width : height,
-        inputBehaviours: derive$1([
-          Disabling.config({ disabled }),
-          Tabstopping.config({}),
-          config('size-input-toolbar-events', [run$1(focusin(), (component, _simulatedEvent) => {
-              emitWith(component, ratioEvent, { isField1 });
-            })]),
-          Keying.config({
-            mode: 'special',
-            onEnter,
-            onEscape: goToParent
-          })
-        ]),
-        selectOnFocus: false
-      });
-      const getLabel = label => ({
-        dom: {
-          tag: 'label',
-          classes: ['tox-label']
-        },
-        components: [text$2(providersBackstage.translate(label))]
-      });
-      const focusableWrapper = field => ({
-        dom: {
-          tag: 'div',
-          classes: [
-            'tox-focusable-wrapper',
-            'tox-toolbar-nav-item'
-          ]
-        },
-        components: [field],
-        behaviours: derive$1([
-          Tabstopping.config({}),
-          Focusing.config({}),
-          Keying.config({
-            mode: 'special',
-            onEnter: comp => {
-              const focussableInputOpt = descendant(comp.element, 'input');
-              return focussableInputOpt.fold(Optional.none, focussableInput => {
-                focus$3(focussableInput);
-                return Optional.some(true);
-              });
-            }
-          })
-        ])
-      });
-      const widthField = focusableWrapper(FormCoupledInputs.parts.field1(formGroup([
-        FormField.parts.label(getLabel('Width:')),
-        getFieldPart(true)
-      ])));
-      const heightField = focusableWrapper(FormCoupledInputs.parts.field2(formGroup([
-        FormField.parts.label(getLabel('Height:')),
-        getFieldPart(false)
-      ])));
-      const editorOffCell = Cell(noop);
-      const controlLifecycleHandlers = [
-        onControlAttached({
-          onBeforeSetup: comp => descendant(comp.element, 'input').each(focus$3),
-          onSetup: ctx.onSetup,
-          getApi
-        }, editorOffCell),
-        onContextFormControlDetached({ getApi }, editorOffCell, valueState)
-      ];
-      return FormCoupledInputs.sketch({
-        dom: {
-          tag: 'div',
-          classes: ['tox-context-form__group']
-        },
-        components: [
-          widthField,
-          heightField,
-          formGroup([
-            getLabel(nbsp),
-            pLock
-          ])
-        ],
-        field1Name: 'width',
-        field2Name: 'height',
-        locked: true,
-        markers: { lockClass: 'tox-locked' },
-        onLockedChange: (current, other, _lock) => {
-          parseSize(Representing.getValue(current)).each(size => {
-            converter(size).each(newSize => {
-              Representing.setValue(other, formatSize(newSize));
-            });
-          });
-        },
-        onInput: current => emit(current, formInputEvent),
-        coupledFieldBehaviours: derive$1([
-          Focusing.config({}),
-          Keying.config({
-            mode: 'flow',
-            focusInside: FocusInsideModes.OnEnterOrSpaceMode,
-            cycles: false,
-            selector: 'button, .tox-focusable-wrapper'
-          }),
-          Disabling.config({
-            disabled,
-            onDisabled: comp => {
-              FormCoupledInputs.getField1(comp).bind(FormField.getField).each(Disabling.disable);
-              FormCoupledInputs.getField2(comp).bind(FormField.getField).each(Disabling.disable);
-              FormCoupledInputs.getLock(comp).each(Disabling.disable);
-            },
-            onEnabled: comp => {
-              FormCoupledInputs.getField1(comp).bind(FormField.getField).each(Disabling.enable);
-              FormCoupledInputs.getField2(comp).bind(FormField.getField).each(Disabling.enable);
-              FormCoupledInputs.getLock(comp).each(Disabling.enable);
-            }
-          }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext('mode:design')),
-          config('size-input-toolbar-events2', [
-            run$1(ratioEvent, (component, simulatedEvent) => {
-              const isField1 = simulatedEvent.event.isField1;
-              const optCurrent = isField1 ? FormCoupledInputs.getField1(component) : FormCoupledInputs.getField2(component);
-              const optOther = isField1 ? FormCoupledInputs.getField2(component) : FormCoupledInputs.getField1(component);
-              const value1 = optCurrent.map(Representing.getValue).getOr('');
-              const value2 = optOther.map(Representing.getValue).getOr('');
-              converter = makeRatioConverter(value1, value2);
-            }),
-            run$1(formInputEvent, input => ctx.onInput(getApi(input))),
-            ...controlLifecycleHandlers
-          ])
-        ])
-      });
-    };
-
-    const createContextFormFieldFromParts = (pLabel, pField, providers) => FormField.sketch({
-      dom: {
-        tag: 'div',
-        classes: ['tox-context-form__group']
-      },
-      components: [
-        ...pLabel.toArray(),
-        pField
-      ],
-      fieldBehaviours: derive$1([Disabling.config({
-          disabled: () => providers.checkUiComponentContext('mode:design').shouldDisable,
-          onDisabled: comp => {
-            focusParent(comp);
-            FormField.getField(comp).each(Disabling.disable);
-          },
-          onEnabled: comp => {
-            FormField.getField(comp).each(Disabling.enable);
-          }
-        })])
-    });
-
-    const renderContextFormSliderInput = (ctx, providers, onEnter, valueState) => {
-      const editorOffCell = Cell(noop);
-      const getApi = comp => getFormApi(comp, valueState);
-      const pLabel = ctx.label.map(label => FormField.parts.label({
-        dom: {
-          tag: 'label',
-          classes: ['tox-label']
-        },
-        components: [text$2(providers.translate(label))]
-      }));
-      const pField = FormField.parts.field({
-        factory: Input,
-        type: 'range',
-        inputClasses: [
-          'tox-toolbar-slider__input',
-          'tox-toolbar-nav-item'
-        ],
-        inputAttributes: {
-          min: String(ctx.min()),
-          max: String(ctx.max())
-        },
-        data: ctx.initValue().toString(),
-        fromInputValue: value => toFloat(value).getOr(ctx.min()),
-        toInputValue: value => String(value),
-        inputBehaviours: derive$1([
-          Disabling.config({ disabled: () => providers.checkUiComponentContext('mode:design').shouldDisable }),
-          toggleOnReceive(() => providers.checkUiComponentContext('mode:design')),
-          Keying.config({
-            mode: 'special',
-            onEnter,
-            onLeft: (comp, se) => {
-              se.cut();
-              return Optional.none();
-            },
-            onRight: (comp, se) => {
-              se.cut();
-              return Optional.none();
-            }
-          }),
-          config('slider-events', [
-            onControlAttached({
-              onSetup: ctx.onSetup,
-              getApi,
-              onBeforeSetup: Keying.focusIn
-            }, editorOffCell),
-            onContextFormControlDetached({ getApi }, editorOffCell, valueState),
-            run$1(input(), comp => {
-              ctx.onInput(getApi(comp));
-            })
-          ])
-        ])
-      });
-      return createContextFormFieldFromParts(pLabel, pField, providers);
-    };
-
-    const renderContextFormTextInput = (ctx, providers, onEnter, valueState) => {
-      const editorOffCell = Cell(noop);
-      const getFormApi$1 = comp => getFormApi(comp, valueState);
-      const pLabel = ctx.label.map(label => FormField.parts.label({
-        dom: {
-          tag: 'label',
-          classes: ['tox-label']
-        },
-        components: [text$2(providers.translate(label))]
-      }));
-      const placeholder = ctx.placeholder.map(p => ({ placeholder: providers.translate(p) })).getOr({});
-      const inputAttributes = { ...placeholder };
-      const pField = FormField.parts.field({
-        factory: Input,
+    const buildInitGroups = (ctx, providers) => {
+      const inputAttributes = ctx.label.fold(() => ({}), label => ({ 'aria-label': label }));
+      const memInput = record(Input.sketch({
         inputClasses: [
           'tox-toolbar-textfield',
-          'tox-toolbar-nav-item'
+          'tox-toolbar-nav-js'
         ],
-        inputAttributes,
         data: ctx.initValue(),
+        inputAttributes,
         selectOnFocus: true,
-        inputBehaviours: derive$1([
-          Disabling.config({ disabled: () => providers.checkUiComponentContext('mode:design').shouldDisable }),
-          toggleOnReceive(() => providers.checkUiComponentContext('mode:design')),
-          Keying.config({
+        inputBehaviours: derive$1([Keying.config({
             mode: 'special',
-            onEnter,
+            onEnter: input => commands.findPrimary(input).map(primary => {
+              emitExecute(primary);
+              return true;
+            }),
             onLeft: (comp, se) => {
               se.cut();
               return Optional.none();
@@ -26612,65 +23469,19 @@
               se.cut();
               return Optional.none();
             }
-          }),
-          config('input-events', [
-            onControlAttached({
-              onSetup: ctx.onSetup,
-              getApi: comp => {
-                const closestFocussableOpt = ancestor$1(comp.element, '.tox-toolbar').bind(toolbar => descendant(toolbar, 'button:enabled'));
-                return closestFocussableOpt.fold(() => getFormApi(comp, valueState), closestFocussable => getFormApi(comp, valueState, closestFocussable));
-              },
-              onBeforeSetup: Keying.focusIn
-            }, editorOffCell),
-            onContextFormControlDetached({ getApi: getFormApi$1 }, editorOffCell, valueState),
-            run$1(input(), comp => {
-              ctx.onInput(getFormApi$1(comp));
-            })
-          ])
-        ])
-      });
-      return createContextFormFieldFromParts(pLabel, pField, providers);
-    };
-
-    const buildInitGroup = (f, ctx, providers) => {
-      const valueState = value$4();
-      const onEnter = input => {
-        return startCommands.findPrimary(input).orThunk(() => endCommands.findPrimary(input)).map(primary => {
-          emitExecute(primary);
-          return true;
-        });
-      };
-      const memInput = record(f(providers, onEnter, valueState));
-      const commandParts = partition$3(ctx.commands, command => command.align === 'start');
-      const startCommands = generate(memInput, commandParts.pass, providers, valueState);
-      const endCommands = generate(memInput, commandParts.fail, providers, valueState);
-      return filter$2([
+          })])
+      }));
+      const commands = generate(memInput, ctx.commands, providers);
+      return [
         {
           title: Optional.none(),
-          label: Optional.none(),
-          items: startCommands.asSpecs()
-        },
-        {
-          title: Optional.none(),
-          label: Optional.none(),
           items: [memInput.asSpec()]
         },
         {
           title: Optional.none(),
-          label: Optional.none(),
-          items: endCommands.asSpecs()
+          items: commands.asSpecs()
         }
-      ], group => group.items.length > 0);
-    };
-    const buildInitGroups = (ctx, providers) => {
-      switch (ctx.type) {
-      case 'contextform':
-        return buildInitGroup(curry(renderContextFormTextInput, ctx), ctx, providers);
-      case 'contextsliderform':
-        return buildInitGroup(curry(renderContextFormSliderInput, ctx), ctx, providers);
-      case 'contextsizeinputform':
-        return buildInitGroup(curry(renderContextFormSizeInput, ctx), ctx, providers);
-      }
+      ];
     };
     const renderContextForm = (toolbarType, ctx, providers) => renderToolbar({
       type: toolbarType,
@@ -26700,7 +23511,7 @@
       const rng = editor.selection.getRng();
       const rect = getRangeRect(rng);
       if (editor.inline) {
-        const scroll = get$c();
+        const scroll = get$b();
         return bounds(scroll.left + rect.left, scroll.top + rect.top, rect.width, rect.height);
       } else {
         const bodyPos = absolute$2(SugarElement.fromDom(editor.getBody()));
@@ -26800,8 +23611,8 @@
           return isOverlapping && !data.isReposition() ? flip : preserve;
         });
       } else {
-        const yBounds = data.getMode() === 'fixed' ? bounds.y + get$c().top : bounds.y;
-        const contextbarHeight = get$e(contextbar) + bubbleSize$1;
+        const yBounds = data.getMode() === 'fixed' ? bounds.y + get$b().top : bounds.y;
+        const contextbarHeight = get$d(contextbar) + bubbleSize$1;
         return yBounds + contextbarHeight <= selectionBounds.y ? north : south;
       }
     };
@@ -26946,7 +23757,7 @@
       if (isRoot(startNode)) {
         return Optional.none();
       } else {
-        return ancestor(startNode, ancestorElem => {
+        return ancestor$2(startNode, ancestorElem => {
           if (isElement$1(ancestorElem)) {
             const {contextToolbars, contextForms} = matchTargetWith(ancestorElem, scopes.inNodeScope);
             const toolbars = contextForms.length > 0 ? contextForms : filterByPositionForAncestorNode(contextToolbars);
@@ -26998,15 +23809,6 @@
       };
       const registerToolbar = (key, toolbarSpec) => {
         createContextToolbar(toolbarSpec).each(contextToolbar => {
-          if (contextToolbar.launch.isSome()) {
-            formNavigators['toolbar:' + key + ''] = {
-              ...toolbarSpec.launch,
-              type: 'button',
-              onAction: () => {
-                navigate(contextToolbar);
-              }
-            };
-          }
           if (toolbarSpec.scope === 'editor') {
             inEditorScope.push(contextToolbar);
           } else {
@@ -27018,7 +23820,7 @@
       const keys$1 = keys(contextToolbars);
       each$1(keys$1, key => {
         const toolbarApi = contextToolbars[key];
-        if (toolbarApi.type === 'contextform' || toolbarApi.type === 'contextsliderform' || toolbarApi.type === 'contextsizeinputform') {
+        if (toolbarApi.type === 'contextform') {
           registerForm(key, toolbarApi);
         } else if (toolbarApi.type === 'contexttoolbar') {
           registerToolbar(key, toolbarApi);
@@ -27033,30 +23835,104 @@
       };
     };
 
+    const forwardSlideEvent = generate$6('forward-slide');
+    const backSlideEvent = generate$6('backward-slide');
+    const changeSlideEvent = generate$6('change-slide-event');
+    const resizingClass = 'tox-pop--resizing';
+    const renderContextToolbar = spec => {
+      const stack = Cell([]);
+      return InlineView.sketch({
+        dom: {
+          tag: 'div',
+          classes: ['tox-pop']
+        },
+        fireDismissalEventInstead: { event: 'doNotDismissYet' },
+        onShow: comp => {
+          stack.set([]);
+          InlineView.getContent(comp).each(c => {
+            remove$6(c.element, 'visibility');
+          });
+          remove$2(comp.element, resizingClass);
+          remove$6(comp.element, 'width');
+        },
+        inlineBehaviours: derive$1([
+          config('context-toolbar-events', [
+            runOnSource(transitionend(), (comp, se) => {
+              if (se.event.raw.propertyName === 'width') {
+                remove$2(comp.element, resizingClass);
+                remove$6(comp.element, 'width');
+              }
+            }),
+            run$1(changeSlideEvent, (comp, se) => {
+              const elem = comp.element;
+              remove$6(elem, 'width');
+              const currentWidth = get$c(elem);
+              InlineView.setContent(comp, se.event.contents);
+              add$2(elem, resizingClass);
+              const newWidth = get$c(elem);
+              set$8(elem, 'width', currentWidth + 'px');
+              InlineView.getContent(comp).each(newContents => {
+                se.event.focus.bind(f => {
+                  focus$3(f);
+                  return search(elem);
+                }).orThunk(() => {
+                  Keying.focusIn(newContents);
+                  return active$1(getRootNode(elem));
+                });
+              });
+              setTimeout(() => {
+                set$8(comp.element, 'width', newWidth + 'px');
+              }, 0);
+            }),
+            run$1(forwardSlideEvent, (comp, se) => {
+              InlineView.getContent(comp).each(oldContents => {
+                stack.set(stack.get().concat([{
+                    bar: oldContents,
+                    focus: active$1(getRootNode(comp.element))
+                  }]));
+              });
+              emitWith(comp, changeSlideEvent, {
+                contents: se.event.forwardContents,
+                focus: Optional.none()
+              });
+            }),
+            run$1(backSlideEvent, (comp, _se) => {
+              last$1(stack.get()).each(last => {
+                stack.set(stack.get().slice(0, stack.get().length - 1));
+                emitWith(comp, changeSlideEvent, {
+                  contents: premade(last.bar),
+                  focus: last.focus
+                });
+              });
+            })
+          ]),
+          Keying.config({
+            mode: 'special',
+            onEscape: comp => last$1(stack.get()).fold(() => spec.onEscape(), _ => {
+              emit(comp, backSlideEvent);
+              return Optional.some(true);
+            })
+          })
+        ]),
+        lazySink: () => Result.value(spec.sink)
+      });
+    };
+
     const transitionClass = 'tox-pop--transition';
-    const isToolbarActionKey = keyCode => keyCode === global$1.ENTER || keyCode === global$1.SPACEBAR;
-    const register$a = (editor, registryContextToolbars, sink, extras) => {
+    const register$9 = (editor, registryContextToolbars, sink, extras) => {
       const backstage = extras.backstage;
       const sharedBackstage = backstage.shared;
-      const isTouch = detect$1().deviceType.isTouch;
-      const lastElement = value$4();
-      const lastTrigger = value$4();
-      const lastContextPosition = value$4();
-      const contextToolbarResult = renderContextToolbar({
+      const isTouch = detect$2().deviceType.isTouch;
+      const lastElement = value$2();
+      const lastTrigger = value$2();
+      const lastContextPosition = value$2();
+      const contextbar = build$1(renderContextToolbar({
         sink,
         onEscape: () => {
           editor.focus();
-          fireContextToolbarClose(editor);
           return Optional.some(true);
-        },
-        onHide: () => {
-          fireContextToolbarClose(editor);
-        },
-        onBack: () => {
-          fireContextFormSlideBack(editor);
         }
-      });
-      const contextbar = build$1(contextToolbarResult.sketch);
+      }));
       const getBounds = () => {
         const position = lastContextPosition.get().getOr('node');
         const margin = shouldUseInsetLayouts(position) ? 1 : 0;
@@ -27084,7 +23960,7 @@
       const hideOrRepositionIfNecessary = () => {
         if (InlineView.isOpen(contextbar)) {
           const contextBarEle = contextbar.element;
-          remove$7(contextBarEle, 'display');
+          remove$6(contextBarEle, 'display');
           if (shouldContextToolbarHide()) {
             set$8(contextBarEle, 'display', 'none');
           } else {
@@ -27111,21 +23987,15 @@
           ])
         ])
       });
-      const navigate = toolbarApi => {
+      const getScopes = cached(() => categorise(registryContextToolbars, toolbarApi => {
         const alloySpec = buildToolbar([toolbarApi]);
         emitWith(contextbar, forwardSlideEvent, { forwardContents: wrapInPopDialog(alloySpec) });
-      };
-      const getScopes = cached(() => categorise(registryContextToolbars, navigate));
-      const buildContextToolbarGroups = (allButtons, ctx) => {
-        return identifyButtons(editor, {
-          buttons: allButtons,
-          toolbar: ctx.items,
-          allowToolbarGroups: false
-        }, extras.backstage, Optional.some([
-          'form:',
-          'toolbar:'
-        ]));
-      };
+      }));
+      const buildContextToolbarGroups = (allButtons, ctx) => identifyButtons(editor, {
+        buttons: allButtons,
+        toolbar: ctx.items,
+        allowToolbarGroups: false
+      }, extras.backstage, Optional.some(['form:']));
       const buildContextFormGroups = (ctx, providers) => ContextForm.buildInitGroups(ctx, providers);
       const buildToolbar = toolbars => {
         const {buttons} = editor.ui.registry.getAll();
@@ -27135,7 +24005,7 @@
           ...scopes.formNavigators
         };
         const toolbarType = getToolbarMode(editor) === ToolbarMode$1.scrolling ? ToolbarMode$1.scrolling : ToolbarMode$1.default;
-        const initGroups = flatten(map$2(toolbars, ctx => ctx.type === 'contexttoolbar' ? buildContextToolbarGroups(allButtons, contextToolbarToSpec(ctx)) : buildContextFormGroups(ctx, sharedBackstage.providers)));
+        const initGroups = flatten(map$2(toolbars, ctx => ctx.type === 'contexttoolbar' ? buildContextToolbarGroups(allButtons, ctx) : buildContextFormGroups(ctx, sharedBackstage.providers)));
         return renderToolbar({
           type: toolbarType,
           uid: generate$6('context-toolbar'),
@@ -27165,9 +24035,9 @@
         lastContextPosition.set(position);
         lastTrigger.set(1);
         const contextBarEle = contextbar.element;
-        remove$7(contextBarEle, 'display');
+        remove$6(contextBarEle, 'display');
         if (!isSameLaunchElement(elem)) {
-          remove$3(contextBarEle, transitionClass);
+          remove$2(contextBarEle, transitionClass);
           Positioning.reset(sink, contextbar);
         }
         InlineView.showWithinBounds(contextbar, wrapInPopDialog(toolbarSpec), {
@@ -27181,11 +24051,6 @@
         if (shouldContextToolbarHide()) {
           set$8(contextBarEle, 'display', 'none');
         }
-      };
-      const instantReposition = () => {
-        set$8(contextbar.element, 'transition', 'none');
-        hideOrRepositionIfNecessary();
-        remove$7(contextbar.element, 'transition');
       };
       let isDragging = false;
       const launchContextToolbar = last(() => {
@@ -27204,39 +24069,24 @@
       editor.on('init', () => {
         editor.on('remove', close);
         editor.on('ScrollContent ScrollWindow ObjectResized ResizeEditor longpress', hideOrRepositionIfNecessary);
-        editor.on('click focus SetContent', launchContextToolbar.throttle);
-        editor.on('keyup', e => {
-          if (!isToolbarActionKey(e.keyCode) || !contextToolbarResult.inSubtoolbar()) {
-            launchContextToolbar.throttle();
-          }
-        });
+        editor.on('click keyup focus SetContent', launchContextToolbar.throttle);
         editor.on(hideContextToolbarEvent, close);
         editor.on(showContextToolbarEvent, e => {
           const scopes = getScopes();
-          get$h(scopes.lookupTable, e.toolbarKey).each(ctx => {
+          get$g(scopes.lookupTable, e.toolbarKey).each(ctx => {
             launchContext([ctx], someIf(e.target !== editor, e.target));
-            focusIn(contextbar);
+            InlineView.getContent(contextbar).each(Keying.focusIn);
           });
         });
         editor.on('focusout', _e => {
-          global$a.setEditorTimeout(editor, () => {
-            if (search(sink.element).isNone() && search(contextbar.element).isNone() && !editor.hasFocus()) {
+          global$9.setEditorTimeout(editor, () => {
+            if (search(sink.element).isNone() && search(contextbar.element).isNone()) {
               close();
             }
           }, 0);
         });
         editor.on('SwitchMode', () => {
           if (editor.mode.isReadOnly()) {
-            close();
-          }
-        });
-        editor.on('DisabledStateChange', e => {
-          if (e.state) {
-            close();
-          }
-        });
-        editor.on('ExecCommand', ({command}) => {
-          if (command.toLowerCase() === 'toggleview') {
             close();
           }
         });
@@ -27254,16 +24104,12 @@
           isDragging = false;
         });
         editor.on('NodeChange', _e => {
-          if (!contextToolbarResult.inSubtoolbar()) {
-            search(contextbar.element).fold(launchContextToolbar.throttle, noop);
-          } else {
-            instantReposition();
-          }
+          search(contextbar.element).fold(launchContextToolbar.throttle, noop);
         });
       });
     };
 
-    const register$9 = editor => {
+    const register$8 = editor => {
       const alignToolbarButtons = [
         {
           name: 'alignleft',
@@ -27310,7 +24156,7 @@
       const getMenuItems = () => {
         const options = spec.getOptions(editor);
         const initial = spec.getCurrent(editor).map(spec.hash);
-        const current = value$4();
+        const current = value$2();
         return map$2(options, value => ({
           type: 'togglemenuitem',
           text: spec.display(value),
@@ -27380,7 +24226,7 @@
         },
         getCurrent: editor => {
           const node = SugarElement.fromDom(editor.selection.getNode());
-          return closest$2(node, n => Optional.some(n).filter(isElement$1).bind(ele => {
+          return closest$4(node, n => Optional.some(n).filter(isElement$1).bind(ele => {
             const codeOpt = getOpt(ele, 'lang');
             return codeOpt.map(code => {
               const customCode = getOpt(ele, 'data-mce-lang').getOrUndefined();
@@ -27402,33 +24248,17 @@
         onMenuSetup: onSetupEditableToggle(editor)
       }));
     };
-    const register$8 = editor => {
+    const register$7 = editor => {
       registerController(editor, lineHeightSpec(editor));
       languageSpec(editor).each(spec => registerController(editor, spec));
     };
 
-    const register$7 = (editor, backstage) => {
+    const register$6 = (editor, backstage) => {
       createAlignMenu(editor, backstage);
       createFontFamilyMenu(editor, backstage);
       createStylesMenu(editor, backstage);
       createBlocksMenu(editor, backstage);
       createFontSizeMenu(editor, backstage);
-    };
-
-    const register$6 = editor => {
-      editor.ui.registry.addContext('editable', () => {
-        return editor.selection.isEditable();
-      });
-      editor.ui.registry.addContext('mode', mode => {
-        return editor.mode.get() === mode;
-      });
-      editor.ui.registry.addContext('any', always);
-      editor.ui.registry.addContext('formatting', format => {
-        return editor.formatter.canApply(format);
-      });
-      editor.ui.registry.addContext('insert', child => {
-        return editor.schema.isValidChild(editor.selection.getNode().tagName, child);
-      });
     };
 
     const onSetupOutdentState = editor => onSetupEvent(editor, 'NodeChange', api => {
@@ -27483,24 +24313,21 @@
       editor.execCommand('mceToggleFormat', false, fmt);
     };
     const registerFormatButtons = editor => {
-      global$2.each([
+      global$1.each([
         {
           name: 'bold',
           text: 'Bold',
-          icon: 'bold',
-          shortcut: 'Meta+B'
+          icon: 'bold'
         },
         {
           name: 'italic',
           text: 'Italic',
-          icon: 'italic',
-          shortcut: 'Meta+I'
+          icon: 'italic'
         },
         {
           name: 'underline',
           text: 'Underline',
-          icon: 'underline',
-          shortcut: 'Meta+U'
+          icon: 'underline'
         },
         {
           name: 'strikethrough',
@@ -27522,46 +24349,38 @@
           tooltip: btn.text,
           icon: btn.icon,
           onSetup: onSetupStateToggle(editor, btn.name),
-          onAction: onActionToggleFormat(editor, btn.name),
-          shortcut: btn.shortcut
+          onAction: onActionToggleFormat(editor, btn.name)
         });
       });
       for (let i = 1; i <= 6; i++) {
         const name = 'h' + i;
-        const shortcut = `Access+${ i }`;
         editor.ui.registry.addToggleButton(name, {
           text: name.toUpperCase(),
           tooltip: 'Heading ' + i,
           onSetup: onSetupStateToggle(editor, name),
-          onAction: onActionToggleFormat(editor, name),
-          shortcut
+          onAction: onActionToggleFormat(editor, name)
         });
       }
     };
     const registerCommandButtons = editor => {
-      global$2.each([
+      global$1.each([
         {
           name: 'copy',
           text: 'Copy',
           action: 'Copy',
-          icon: 'copy',
-          context: 'any'
+          icon: 'copy'
         },
         {
           name: 'help',
           text: 'Help',
           action: 'mceHelp',
-          icon: 'help',
-          shortcut: 'Alt+0',
-          context: 'any'
+          icon: 'help'
         },
         {
           name: 'selectall',
           text: 'Select all',
           action: 'SelectAll',
-          icon: 'select-all',
-          shortcut: 'Meta+A',
-          context: 'any'
+          icon: 'select-all'
         },
         {
           name: 'newdocument',
@@ -27573,20 +24392,16 @@
           name: 'print',
           text: 'Print',
           action: 'mcePrint',
-          icon: 'print',
-          shortcut: 'Meta+P',
-          context: 'any'
+          icon: 'print'
         }
       ], btn => {
         editor.ui.registry.addButton(btn.name, {
           tooltip: btn.text,
           icon: btn.icon,
-          onAction: onActionExecCommand(editor, btn.action),
-          shortcut: btn.shortcut,
-          context: btn.context
+          onAction: onActionExecCommand(editor, btn.action)
         });
       });
-      global$2.each([
+      global$1.each([
         {
           name: 'cut',
           text: 'Cut',
@@ -27627,7 +24442,7 @@
       });
     };
     const registerCommandToggleButtons = editor => {
-      global$2.each([{
+      global$1.each([{
           name: 'blockquote',
           text: 'Blockquote',
           action: 'mceBlockQuote',
@@ -27647,7 +24462,7 @@
       registerCommandToggleButtons(editor);
     };
     const registerMenuItems$2 = editor => {
-      global$2.each([
+      global$1.each([
         {
           name: 'newdocument',
           text: 'New document',
@@ -27659,35 +24474,31 @@
           text: 'Copy',
           action: 'Copy',
           icon: 'copy',
-          shortcut: 'Meta+C',
-          context: 'any'
+          shortcut: 'Meta+C'
         },
         {
           name: 'selectall',
           text: 'Select all',
           action: 'SelectAll',
           icon: 'select-all',
-          shortcut: 'Meta+A',
-          context: 'any'
+          shortcut: 'Meta+A'
         },
         {
           name: 'print',
           text: 'Print...',
           action: 'mcePrint',
           icon: 'print',
-          shortcut: 'Meta+P',
-          context: 'any'
+          shortcut: 'Meta+P'
         }
       ], menuitem => {
         editor.ui.registry.addMenuItem(menuitem.name, {
           text: menuitem.text,
           icon: menuitem.icon,
           shortcut: menuitem.shortcut,
-          onAction: onActionExecCommand(editor, menuitem.action),
-          context: menuitem.context
+          onAction: onActionExecCommand(editor, menuitem.action)
         });
       });
-      global$2.each([
+      global$1.each([
         {
           name: 'bold',
           text: 'Bold',
@@ -27799,16 +24610,14 @@
         icon: 'undo',
         enabled: false,
         onSetup: onSetupUndoRedoState(editor, 'hasUndo'),
-        onAction: onActionExecCommand(editor, 'undo'),
-        shortcut: 'Meta+Z'
+        onAction: onActionExecCommand(editor, 'undo')
       });
       editor.ui.registry.addButton('redo', {
         tooltip: 'Redo',
         icon: 'redo',
         enabled: false,
         onSetup: onSetupUndoRedoState(editor, 'hasRedo'),
-        onAction: onActionExecCommand(editor, 'redo'),
-        shortcut: 'Meta+Y'
+        onAction: onActionExecCommand(editor, 'redo')
       });
     };
     const register$2 = editor => {
@@ -27823,16 +24632,14 @@
       editor.ui.registry.addToggleMenuItem('visualaid', {
         text: 'Visual aids',
         onSetup: onSetupVisualAidState(editor),
-        onAction: onActionExecCommand(editor, 'mceToggleVisualAid'),
-        context: 'any'
+        onAction: onActionExecCommand(editor, 'mceToggleVisualAid')
       });
     };
     const registerToolbarButton = editor => {
       editor.ui.registry.addButton('visualaid', {
         tooltip: 'Visual aids',
         text: 'Visual aids',
-        onAction: onActionExecCommand(editor, 'mceToggleVisualAid'),
-        context: 'any'
+        onAction: onActionExecCommand(editor, 'mceToggleVisualAid')
       });
     };
     const register$1 = editor => {
@@ -27841,16 +24648,15 @@
     };
 
     const setup$6 = (editor, backstage) => {
-      register$9(editor);
+      register$8(editor);
       register$3(editor);
-      register$7(editor, backstage);
+      register$6(editor, backstage);
       register$2(editor);
-      register$d(editor);
+      register$c(editor);
       register$1(editor);
       register$5(editor);
-      register$8(editor);
+      register$7(editor);
       register$4(editor);
-      register$6(editor);
     };
 
     const patchPipeConfig = config => isString(config) ? config.split(/[ ,]/) : config;
@@ -27926,7 +24732,7 @@
       }
     };
     const transposeContentAreaContainer = (element, pos) => {
-      const containerPos = global$9.DOM.getPos(element);
+      const containerPos = global$7.DOM.getPos(element);
       return transpose(pos, containerPos.x, containerPos.y);
     };
     const getPointAnchor = (editor, e) => {
@@ -28032,7 +24838,7 @@
     const setupiOSOverrides = editor => {
       const originalSelection = editor.selection.getRng();
       const selectionReset = () => {
-        global$a.setEditorTimeout(editor, () => {
+        global$9.setEditorTimeout(editor, () => {
           editor.selection.setRng(originalSelection);
         }, 10);
         unbindEventListeners();
@@ -28084,7 +24890,7 @@
       });
     };
     const initAndShow = (editor, e, buildMenu, backstage, contextmenu, anchorType) => {
-      const detection = detect$1();
+      const detection = detect$2();
       const isiOS = detection.os.isiOS();
       const isMacOS = detection.os.isMacOS();
       const isAndroid = detection.os.isAndroid();
@@ -28158,7 +24964,7 @@
     };
     const generateContextMenu = (contextMenus, menuConfig, selectedElement) => {
       const sections = foldl(menuConfig, (acc, name) => {
-        return get$h(contextMenus, name.toLowerCase()).map(menu => {
+        return get$g(contextMenus, name.toLowerCase()).map(menu => {
           const items = menu.update(selectedElement);
           if (isString(items) && isNotEmpty(trim$1(items))) {
             return addContextMenuGroup(acc, items.split(' '));
@@ -28191,7 +24997,7 @@
       }
     };
     const setup$5 = (editor, lazySink, backstage) => {
-      const detection = detect$1();
+      const detection = detect$2();
       const isTouch = detection.deviceType.isTouch;
       const contextmenu = build$1(InlineView.sketch({
         dom: { tag: 'div' },
@@ -28307,10 +25113,10 @@
     const fixed = adt.fixed;
 
     const parseAttrToInt = (element, name) => {
-      const value = get$g(element, name);
+      const value = get$f(element, name);
       return isUndefined(value) ? NaN : parseInt(value, 10);
     };
-    const get$1 = (component, snapsInfo) => {
+    const get = (component, snapsInfo) => {
       const element = component.element;
       const x = parseAttrToInt(element, snapsInfo.leftAttr);
       const y = parseAttrToInt(element, snapsInfo.topAttr);
@@ -28323,11 +25129,11 @@
     };
     const clear = (component, snapsInfo) => {
       const element = component.element;
-      remove$8(element, snapsInfo.leftAttr);
-      remove$8(element, snapsInfo.topAttr);
+      remove$7(element, snapsInfo.leftAttr);
+      remove$7(element, snapsInfo.topAttr);
     };
 
-    const getCoords = (component, snapInfo, coord, delta) => get$1(component, snapInfo).fold(() => coord, fixed$1 => fixed(fixed$1.left + delta.left, fixed$1.top + delta.top));
+    const getCoords = (component, snapInfo, coord, delta) => get(component, snapInfo).fold(() => coord, fixed$1 => fixed(fixed$1.left + delta.left, fixed$1.top + delta.top));
     const moveOrSnap = (component, snapInfo, coord, delta, scroll, origin) => {
       const newCoord = getCoords(component, snapInfo, coord, delta);
       const snap = snapInfo.mustSnap ? findClosestSnap(component, snapInfo, newCoord, scroll, origin) : findSnap(component, snapInfo, newCoord, scroll, origin);
@@ -28397,7 +25203,7 @@
       const target = dragConfig.getTarget(component.element);
       if (dragConfig.repositionTarget) {
         const doc = owner$4(component.element);
-        const scroll = get$c(doc);
+        const scroll = get$b(doc);
         const origin = getOrigin(target);
         const snapPin = snapTo$1(snap, scroll, origin);
         const styles = toStyles(snapPin.coord, scroll, origin);
@@ -28413,8 +25219,8 @@
     const initialAttribute = 'data-initial-z-index';
     const resetZIndex = blocker => {
       parent(blocker.element).filter(isElement$1).each(root => {
-        getOpt(root, initialAttribute).fold(() => remove$7(root, 'z-index'), zIndex => set$8(root, 'z-index', zIndex));
-        remove$8(root, initialAttribute);
+        getOpt(root, initialAttribute).fold(() => remove$6(root, 'z-index'), zIndex => set$8(root, 'z-index', zIndex));
+        remove$7(root, initialAttribute);
       });
     };
     const changeZIndex = blocker => {
@@ -28422,7 +25228,7 @@
         getRaw(root, 'z-index').each(zindex => {
           set$9(root, initialAttribute, zindex);
         });
-        set$8(root, 'z-index', get$f(blocker.element, 'z-index'));
+        set$8(root, 'z-index', get$e(blocker.element, 'z-index'));
       });
     };
     const instigate = (anyComponent, blocker) => {
@@ -28507,7 +25313,7 @@
       const target = dragConfig.getTarget(component.element);
       if (dragConfig.repositionTarget) {
         const doc = owner$4(component.element);
-        const scroll = get$c(doc);
+        const scroll = get$b(doc);
         const origin = getOrigin(target);
         const currentCoord = getCurrentCoord(target);
         const newCoord = calcNewCoord(component, dragConfig.snaps, currentCoord, scroll, origin, delta, startData);
@@ -28624,7 +25430,7 @@
     });
 
     const events$2 = (dragConfig, dragState, updateStartState) => {
-      const blockerSingleton = value$4();
+      const blockerSingleton = value$2();
       const stopBlocking = component => {
         stop(component, blockerSingleton.get(), dragConfig, dragState);
         blockerSingleton.clear();
@@ -28703,7 +25509,7 @@
       };
       const getStartData = () => startData;
       const readState = constant$1({});
-      return nu$7({
+      return nu$8({
         readState,
         reset,
         update,
@@ -28803,8 +25609,8 @@
       const tlTds = Cell([]);
       const brTds = Cell([]);
       const isVisible = Cell(false);
-      const startCell = value$4();
-      const finishCell = value$4();
+      const startCell = value$2();
+      const finishCell = value$2();
       const getTopLeftSnap = td => {
         const box = absolute$2(td);
         return calcSnap(memTopLeft.getOpt(sink), td, box.x, box.y, box.width, box.height);
@@ -28837,7 +25643,7 @@
       const bottomRight = build$1(memBottomRight.asSpec());
       const showOrHideHandle = (selector, cell, isAbove, isBelow) => {
         const cellRect = cell.dom.getBoundingClientRect();
-        remove$7(selector.element, 'display');
+        remove$6(selector.element, 'display');
         const viewportHeight = defaultView(SugarElement.fromDom(editor.getBody())).dom.innerHeight;
         const aboveViewport = isAbove(cellRect);
         const belowViewport = isBelow(cellRect, viewportHeight);
@@ -28856,23 +25662,20 @@
       const snapLastTopLeft = () => startCell.get().each(snapTopLeft);
       const snapBottomRight = cell => snapTo(bottomRight, cell, getBottomRightSnap, 'bottom');
       const snapLastBottomRight = () => finishCell.get().each(snapBottomRight);
-      if (detect$1().deviceType.isTouch()) {
-        const domToSugar = arr => map$2(arr, SugarElement.fromDom);
+      if (detect$2().deviceType.isTouch()) {
         editor.on('TableSelectionChange', e => {
           if (!isVisible.get()) {
             attach(sink, topLeft);
             attach(sink, bottomRight);
             isVisible.set(true);
           }
-          const start = SugarElement.fromDom(e.start);
-          const finish = SugarElement.fromDom(e.finish);
-          startCell.set(start);
-          finishCell.set(finish);
-          Optional.from(e.otherCells).each(otherCells => {
-            tlTds.set(domToSugar(otherCells.upOrLeftCells));
-            brTds.set(domToSugar(otherCells.downOrRightCells));
-            snapTopLeft(start);
-            snapBottomRight(finish);
+          startCell.set(e.start);
+          finishCell.set(e.finish);
+          e.otherCells.each(otherCells => {
+            tlTds.set(otherCells.upOrLeftCells);
+            brTds.set(otherCells.downOrRightCells);
+            snapTopLeft(e.start);
+            snapBottomRight(e.finish);
           });
         });
         editor.on('ResizeEditor ResizeWindow ScrollContent', () => {
@@ -28891,19 +25694,7 @@
       }
     };
 
-    var Logo = "<svg height=\"16\" viewBox=\"0 0 80 16\" width=\"80\" xmlns=\"http://www.w3.org/2000/svg\"><g opacity=\".8\"><path d=\"m80 3.537v-2.202h-7.976v11.585h7.976v-2.25h-5.474v-2.621h4.812v-2.069h-4.812v-2.443zm-10.647 6.929c-.493.217-1.13.337-1.864.337s-1.276-.156-1.805-.47a3.732 3.732 0 0 1 -1.3-1.298c-.324-.554-.48-1.191-.48-1.877s.156-1.335.48-1.877a3.635 3.635 0 0 1 1.3-1.299 3.466 3.466 0 0 1 1.805-.481c.65 0 .914.06 1.263.18.36.12.698.277.986.47.289.192.578.384.842.6l.12.085v-2.586l-.023-.024c-.385-.35-.855-.614-1.384-.818-.53-.205-1.155-.313-1.877-.313-.721 0-1.6.144-2.333.445a5.773 5.773 0 0 0 -1.937 1.251 5.929 5.929 0 0 0 -1.324 1.9c-.324.735-.48 1.565-.48 2.455s.156 1.72.48 2.454c.325.734.758 1.383 1.324 1.913.553.53 1.215.938 1.937 1.25a6.286 6.286 0 0 0 2.333.434c.819 0 1.384-.108 1.961-.313.59-.216 1.083-.505 1.468-.866l.024-.024v-2.49l-.12.096c-.41.337-.878.626-1.396.866zm-14.869-4.15-4.8-5.04-.024-.025h-.902v11.67h2.502v-6.847l2.827 3.08.385.409.397-.41 2.791-3.067v6.845h2.502v-11.679h-.902l-4.788 5.052z\"/><path clip-rule=\"evenodd\" d=\"m15.543 5.137c0-3.032-2.466-5.113-4.957-5.137-.36 0-.745.024-1.094.096-.157.024-3.85.758-3.85.758-3.032.602-4.62 2.466-4.704 4.788-.024.89-.024 4.27-.024 4.27.036 3.165 2.406 5.138 5.017 5.126.337 0 1.119-.109 1.287-.145.144-.024.385-.084.746-.144.661-.12 1.684-.325 3.067-.602 2.37-.409 4.103-2.009 4.44-4.33.156-1.023.084-4.692.084-4.692zm-3.213 3.308-2.346.457v2.31l-5.859 1.143v-5.75l2.346-.458v3.441l3.513-.686v-3.44l-3.513.685v-2.297l5.859-1.143v5.75zm20.09-3.296-.083-1.023h-2.13v8.794h2.346v-4.884c0-1.107.95-1.985 2.057-1.997 1.095 0 1.901.89 1.901 1.997v4.884h2.346v-5.245c-.012-2.105-1.588-3.777-3.67-3.765a3.764 3.764 0 0 0 -2.778 1.25l.012-.011zm-6.014-4.102 2.346-.458v2.298l-2.346.457z\" fill-rule=\"evenodd\"/><path d=\"m28.752 4.126h-2.346v8.794h2.346z\"/><path clip-rule=\"evenodd\" d=\"m43.777 15.483 4.043-11.357h-2.418l-1.54 4.355-.445 1.324-.36-1.324-1.54-4.355h-2.418l3.151 8.794-1.083 3.08zm-21.028-5.51c0 .722.541 1.034.878 1.034s.638-.048.95-.144l.518 1.708c-.217.145-.879.518-2.13.518a2.565 2.565 0 0 1 -2.562-2.587c-.024-1.082-.024-2.49 0-4.21h-1.54v-2.142h1.54v-1.912l2.346-.458v2.37h2.201v2.142h-2.2v3.693-.012z\" fill-rule=\"evenodd\"/></g></svg>\n";
-
-    const describedBy = (describedElement, describeElement) => {
-      const describeId = Optional.from(get$g(describedElement, 'id')).getOrThunk(() => {
-        const id = generate$6('aria');
-        set$9(describeElement, 'id', id);
-        return id;
-      });
-      set$9(describedElement, 'aria-describedby', describeId);
-    };
-    const remove = describedElement => {
-      remove$8(describedElement, 'aria-describedby');
-    };
+    var Logo = "<svg width=\"50px\" height=\"16px\" viewBox=\"0 0 50 16\" xmlns=\"http://www.w3.org/2000/svg\">\n  <path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M10.143 0c2.608.015 5.186 2.178 5.186 5.331 0 0 .077 3.812-.084 4.87-.361 2.41-2.164 4.074-4.65 4.496-1.453.284-2.523.49-3.212.623-.373.071-.634.122-.785.152-.184.038-.997.145-1.35.145-2.732 0-5.21-2.04-5.248-5.33 0 0 0-3.514.03-4.442.093-2.4 1.758-4.342 4.926-4.963 0 0 3.875-.752 4.036-.782.368-.07.775-.1 1.15-.1Zm1.826 2.8L5.83 3.989v2.393l-2.455.475v5.968l6.137-1.189V9.243l2.456-.476V2.8ZM5.83 6.382l3.682-.713v3.574l-3.682.713V6.382Zm27.173-1.64-.084-1.066h-2.226v9.132h2.456V7.743c-.008-1.151.998-2.064 2.149-2.072 1.15-.008 1.987.92 1.995 2.072v5.065h2.455V7.359c-.015-2.18-1.657-3.929-3.837-3.913a3.993 3.993 0 0 0-2.908 1.296Zm-6.3-4.266L29.16 0v2.387l-2.456.475V.476Zm0 3.2v9.132h2.456V3.676h-2.456Zm18.179 11.787L49.11 3.676H46.58l-1.612 4.527-.46 1.382-.384-1.382-1.611-4.527H39.98l3.3 9.132L42.15 16l2.732-.537ZM22.867 9.738c0 .752.568 1.075.921 1.075.353 0 .668-.047.998-.154l.537 1.765c-.23.154-.92.537-2.225.537-1.305 0-2.655-.997-2.686-2.686a136.877 136.877 0 0 1 0-4.374H18.8V3.676h1.612v-1.98l2.455-.476v2.456h2.302V5.9h-2.302v3.837Z\"/>\n</svg>\n";
 
     const isHidden = elm => elm.nodeName === 'BR' || !!elm.getAttribute('data-mce-bogus') || elm.getAttribute('data-mce-type') === 'bookmark';
     const renderElementPath = (editor, settings, providersBackstage) => {
@@ -28913,7 +25704,10 @@
         dom: {
           tag: 'div',
           classes: ['tox-statusbar__path-item'],
-          attributes: { 'data-index': index }
+          attributes: {
+            'data-index': index,
+            'aria-level': index + 1
+          }
         },
         components: [text$2(name)],
         action: _btn => {
@@ -28922,22 +25716,8 @@
           editor.nodeChanged();
         },
         buttonBehaviours: derive$1([
-          Tooltipping.config({
-            ...providersBackstage.tooltips.getConfig({
-              tooltipText: providersBackstage.translate([
-                'Select the {0} element',
-                element.nodeName.toLowerCase()
-              ]),
-              onShow: (comp, tooltip) => {
-                describedBy(comp.element, tooltip.element);
-              },
-              onHide: comp => {
-                remove(comp.element);
-              }
-            })
-          }),
           DisablingConfigs.button(providersBackstage.isDisabled),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext('any'))
+          receivingConfig()
         ])
       });
       const renderDivider = () => ({
@@ -28991,7 +25771,7 @@
             selector: 'div[role=button]'
           }),
           Disabling.config({ disabled: providersBackstage.isDisabled }),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext('any')),
+          receivingConfig(),
           Tabstopping.config({}),
           Replacing.config({}),
           config('elementPathEvents', [runOnAttached((comp, _e) => {
@@ -29022,7 +25802,7 @@
     };
     const resize = (editor, deltas, resizeType) => {
       const container = SugarElement.fromDom(editor.getContainer());
-      const dimensions = getDimensions(editor, deltas, resizeType, get$e(container), get$d(container));
+      const dimensions = getDimensions(editor, deltas, resizeType, get$d(container), get$c(container));
       each(dimensions, (val, dim) => {
         if (isNumber(val)) {
           set$8(container, dim, numToPx(val));
@@ -29053,12 +25833,12 @@
         return Optional.none();
       }
       const resizeLabel = resizeType === ResizeTypes.Both ? 'Press the arrow keys to resize the editor.' : 'Press the Up and Down arrow keys to resize the editor.';
-      return Optional.some(render$4('resize-handle', {
+      return Optional.some(render$3('resize-handle', {
         tag: 'div',
         classes: ['tox-statusbar__resize-handle'],
         attributes: {
-          'aria-label': providersBackstage.translate(resizeLabel),
-          'data-mce-name': 'resize-handle'
+          'title': providersBackstage.translate('Resize'),
+          'aria-label': providersBackstage.translate(resizeLabel)
         },
         behaviours: [
           Dragging.config({
@@ -29075,8 +25855,7 @@
             onDown: () => keyboardHandler(editor, resizeType, 0, 1)
           }),
           Tabstopping.config({}),
-          Focusing.config({}),
-          Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: providersBackstage.translate('Resize') }))
+          Focusing.config({})
         ]
       }, providersBackstage.icons));
     };
@@ -29094,7 +25873,7 @@
         components: [],
         buttonBehaviours: derive$1([
           DisablingConfigs.button(providersBackstage.isDisabled),
-          toggleOnReceive(() => providersBackstage.checkUiComponentContext('any')),
+          receivingConfig(),
           Tabstopping.config({}),
           Replacing.config({}),
           Representing.config({
@@ -29152,18 +25931,15 @@
               dom: {
                 tag: 'a',
                 attributes: {
-                  'href': 'https://www.tiny.cloud/powered-by-tiny?utm_campaign=poweredby&utm_source=tiny&utm_medium=referral&utm_content=v7',
+                  'href': 'https://www.tiny.cloud/powered-by-tiny?utm_campaign=editor_referral&utm_medium=poweredby&utm_source=tinymce&utm_content=v6',
                   'rel': 'noopener',
                   'target': '_blank',
-                  'aria-label': editor.translate([
-                    'Build with {0}',
-                    'TinyMCE'
+                  'aria-label': global$8.translate([
+                    'Powered by {0}',
+                    'Tiny'
                   ])
                 },
-                innerHtml: editor.translate([
-                  'Build with {0}',
-                  Logo.trim()
-                ])
+                innerHtml: Logo.trim()
               },
               behaviours: derive$1([Focusing.config({})])
             }]
@@ -29177,7 +25953,7 @@
             tag: 'div',
             classes: ['tox-statusbar__help-text']
           },
-          components: [text$2(global$6.translate([
+          components: [text$2(global$8.translate([
               text,
               shortcutText
             ]))]
@@ -29272,10 +26048,10 @@
       const mode = isInline ? Inline : Iframe;
       const header = isStickyToolbar(editor) ? StickyHeader : StaticHeader;
       const lazyUiRefs = LazyUiReferences();
-      const lazyMothership = value$4();
-      const lazyDialogMothership = value$4();
-      const lazyPopupMothership = value$4();
-      const platform = detect$1();
+      const lazyMothership = value$2();
+      const lazyDialogMothership = value$2();
+      const lazyPopupMothership = value$2();
+      const platform = detect$2();
       const isTouch = platform.deviceType.isTouch();
       const touchPlatformClass = 'tox-platform-touch';
       const deviceClasses = isTouch ? [touchPlatformClass] : [];
@@ -29300,7 +26076,7 @@
       const lazyBottomAnchorBar = lazyUiRefs.lazyGetInOuterOrDie('bottom anchor bar', memBottomAnchorBar.getOpt);
       const lazyToolbar = lazyUiRefs.lazyGetInOuterOrDie('toolbar', OuterContainer.getToolbar);
       const lazyThrobber = lazyUiRefs.lazyGetInOuterOrDie('throbber', OuterContainer.getThrobber);
-      const backstages = init$5({
+      const backstages = init$6({
         popup: lazyPopupSinkResult,
         dialog: lazyDialogSinkResult
       }, editor, lazyAnchorBar, lazyBottomAnchorBar);
@@ -29348,8 +26124,8 @@
         const hasMultipleToolbar = isMultipleToolbars(editor);
         const hasToolbar = isToolbarEnabled(editor);
         const hasMenubar = isMenubarEnabled(editor);
-        const shouldHavePromotionLink = promotionEnabled(editor);
-        const partPromotion = makePromotion(shouldHavePromotionLink);
+        const shouldHavePromotion = promotionEnabled(editor);
+        const partPromotion = makePromotion();
         const hasAnyContents = hasMultipleToolbar || hasToolbar || hasMenubar;
         const getPartToolbar = () => {
           if (hasMultipleToolbar) {
@@ -29360,10 +26136,10 @@
             return [];
           }
         };
-        const menubarCollection = [
+        const menubarCollection = shouldHavePromotion ? [
           partPromotion,
           partMenubar
-        ];
+        ] : [partMenubar];
         return OuterContainer.parts.header({
           dom: {
             tag: 'div',
@@ -29380,13 +26156,12 @@
           sharedBackstage: backstages.popup.shared
         });
       };
-      const makePromotion = promotionLink => {
+      const makePromotion = () => {
         return OuterContainer.parts.promotion({
           dom: {
             tag: 'div',
             classes: ['tox-promotion']
-          },
-          promotionLink
+          }
         });
       };
       const makeSidebarDefinition = () => {
@@ -29415,7 +26190,7 @@
       };
       const renderDialogUi = () => {
         const uiContainer = getUiContainer(editor);
-        const isGridUiContainer = eq(body(), uiContainer) && get$f(uiContainer, 'display') === 'grid';
+        const isGridUiContainer = eq(body(), uiContainer) && get$e(uiContainer, 'display') === 'grid';
         const sinkSpec = {
           dom: {
             tag: 'div',
@@ -29424,7 +26199,7 @@
               'tox-silver-sink',
               'tox-tinymce-aux'
             ].concat(deviceClasses),
-            attributes: { ...global$6.isRtl() ? { dir: 'rtl' } : {} }
+            attributes: { ...global$8.isRtl() ? { dir: 'rtl' } : {} }
           },
           behaviours: derive$1([Positioning.config({ useFixed: () => header.isDocked(lazyHeader) })])
         };
@@ -29452,7 +26227,7 @@
               'tox-silver-popup-sink',
               'tox-tinymce-aux'
             ].concat(deviceClasses),
-            attributes: { ...global$6.isRtl() ? { dir: 'rtl' } : {} }
+            attributes: { ...global$8.isRtl() ? { dir: 'rtl' } : {} }
           },
           behaviours: derive$1([Positioning.config({
               useFixed: () => header.isDocked(lazyHeader),
@@ -29487,13 +26262,16 @@
         const editorContainer = OuterContainer.parts.editorContainer({
           components: flatten([
             editorComponents,
-            isInline ? [] : [memBottomAnchorBar.asSpec()]
+            isInline ? [] : [
+              memBottomAnchorBar.asSpec(),
+              ...statusbar.toArray()
+            ]
           ])
         });
         const isHidden = isDistractionFree(editor);
         const attributes = {
           role: 'application',
-          ...global$6.isRtl() ? { dir: 'rtl' } : {},
+          ...global$8.isRtl() ? { dir: 'rtl' } : {},
           ...isHidden ? { 'aria-hidden': 'true' } : {}
         };
         const outerContainer = build$1(OuterContainer.sketch({
@@ -29514,14 +26292,11 @@
           },
           components: [
             editorContainer,
-            ...isInline ? [] : [
-              partViewWrapper,
-              ...statusbar.toArray()
-            ],
+            ...isInline ? [] : [partViewWrapper],
             partThrobber
           ],
           behaviours: derive$1([
-            toggleOnReceive(() => backstages.popup.shared.providers.checkUiComponentContext('any')),
+            receivingConfig(),
             Disabling.config({ disableClass: 'tox-tinymce--disabled' }),
             Keying.config({
               mode: 'cyclic',
@@ -29591,7 +26366,7 @@
         setup$5(editor, backstages.popup.shared.getSink, backstages.popup);
         setup$8(editor);
         setup$7(editor, lazyThrobber, backstages.popup.shared);
-        register$a(editor, contextToolbars, popupUi.sink, { backstage: backstages.popup });
+        register$9(editor, contextToolbars, popupUi.sink, { backstage: backstages.popup });
         setup$4(editor, popupUi.sink);
         const elm = editor.getElement();
         const height = setEditorSize(mainUi.outerContainer);
@@ -29633,8 +26408,6 @@
       };
     };
 
-    const get = element => element.dom.textContent;
-
     const labelledBy = (labelledElement, labelElement) => {
       const labelId = getOpt(labelledElement, 'id').fold(() => {
         const id = generate$6('dialog-label');
@@ -29664,7 +26437,7 @@
             behaviours: derive$1([Dragging.config({
                 mode: 'mouse',
                 getTarget: handle => {
-                  return ancestor$1(handle, '[role="dialog"]').getOr(handle);
+                  return ancestor(handle, '[role="dialog"]').getOr(handle);
                 },
                 blockerClass: detail.dragBlockClass.getOrDie(new Error('The drag blocker class was not specified for a dialog with a drag handle: \n' + JSON.stringify(spec, null, 2)).message),
                 getBounds: detail.getDragBounds
@@ -29717,7 +26490,7 @@
     ]);
 
     const factory$4 = (detail, components, spec, externals) => {
-      const dialogComp = value$4();
+      const dialogComp = value$2();
       const showDialog = dialog => {
         dialogComp.set(dialog);
         const sink = detail.lazySink(dialog).getOrDie();
@@ -29756,7 +26529,6 @@
         ...detail.eventOrder,
         [attachedToDom()]: [modalEventsId].concat(detail.eventOrder['alloy.system.attached'] || [])
       };
-      const browser = detect$1();
       return {
         uid: detail.uid,
         dom: detail.dom,
@@ -29787,13 +26559,7 @@
           }),
           Blocking.config({ getRoot: dialogComp.get }),
           config(modalEventsId, [runOnAttached(c => {
-              const titleElm = getPartOrDie(c, detail, 'title').element;
-              const title = get(titleElm);
-              if (browser.os.isMacOS() && isNonNullable(title)) {
-                set$9(c.element, 'aria-label', title);
-              } else {
-                labelledBy(c.element, titleElm);
-              }
+              labelledBy(c.element, getPartOrDie(c, detail, 'title').element);
             })])
         ])
       };
@@ -29839,12 +26605,11 @@
       optionStringEnum('buttonType', [
         'primary',
         'secondary'
-      ]),
-      defaultedString('context', 'mode:design')
+      ])
     ];
     const dialogFooterButtonFields = [
       ...baseFooterButtonFields,
-      text
+      text$1
     ];
     const normalFooterButtonFields = [
       requiredStringEnum('type', [
@@ -29865,7 +26630,7 @@
     const toggleButtonSpecFields = [
       ...baseFooterButtonFields,
       requiredStringEnum('type', ['togglebutton']),
-      optionalTooltip,
+      requiredString('tooltip'),
       optionalIcon,
       optionalText,
       defaultedBoolean('active', false)
@@ -29880,7 +26645,7 @@
 
     const alertBannerFields = [
       type,
-      text,
+      text$1,
       requiredStringEnum('level', [
         'info',
         'warn',
@@ -29899,7 +26664,7 @@
 
     const buttonFields = [
       type,
-      text,
+      text$1,
       enabled,
       generatedName('button'),
       optionalIcon,
@@ -29909,8 +26674,7 @@
         'secondary',
         'toolbar'
       ]),
-      primary,
-      defaultedString('context', 'mode:design')
+      primary
     ];
     const buttonSchema = objOf(buttonFields);
 
@@ -29922,27 +26686,20 @@
 
     const checkboxFields = formComponentFields.concat([
       label,
-      enabled,
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const checkboxSchema = objOf(checkboxFields);
     const checkboxDataProcessor = boolean;
 
-    const collectionFields = formComponentWithLabelFields.concat([
-      defaultedColumns('auto'),
-      defaultedString('context', 'mode:design')
-    ]);
+    const collectionFields = formComponentWithLabelFields.concat([defaultedColumns('auto')]);
     const collectionSchema = objOf(collectionFields);
     const collectionDataProcessor = arrOfObj([
       value$1,
-      text,
+      text$1,
       icon
     ]);
 
-    const colorInputFields = formComponentWithLabelFields.concat([
-      defaultedString('storageKey', 'default'),
-      defaultedString('context', 'mode:design')
-    ]);
+    const colorInputFields = formComponentWithLabelFields.concat([defaultedString('storageKey', 'default')]);
     const colorInputSchema = objOf(colorInputFields);
     const colorInputDataProcessor = string;
 
@@ -29954,7 +26711,6 @@
       defaultedString('tag', 'textarea'),
       requiredString('scriptId'),
       requiredString('scriptUrl'),
-      optionFunction('onFocus'),
       defaultedPostMsg('settings', undefined)
     ]);
     const customEditorFieldsOld = formComponentFields.concat([
@@ -29964,7 +26720,7 @@
     const customEditorSchema = valueOf(v => asRaw('customeditor.old', objOfOnly(customEditorFieldsOld), v).orThunk(() => asRaw('customeditor.new', objOfOnly(customEditorFields), v)));
     const customEditorDataProcessor = string;
 
-    const dropZoneFields = formComponentWithLabelFields.concat([defaultedString('context', 'mode:design')]);
+    const dropZoneFields = formComponentWithLabelFields;
     const dropZoneSchema = objOf(dropZoneFields);
     const dropZoneDataProcessor = arrOfVal();
 
@@ -29980,9 +26736,7 @@
       defaultedStringEnum('presets', 'presentation', [
         'presentation',
         'document'
-      ]),
-      defaultedFunction('onInit', noop),
-      defaultedBoolean('stretched', false)
+      ])
     ];
     const htmlPanelSchema = objOf(htmlPanelFields);
 
@@ -30007,8 +26761,7 @@
       optionString('inputMode'),
       optionString('placeholder'),
       defaultedBoolean('maximized', false),
-      enabled,
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const inputSchema = objOf(inputFields);
     const inputDataProcessor = string;
@@ -30021,16 +26774,15 @@
         'start',
         'center',
         'end'
-      ]),
-      optionString('for')
+      ])
     ];
 
     const listBoxSingleItemFields = [
-      text,
+      text$1,
       value$1
     ];
     const listBoxNestedItemFields = [
-      text,
+      text$1,
       requiredArrayOf('items', thunkOf('items', () => listBoxItemSchema))
     ];
     const listBoxItemSchema = oneOf([
@@ -30039,28 +26791,25 @@
     ]);
     const listBoxFields = formComponentWithLabelFields.concat([
       requiredArrayOf('items', listBoxItemSchema),
-      enabled,
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const listBoxSchema = objOf(listBoxFields);
     const listBoxDataProcessor = string;
 
     const selectBoxFields = formComponentWithLabelFields.concat([
       requiredArrayOfObj('items', [
-        text,
+        text$1,
         value$1
       ]),
       defaultedNumber('size', 1),
-      enabled,
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const selectBoxSchema = objOf(selectBoxFields);
     const selectBoxDataProcessor = string;
 
     const sizeInputFields = formComponentWithLabelFields.concat([
       defaultedBoolean('constrain', true),
-      enabled,
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const sizeInputSchema = objOf(sizeInputFields);
     const sizeInputDataProcessor = objOf([
@@ -30086,8 +26835,7 @@
     const textAreaFields = formComponentWithLabelFields.concat([
       optionString('placeholder'),
       defaultedBoolean('maximized', false),
-      enabled,
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const textAreaSchema = objOf(textAreaFields);
     const textAreaDataProcessor = string;
@@ -30099,9 +26847,7 @@
       ]),
       title,
       requiredString('id'),
-      optionOf('menu', MenuButtonSchema),
-      optionString('customStateIcon'),
-      optionString('customStateIconTooltip')
+      optionOf('menu', MenuButtonSchema)
     ];
     const treeItemLeafFields = baseTreeItemFields;
     const treeItemLeafSchema = objOf(treeItemLeafFields);
@@ -30132,9 +26878,7 @@
         'media',
         'file'
       ]),
-      enabled,
-      optionString('picker_text'),
-      defaultedString('context', 'mode:design')
+      enabled
     ]);
     const urlInputSchema = objOf(urlInputFields);
     const urlInputDataProcessor = objOf([
@@ -30377,13 +27121,13 @@
       return errors.length > 0 ? Result.error(errors) : Result.value(result);
     };
 
-    const renderBodyPanel = (spec, dialogData, backstage, getCompByName) => {
+    const renderBodyPanel = (spec, dialogData, backstage) => {
       const memForm = record(Form.sketch(parts => ({
         dom: {
           tag: 'div',
           classes: ['tox-form'].concat(spec.classes)
         },
-        components: map$2(spec.items, item => interpretInForm(parts, item, dialogData, backstage, getCompByName))
+        components: map$2(spec.items, item => interpretInForm(parts, item, dialogData, backstage))
       })));
       return {
         dom: {
@@ -30420,7 +27164,7 @@
       uid: detail.uid,
       dom: detail.dom,
       components: detail.components,
-      events: events$9(detail.action),
+      events: events$a(detail.action),
       behaviours: augment(detail.tabButtonBehaviours, [
         Focusing.config({}),
         Keying.config({
@@ -30614,7 +27358,7 @@
         uid: detail.uid,
         dom: detail.dom,
         components,
-        behaviours: get$4(detail.tabSectionBehaviours),
+        behaviours: get$3(detail.tabSectionBehaviours),
         events: derive$2(flatten([
           detail.selectFirst ? [runOnAttached((section, _simulatedEvent) => {
               changeTabBy(section, Highlighting.getFirst);
@@ -30675,20 +27419,20 @@
     }));
     const getMaxTabviewHeight = (dialog, tabview, tablist) => {
       const documentElement$1 = documentElement(dialog).dom;
-      const rootElm = ancestor$1(dialog, '.tox-dialog-wrap').getOr(dialog);
-      const isFixed = get$f(rootElm, 'position') === 'fixed';
+      const rootElm = ancestor(dialog, '.tox-dialog-wrap').getOr(dialog);
+      const isFixed = get$e(rootElm, 'position') === 'fixed';
       let maxHeight;
       if (isFixed) {
         maxHeight = Math.max(documentElement$1.clientHeight, window.innerHeight);
       } else {
         maxHeight = Math.max(documentElement$1.offsetHeight, documentElement$1.scrollHeight);
       }
-      const tabviewHeight = get$e(tabview);
-      const isTabListBeside = tabview.dom.offsetLeft >= tablist.dom.offsetLeft + get$d(tablist);
-      const currentTabHeight = isTabListBeside ? Math.max(get$e(tablist), tabviewHeight) : tabviewHeight;
-      const dialogTopMargin = parseInt(get$f(dialog, 'margin-top'), 10) || 0;
-      const dialogBottomMargin = parseInt(get$f(dialog, 'margin-bottom'), 10) || 0;
-      const dialogHeight = get$e(dialog) + dialogTopMargin + dialogBottomMargin;
+      const tabviewHeight = get$d(tabview);
+      const isTabListBeside = tabview.dom.offsetLeft >= tablist.dom.offsetLeft + get$c(tablist);
+      const currentTabHeight = isTabListBeside ? Math.max(get$d(tablist), tabviewHeight) : tabviewHeight;
+      const dialogTopMargin = parseInt(get$e(dialog, 'margin-top'), 10) || 0;
+      const dialogBottomMargin = parseInt(get$e(dialog, 'margin-bottom'), 10) || 0;
+      const dialogHeight = get$d(dialog) + dialogTopMargin + dialogBottomMargin;
       const chromeHeight = dialogHeight - currentTabHeight;
       return maxHeight - chromeHeight;
     };
@@ -30700,7 +27444,7 @@
       set$8(tabview, 'flex-basis', height + 'px');
     };
     const updateTabviewHeight = (dialogBody, tabview, maxTabHeight) => {
-      ancestor$1(dialogBody, '[role="dialog"]').each(dialog => {
+      ancestor(dialogBody, '[role="dialog"]').each(dialog => {
         descendant(dialog, '[role="tablist"]').each(tablist => {
           maxTabHeight.get().map(height => {
             set$8(tabview, 'height', '0');
@@ -30714,7 +27458,7 @@
     };
     const getTabview = dialog => descendant(dialog, '[role="tabpanel"]');
     const smartMode = allTabs => {
-      const maxTabHeight = value$4();
+      const maxTabHeight = value$2();
       const extraEvents = [
         runOnAttached(comp => {
           const dialog = comp.element;
@@ -30726,7 +27470,7 @@
               maxTabHeightOpt.fold(maxTabHeight.clear, maxTabHeight.set);
             });
             updateTabviewHeight(dialog, tabview, maxTabHeight);
-            remove$7(tabview, 'visibility');
+            remove$6(tabview, 'visibility');
             showTab(allTabs, comp);
             requestAnimationFrame(() => {
               updateTabviewHeight(dialog, tabview, maxTabHeight);
@@ -30745,8 +27489,8 @@
             const oldFocus = active$1(getRootNode(tabview));
             set$8(tabview, 'visibility', 'hidden');
             const oldHeight = getRaw(tabview, 'height').map(h => parseInt(h, 10));
-            remove$7(tabview, 'height');
-            remove$7(tabview, 'flex-basis');
+            remove$6(tabview, 'height');
+            remove$6(tabview, 'flex-basis');
             const newHeight = tabview.dom.getBoundingClientRect().height;
             const hasGrown = oldHeight.forall(h => newHeight > h);
             if (hasGrown) {
@@ -30757,7 +27501,7 @@
                 setTabviewHeight(tabview, h);
               });
             }
-            remove$7(tabview, 'visibility');
+            remove$6(tabview, 'visibility');
             oldFocus.each(focus$3);
           });
         })
@@ -30771,7 +27515,7 @@
 
     const SendDataToSectionChannel = 'send-data-to-section';
     const SendDataToViewChannel = 'send-data-to-view';
-    const renderTabPanel = (spec, dialogData, backstage, getCompByName) => {
+    const renderTabPanel = (spec, dialogData, backstage) => {
       const storedValue = Cell({});
       const updateDataWithForm = form => {
         const formData = Representing.getValue(form);
@@ -30799,7 +27543,7 @@
                   tag: 'div',
                   classes: ['tox-form']
                 },
-                components: map$2(tab.items, item => interpretInForm(parts, item, dialogData, backstage, getCompByName)),
+                components: map$2(tab.items, item => interpretInForm(parts, item, dialogData, backstage)),
                 formBehaviours: derive$1([
                   Keying.config({
                     mode: 'acyclic',
@@ -30877,15 +27621,15 @@
       });
     };
 
-    const renderBody = (spec, dialogId, contentId, backstage, ariaAttrs, getCompByName) => {
+    const renderBody = (spec, dialogId, contentId, backstage, ariaAttrs) => {
       const renderComponents = incoming => {
         const body = incoming.body;
         switch (body.type) {
         case 'tabpanel': {
-            return [renderTabPanel(body, incoming.initialData, backstage, getCompByName)];
+            return [renderTabPanel(body, incoming.initialData, backstage)];
           }
         default: {
-            return [renderBodyPanel(body, incoming.initialData, backstage, getCompByName)];
+            return [renderBodyPanel(body, incoming.initialData, backstage)];
           }
         }
       };
@@ -30912,9 +27656,9 @@
         ])
       };
     };
-    const renderInlineBody = (spec, dialogId, contentId, backstage, ariaAttrs, getCompByName) => renderBody(spec, dialogId, Optional.some(contentId), backstage, ariaAttrs, getCompByName);
-    const renderModalBody = (spec, dialogId, backstage, getCompByName) => {
-      const bodySpec = renderBody(spec, dialogId, Optional.none(), backstage, false, getCompByName);
+    const renderInlineBody = (spec, dialogId, contentId, backstage, ariaAttrs) => renderBody(spec, dialogId, Optional.some(contentId), backstage, ariaAttrs);
+    const renderModalBody = (spec, dialogId, backstage) => {
+      const bodySpec = renderBody(spec, dialogId, Optional.none(), backstage, false);
       return ModalDialog.parts.body(bodySpec);
     };
     const renderIframeBody = spec => {
@@ -30947,7 +27691,1572 @@
       return ModalDialog.parts.body(bodySpec);
     };
 
-    const isTouch = global$7.deviceType.isTouch();
+    function _typeof(obj) {
+      '@babel/helpers - typeof';
+      return _typeof = 'function' == typeof Symbol && 'symbol' == typeof Symbol.iterator ? function (obj) {
+        return typeof obj;
+      } : function (obj) {
+        return obj && 'function' == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? 'symbol' : typeof obj;
+      }, _typeof(obj);
+    }
+    function _setPrototypeOf(o, p) {
+      _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+        o.__proto__ = p;
+        return o;
+      };
+      return _setPrototypeOf(o, p);
+    }
+    function _isNativeReflectConstruct() {
+      if (typeof Reflect === 'undefined' || !Reflect.construct)
+        return false;
+      if (Reflect.construct.sham)
+        return false;
+      if (typeof Proxy === 'function')
+        return true;
+      try {
+        Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {
+        }));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+    function _construct(Parent, args, Class) {
+      if (_isNativeReflectConstruct()) {
+        _construct = Reflect.construct;
+      } else {
+        _construct = function _construct(Parent, args, Class) {
+          var a = [null];
+          a.push.apply(a, args);
+          var Constructor = Function.bind.apply(Parent, a);
+          var instance = new Constructor();
+          if (Class)
+            _setPrototypeOf(instance, Class.prototype);
+          return instance;
+        };
+      }
+      return _construct.apply(null, arguments);
+    }
+    function _toConsumableArray(arr) {
+      return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+    }
+    function _arrayWithoutHoles(arr) {
+      if (Array.isArray(arr))
+        return _arrayLikeToArray(arr);
+    }
+    function _iterableToArray(iter) {
+      if (typeof Symbol !== 'undefined' && iter[Symbol.iterator] != null || iter['@@iterator'] != null)
+        return Array.from(iter);
+    }
+    function _unsupportedIterableToArray(o, minLen) {
+      if (!o)
+        return;
+      if (typeof o === 'string')
+        return _arrayLikeToArray(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === 'Object' && o.constructor)
+        n = o.constructor.name;
+      if (n === 'Map' || n === 'Set')
+        return Array.from(o);
+      if (n === 'Arguments' || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n))
+        return _arrayLikeToArray(o, minLen);
+    }
+    function _arrayLikeToArray(arr, len) {
+      if (len == null || len > arr.length)
+        len = arr.length;
+      for (var i = 0, arr2 = new Array(len); i < len; i++)
+        arr2[i] = arr[i];
+      return arr2;
+    }
+    function _nonIterableSpread() {
+      throw new TypeError('Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.');
+    }
+    var hasOwnProperty = Object.hasOwnProperty, setPrototypeOf = Object.setPrototypeOf, isFrozen = Object.isFrozen, getPrototypeOf = Object.getPrototypeOf, getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+    var freeze = Object.freeze, seal = Object.seal, create = Object.create;
+    var _ref = typeof Reflect !== 'undefined' && Reflect, apply = _ref.apply, construct = _ref.construct;
+    if (!apply) {
+      apply = function apply(fun, thisValue, args) {
+        return fun.apply(thisValue, args);
+      };
+    }
+    if (!freeze) {
+      freeze = function freeze(x) {
+        return x;
+      };
+    }
+    if (!seal) {
+      seal = function seal(x) {
+        return x;
+      };
+    }
+    if (!construct) {
+      construct = function construct(Func, args) {
+        return _construct(Func, _toConsumableArray(args));
+      };
+    }
+    var arrayForEach = unapply(Array.prototype.forEach);
+    var arrayPop = unapply(Array.prototype.pop);
+    var arrayPush = unapply(Array.prototype.push);
+    var stringToLowerCase = unapply(String.prototype.toLowerCase);
+    var stringMatch = unapply(String.prototype.match);
+    var stringReplace = unapply(String.prototype.replace);
+    var stringIndexOf = unapply(String.prototype.indexOf);
+    var stringTrim = unapply(String.prototype.trim);
+    var regExpTest = unapply(RegExp.prototype.test);
+    var typeErrorCreate = unconstruct(TypeError);
+    function unapply(func) {
+      return function (thisArg) {
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
+        }
+        return apply(func, thisArg, args);
+      };
+    }
+    function unconstruct(func) {
+      return function () {
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
+        }
+        return construct(func, args);
+      };
+    }
+    function addToSet(set, array) {
+      if (setPrototypeOf) {
+        setPrototypeOf(set, null);
+      }
+      var l = array.length;
+      while (l--) {
+        var element = array[l];
+        if (typeof element === 'string') {
+          var lcElement = stringToLowerCase(element);
+          if (lcElement !== element) {
+            if (!isFrozen(array)) {
+              array[l] = lcElement;
+            }
+            element = lcElement;
+          }
+        }
+        set[element] = true;
+      }
+      return set;
+    }
+    function clone(object) {
+      var newObject = create(null);
+      var property;
+      for (property in object) {
+        if (apply(hasOwnProperty, object, [property])) {
+          newObject[property] = object[property];
+        }
+      }
+      return newObject;
+    }
+    function lookupGetter(object, prop) {
+      while (object !== null) {
+        var desc = getOwnPropertyDescriptor(object, prop);
+        if (desc) {
+          if (desc.get) {
+            return unapply(desc.get);
+          }
+          if (typeof desc.value === 'function') {
+            return unapply(desc.value);
+          }
+        }
+        object = getPrototypeOf(object);
+      }
+      function fallbackValue(element) {
+        console.warn('fallback value for', element);
+        return null;
+      }
+      return fallbackValue;
+    }
+    var html$1 = freeze([
+      'a',
+      'abbr',
+      'acronym',
+      'address',
+      'area',
+      'article',
+      'aside',
+      'audio',
+      'b',
+      'bdi',
+      'bdo',
+      'big',
+      'blink',
+      'blockquote',
+      'body',
+      'br',
+      'button',
+      'canvas',
+      'caption',
+      'center',
+      'cite',
+      'code',
+      'col',
+      'colgroup',
+      'content',
+      'data',
+      'datalist',
+      'dd',
+      'decorator',
+      'del',
+      'details',
+      'dfn',
+      'dialog',
+      'dir',
+      'div',
+      'dl',
+      'dt',
+      'element',
+      'em',
+      'fieldset',
+      'figcaption',
+      'figure',
+      'font',
+      'footer',
+      'form',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'head',
+      'header',
+      'hgroup',
+      'hr',
+      'html',
+      'i',
+      'img',
+      'input',
+      'ins',
+      'kbd',
+      'label',
+      'legend',
+      'li',
+      'main',
+      'map',
+      'mark',
+      'marquee',
+      'menu',
+      'menuitem',
+      'meter',
+      'nav',
+      'nobr',
+      'ol',
+      'optgroup',
+      'option',
+      'output',
+      'p',
+      'picture',
+      'pre',
+      'progress',
+      'q',
+      'rp',
+      'rt',
+      'ruby',
+      's',
+      'samp',
+      'section',
+      'select',
+      'shadow',
+      'small',
+      'source',
+      'spacer',
+      'span',
+      'strike',
+      'strong',
+      'style',
+      'sub',
+      'summary',
+      'sup',
+      'table',
+      'tbody',
+      'td',
+      'template',
+      'textarea',
+      'tfoot',
+      'th',
+      'thead',
+      'time',
+      'tr',
+      'track',
+      'tt',
+      'u',
+      'ul',
+      'var',
+      'video',
+      'wbr'
+    ]);
+    var svg$1 = freeze([
+      'svg',
+      'a',
+      'altglyph',
+      'altglyphdef',
+      'altglyphitem',
+      'animatecolor',
+      'animatemotion',
+      'animatetransform',
+      'circle',
+      'clippath',
+      'defs',
+      'desc',
+      'ellipse',
+      'filter',
+      'font',
+      'g',
+      'glyph',
+      'glyphref',
+      'hkern',
+      'image',
+      'line',
+      'lineargradient',
+      'marker',
+      'mask',
+      'metadata',
+      'mpath',
+      'path',
+      'pattern',
+      'polygon',
+      'polyline',
+      'radialgradient',
+      'rect',
+      'stop',
+      'style',
+      'switch',
+      'symbol',
+      'text',
+      'textpath',
+      'title',
+      'tref',
+      'tspan',
+      'view',
+      'vkern'
+    ]);
+    var svgFilters = freeze([
+      'feBlend',
+      'feColorMatrix',
+      'feComponentTransfer',
+      'feComposite',
+      'feConvolveMatrix',
+      'feDiffuseLighting',
+      'feDisplacementMap',
+      'feDistantLight',
+      'feFlood',
+      'feFuncA',
+      'feFuncB',
+      'feFuncG',
+      'feFuncR',
+      'feGaussianBlur',
+      'feImage',
+      'feMerge',
+      'feMergeNode',
+      'feMorphology',
+      'feOffset',
+      'fePointLight',
+      'feSpecularLighting',
+      'feSpotLight',
+      'feTile',
+      'feTurbulence'
+    ]);
+    var svgDisallowed = freeze([
+      'animate',
+      'color-profile',
+      'cursor',
+      'discard',
+      'fedropshadow',
+      'font-face',
+      'font-face-format',
+      'font-face-name',
+      'font-face-src',
+      'font-face-uri',
+      'foreignobject',
+      'hatch',
+      'hatchpath',
+      'mesh',
+      'meshgradient',
+      'meshpatch',
+      'meshrow',
+      'missing-glyph',
+      'script',
+      'set',
+      'solidcolor',
+      'unknown',
+      'use'
+    ]);
+    var mathMl$1 = freeze([
+      'math',
+      'menclose',
+      'merror',
+      'mfenced',
+      'mfrac',
+      'mglyph',
+      'mi',
+      'mlabeledtr',
+      'mmultiscripts',
+      'mn',
+      'mo',
+      'mover',
+      'mpadded',
+      'mphantom',
+      'mroot',
+      'mrow',
+      'ms',
+      'mspace',
+      'msqrt',
+      'mstyle',
+      'msub',
+      'msup',
+      'msubsup',
+      'mtable',
+      'mtd',
+      'mtext',
+      'mtr',
+      'munder',
+      'munderover'
+    ]);
+    var mathMlDisallowed = freeze([
+      'maction',
+      'maligngroup',
+      'malignmark',
+      'mlongdiv',
+      'mscarries',
+      'mscarry',
+      'msgroup',
+      'mstack',
+      'msline',
+      'msrow',
+      'semantics',
+      'annotation',
+      'annotation-xml',
+      'mprescripts',
+      'none'
+    ]);
+    var text = freeze(['#text']);
+    var html = freeze([
+      'accept',
+      'action',
+      'align',
+      'alt',
+      'autocapitalize',
+      'autocomplete',
+      'autopictureinpicture',
+      'autoplay',
+      'background',
+      'bgcolor',
+      'border',
+      'capture',
+      'cellpadding',
+      'cellspacing',
+      'checked',
+      'cite',
+      'class',
+      'clear',
+      'color',
+      'cols',
+      'colspan',
+      'controls',
+      'controlslist',
+      'coords',
+      'crossorigin',
+      'datetime',
+      'decoding',
+      'default',
+      'dir',
+      'disabled',
+      'disablepictureinpicture',
+      'disableremoteplayback',
+      'download',
+      'draggable',
+      'enctype',
+      'enterkeyhint',
+      'face',
+      'for',
+      'headers',
+      'height',
+      'hidden',
+      'high',
+      'href',
+      'hreflang',
+      'id',
+      'inputmode',
+      'integrity',
+      'ismap',
+      'kind',
+      'label',
+      'lang',
+      'list',
+      'loading',
+      'loop',
+      'low',
+      'max',
+      'maxlength',
+      'media',
+      'method',
+      'min',
+      'minlength',
+      'multiple',
+      'muted',
+      'name',
+      'nonce',
+      'noshade',
+      'novalidate',
+      'nowrap',
+      'open',
+      'optimum',
+      'pattern',
+      'placeholder',
+      'playsinline',
+      'poster',
+      'preload',
+      'pubdate',
+      'radiogroup',
+      'readonly',
+      'rel',
+      'required',
+      'rev',
+      'reversed',
+      'role',
+      'rows',
+      'rowspan',
+      'spellcheck',
+      'scope',
+      'selected',
+      'shape',
+      'size',
+      'sizes',
+      'span',
+      'srclang',
+      'start',
+      'src',
+      'srcset',
+      'step',
+      'style',
+      'summary',
+      'tabindex',
+      'title',
+      'translate',
+      'type',
+      'usemap',
+      'valign',
+      'value',
+      'width',
+      'xmlns',
+      'slot'
+    ]);
+    var svg = freeze([
+      'accent-height',
+      'accumulate',
+      'additive',
+      'alignment-baseline',
+      'ascent',
+      'attributename',
+      'attributetype',
+      'azimuth',
+      'basefrequency',
+      'baseline-shift',
+      'begin',
+      'bias',
+      'by',
+      'class',
+      'clip',
+      'clippathunits',
+      'clip-path',
+      'clip-rule',
+      'color',
+      'color-interpolation',
+      'color-interpolation-filters',
+      'color-profile',
+      'color-rendering',
+      'cx',
+      'cy',
+      'd',
+      'dx',
+      'dy',
+      'diffuseconstant',
+      'direction',
+      'display',
+      'divisor',
+      'dur',
+      'edgemode',
+      'elevation',
+      'end',
+      'fill',
+      'fill-opacity',
+      'fill-rule',
+      'filter',
+      'filterunits',
+      'flood-color',
+      'flood-opacity',
+      'font-family',
+      'font-size',
+      'font-size-adjust',
+      'font-stretch',
+      'font-style',
+      'font-variant',
+      'font-weight',
+      'fx',
+      'fy',
+      'g1',
+      'g2',
+      'glyph-name',
+      'glyphref',
+      'gradientunits',
+      'gradienttransform',
+      'height',
+      'href',
+      'id',
+      'image-rendering',
+      'in',
+      'in2',
+      'k',
+      'k1',
+      'k2',
+      'k3',
+      'k4',
+      'kerning',
+      'keypoints',
+      'keysplines',
+      'keytimes',
+      'lang',
+      'lengthadjust',
+      'letter-spacing',
+      'kernelmatrix',
+      'kernelunitlength',
+      'lighting-color',
+      'local',
+      'marker-end',
+      'marker-mid',
+      'marker-start',
+      'markerheight',
+      'markerunits',
+      'markerwidth',
+      'maskcontentunits',
+      'maskunits',
+      'max',
+      'mask',
+      'media',
+      'method',
+      'mode',
+      'min',
+      'name',
+      'numoctaves',
+      'offset',
+      'operator',
+      'opacity',
+      'order',
+      'orient',
+      'orientation',
+      'origin',
+      'overflow',
+      'paint-order',
+      'path',
+      'pathlength',
+      'patterncontentunits',
+      'patterntransform',
+      'patternunits',
+      'points',
+      'preservealpha',
+      'preserveaspectratio',
+      'primitiveunits',
+      'r',
+      'rx',
+      'ry',
+      'radius',
+      'refx',
+      'refy',
+      'repeatcount',
+      'repeatdur',
+      'restart',
+      'result',
+      'rotate',
+      'scale',
+      'seed',
+      'shape-rendering',
+      'specularconstant',
+      'specularexponent',
+      'spreadmethod',
+      'startoffset',
+      'stddeviation',
+      'stitchtiles',
+      'stop-color',
+      'stop-opacity',
+      'stroke-dasharray',
+      'stroke-dashoffset',
+      'stroke-linecap',
+      'stroke-linejoin',
+      'stroke-miterlimit',
+      'stroke-opacity',
+      'stroke',
+      'stroke-width',
+      'style',
+      'surfacescale',
+      'systemlanguage',
+      'tabindex',
+      'targetx',
+      'targety',
+      'transform',
+      'transform-origin',
+      'text-anchor',
+      'text-decoration',
+      'text-rendering',
+      'textlength',
+      'type',
+      'u1',
+      'u2',
+      'unicode',
+      'values',
+      'viewbox',
+      'visibility',
+      'version',
+      'vert-adv-y',
+      'vert-origin-x',
+      'vert-origin-y',
+      'width',
+      'word-spacing',
+      'wrap',
+      'writing-mode',
+      'xchannelselector',
+      'ychannelselector',
+      'x',
+      'x1',
+      'x2',
+      'xmlns',
+      'y',
+      'y1',
+      'y2',
+      'z',
+      'zoomandpan'
+    ]);
+    var mathMl = freeze([
+      'accent',
+      'accentunder',
+      'align',
+      'bevelled',
+      'close',
+      'columnsalign',
+      'columnlines',
+      'columnspan',
+      'denomalign',
+      'depth',
+      'dir',
+      'display',
+      'displaystyle',
+      'encoding',
+      'fence',
+      'frame',
+      'height',
+      'href',
+      'id',
+      'largeop',
+      'length',
+      'linethickness',
+      'lspace',
+      'lquote',
+      'mathbackground',
+      'mathcolor',
+      'mathsize',
+      'mathvariant',
+      'maxsize',
+      'minsize',
+      'movablelimits',
+      'notation',
+      'numalign',
+      'open',
+      'rowalign',
+      'rowlines',
+      'rowspacing',
+      'rowspan',
+      'rspace',
+      'rquote',
+      'scriptlevel',
+      'scriptminsize',
+      'scriptsizemultiplier',
+      'selection',
+      'separator',
+      'separators',
+      'stretchy',
+      'subscriptshift',
+      'supscriptshift',
+      'symmetric',
+      'voffset',
+      'width',
+      'xmlns'
+    ]);
+    var xml = freeze([
+      'xlink:href',
+      'xml:id',
+      'xlink:title',
+      'xml:space',
+      'xmlns:xlink'
+    ]);
+    var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm);
+    var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+    var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/);
+    var ARIA_ATTR = seal(/^aria-[\-\w]+$/);
+    var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
+    var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
+    var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g);
+    var DOCTYPE_NAME = seal(/^html$/i);
+    var getGlobal = function getGlobal() {
+      return typeof window === 'undefined' ? null : window;
+    };
+    var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, document) {
+      if (_typeof(trustedTypes) !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
+        return null;
+      }
+      var suffix = null;
+      var ATTR_NAME = 'data-tt-policy-suffix';
+      if (document.currentScript && document.currentScript.hasAttribute(ATTR_NAME)) {
+        suffix = document.currentScript.getAttribute(ATTR_NAME);
+      }
+      var policyName = 'dompurify' + (suffix ? '#' + suffix : '');
+      try {
+        return trustedTypes.createPolicy(policyName, {
+          createHTML: function createHTML(html) {
+            return html;
+          }
+        });
+      } catch (_) {
+        console.warn('TrustedTypes policy ' + policyName + ' could not be created.');
+        return null;
+      }
+    };
+    function createDOMPurify() {
+      var window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
+      var DOMPurify = function DOMPurify(root) {
+        return createDOMPurify(root);
+      };
+      DOMPurify.version = '2.3.8';
+      DOMPurify.removed = [];
+      if (!window || !window.document || window.document.nodeType !== 9) {
+        DOMPurify.isSupported = false;
+        return DOMPurify;
+      }
+      var originalDocument = window.document;
+      var document = window.document;
+      var DocumentFragment = window.DocumentFragment, HTMLTemplateElement = window.HTMLTemplateElement, Node = window.Node, Element = window.Element, NodeFilter = window.NodeFilter, _window$NamedNodeMap = window.NamedNodeMap, NamedNodeMap = _window$NamedNodeMap === void 0 ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap, HTMLFormElement = window.HTMLFormElement, DOMParser = window.DOMParser, trustedTypes = window.trustedTypes;
+      var ElementPrototype = Element.prototype;
+      var cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+      var getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
+      var getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
+      var getParentNode = lookupGetter(ElementPrototype, 'parentNode');
+      if (typeof HTMLTemplateElement === 'function') {
+        var template = document.createElement('template');
+        if (template.content && template.content.ownerDocument) {
+          document = template.content.ownerDocument;
+        }
+      }
+      var trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, originalDocument);
+      var emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
+      var _document = document, implementation = _document.implementation, createNodeIterator = _document.createNodeIterator, createDocumentFragment = _document.createDocumentFragment, getElementsByTagName = _document.getElementsByTagName;
+      var importNode = originalDocument.importNode;
+      var documentMode = {};
+      try {
+        documentMode = clone(document).documentMode ? document.documentMode : {};
+      } catch (_) {
+      }
+      var hooks = {};
+      DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
+      var MUSTACHE_EXPR$1 = MUSTACHE_EXPR, ERB_EXPR$1 = ERB_EXPR, DATA_ATTR$1 = DATA_ATTR, ARIA_ATTR$1 = ARIA_ATTR, IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA, ATTR_WHITESPACE$1 = ATTR_WHITESPACE;
+      var IS_ALLOWED_URI$1 = IS_ALLOWED_URI;
+      var ALLOWED_TAGS = null;
+      var DEFAULT_ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(html$1), _toConsumableArray(svg$1), _toConsumableArray(svgFilters), _toConsumableArray(mathMl$1), _toConsumableArray(text)));
+      var ALLOWED_ATTR = null;
+      var DEFAULT_ALLOWED_ATTR = addToSet({}, [].concat(_toConsumableArray(html), _toConsumableArray(svg), _toConsumableArray(mathMl), _toConsumableArray(xml)));
+      var CUSTOM_ELEMENT_HANDLING = Object.seal(Object.create(null, {
+        tagNameCheck: {
+          writable: true,
+          configurable: false,
+          enumerable: true,
+          value: null
+        },
+        attributeNameCheck: {
+          writable: true,
+          configurable: false,
+          enumerable: true,
+          value: null
+        },
+        allowCustomizedBuiltInElements: {
+          writable: true,
+          configurable: false,
+          enumerable: true,
+          value: false
+        }
+      }));
+      var FORBID_TAGS = null;
+      var FORBID_ATTR = null;
+      var ALLOW_ARIA_ATTR = true;
+      var ALLOW_DATA_ATTR = true;
+      var ALLOW_UNKNOWN_PROTOCOLS = false;
+      var SAFE_FOR_TEMPLATES = false;
+      var WHOLE_DOCUMENT = false;
+      var SET_CONFIG = false;
+      var FORCE_BODY = false;
+      var RETURN_DOM = false;
+      var RETURN_DOM_FRAGMENT = false;
+      var RETURN_TRUSTED_TYPE = false;
+      var SANITIZE_DOM = true;
+      var KEEP_CONTENT = true;
+      var IN_PLACE = false;
+      var USE_PROFILES = {};
+      var FORBID_CONTENTS = null;
+      var DEFAULT_FORBID_CONTENTS = addToSet({}, [
+        'annotation-xml',
+        'audio',
+        'colgroup',
+        'desc',
+        'foreignobject',
+        'head',
+        'iframe',
+        'math',
+        'mi',
+        'mn',
+        'mo',
+        'ms',
+        'mtext',
+        'noembed',
+        'noframes',
+        'noscript',
+        'plaintext',
+        'script',
+        'style',
+        'svg',
+        'template',
+        'thead',
+        'title',
+        'video',
+        'xmp'
+      ]);
+      var DATA_URI_TAGS = null;
+      var DEFAULT_DATA_URI_TAGS = addToSet({}, [
+        'audio',
+        'video',
+        'img',
+        'source',
+        'image',
+        'track'
+      ]);
+      var URI_SAFE_ATTRIBUTES = null;
+      var DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, [
+        'alt',
+        'class',
+        'for',
+        'id',
+        'label',
+        'name',
+        'pattern',
+        'placeholder',
+        'role',
+        'summary',
+        'title',
+        'value',
+        'style',
+        'xmlns'
+      ]);
+      var MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+      var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+      var HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+      var NAMESPACE = HTML_NAMESPACE;
+      var IS_EMPTY_INPUT = false;
+      var PARSER_MEDIA_TYPE;
+      var SUPPORTED_PARSER_MEDIA_TYPES = [
+        'application/xhtml+xml',
+        'text/html'
+      ];
+      var DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
+      var transformCaseFunc;
+      var CONFIG = null;
+      var formElement = document.createElement('form');
+      var isRegexOrFunction = function isRegexOrFunction(testValue) {
+        return testValue instanceof RegExp || testValue instanceof Function;
+      };
+      var _parseConfig = function _parseConfig(cfg) {
+        if (CONFIG && CONFIG === cfg) {
+          return;
+        }
+        if (!cfg || _typeof(cfg) !== 'object') {
+          cfg = {};
+        }
+        cfg = clone(cfg);
+        ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS) : DEFAULT_ALLOWED_TAGS;
+        ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR) : DEFAULT_ALLOWED_ATTR;
+        URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR) : DEFAULT_URI_SAFE_ATTRIBUTES;
+        DATA_URI_TAGS = 'ADD_DATA_URI_TAGS' in cfg ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS) : DEFAULT_DATA_URI_TAGS;
+        FORBID_CONTENTS = 'FORBID_CONTENTS' in cfg ? addToSet({}, cfg.FORBID_CONTENTS) : DEFAULT_FORBID_CONTENTS;
+        FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
+        FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
+        USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
+        ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false;
+        ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false;
+        ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false;
+        SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false;
+        WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false;
+        RETURN_DOM = cfg.RETURN_DOM || false;
+        RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false;
+        RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false;
+        FORCE_BODY = cfg.FORCE_BODY || false;
+        SANITIZE_DOM = cfg.SANITIZE_DOM !== false;
+        KEEP_CONTENT = cfg.KEEP_CONTENT !== false;
+        IN_PLACE = cfg.IN_PLACE || false;
+        IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$1;
+        NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+        if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+        }
+        if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)) {
+          CUSTOM_ELEMENT_HANDLING.attributeNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+        }
+        if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === 'boolean') {
+          CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+        }
+        PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE;
+        transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
+          return x;
+        } : stringToLowerCase;
+        if (SAFE_FOR_TEMPLATES) {
+          ALLOW_DATA_ATTR = false;
+        }
+        if (RETURN_DOM_FRAGMENT) {
+          RETURN_DOM = true;
+        }
+        if (USE_PROFILES) {
+          ALLOWED_TAGS = addToSet({}, _toConsumableArray(text));
+          ALLOWED_ATTR = [];
+          if (USE_PROFILES.html === true) {
+            addToSet(ALLOWED_TAGS, html$1);
+            addToSet(ALLOWED_ATTR, html);
+          }
+          if (USE_PROFILES.svg === true) {
+            addToSet(ALLOWED_TAGS, svg$1);
+            addToSet(ALLOWED_ATTR, svg);
+            addToSet(ALLOWED_ATTR, xml);
+          }
+          if (USE_PROFILES.svgFilters === true) {
+            addToSet(ALLOWED_TAGS, svgFilters);
+            addToSet(ALLOWED_ATTR, svg);
+            addToSet(ALLOWED_ATTR, xml);
+          }
+          if (USE_PROFILES.mathMl === true) {
+            addToSet(ALLOWED_TAGS, mathMl$1);
+            addToSet(ALLOWED_ATTR, mathMl);
+            addToSet(ALLOWED_ATTR, xml);
+          }
+        }
+        if (cfg.ADD_TAGS) {
+          if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
+            ALLOWED_TAGS = clone(ALLOWED_TAGS);
+          }
+          addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
+        }
+        if (cfg.ADD_ATTR) {
+          if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
+            ALLOWED_ATTR = clone(ALLOWED_ATTR);
+          }
+          addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+        }
+        if (cfg.ADD_URI_SAFE_ATTR) {
+          addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+        }
+        if (cfg.FORBID_CONTENTS) {
+          if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+            FORBID_CONTENTS = clone(FORBID_CONTENTS);
+          }
+          addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS);
+        }
+        if (KEEP_CONTENT) {
+          ALLOWED_TAGS['#text'] = true;
+        }
+        if (WHOLE_DOCUMENT) {
+          addToSet(ALLOWED_TAGS, [
+            'html',
+            'head',
+            'body'
+          ]);
+        }
+        if (ALLOWED_TAGS.table) {
+          addToSet(ALLOWED_TAGS, ['tbody']);
+          delete FORBID_TAGS.tbody;
+        }
+        if (freeze) {
+          freeze(cfg);
+        }
+        CONFIG = cfg;
+      };
+      var MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
+        'mi',
+        'mo',
+        'mn',
+        'ms',
+        'mtext'
+      ]);
+      var HTML_INTEGRATION_POINTS = addToSet({}, [
+        'foreignobject',
+        'desc',
+        'title',
+        'annotation-xml'
+      ]);
+      var COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
+        'title',
+        'style',
+        'font',
+        'a',
+        'script'
+      ]);
+      var ALL_SVG_TAGS = addToSet({}, svg$1);
+      addToSet(ALL_SVG_TAGS, svgFilters);
+      addToSet(ALL_SVG_TAGS, svgDisallowed);
+      var ALL_MATHML_TAGS = addToSet({}, mathMl$1);
+      addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
+      var _checkValidNamespace = function _checkValidNamespace(element) {
+        var parent = getParentNode(element);
+        if (!parent || !parent.tagName) {
+          parent = {
+            namespaceURI: HTML_NAMESPACE,
+            tagName: 'template'
+          };
+        }
+        var tagName = stringToLowerCase(element.tagName);
+        var parentTagName = stringToLowerCase(parent.tagName);
+        if (element.namespaceURI === SVG_NAMESPACE) {
+          if (parent.namespaceURI === HTML_NAMESPACE) {
+            return tagName === 'svg';
+          }
+          if (parent.namespaceURI === MATHML_NAMESPACE) {
+            return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
+          }
+          return Boolean(ALL_SVG_TAGS[tagName]);
+        }
+        if (element.namespaceURI === MATHML_NAMESPACE) {
+          if (parent.namespaceURI === HTML_NAMESPACE) {
+            return tagName === 'math';
+          }
+          if (parent.namespaceURI === SVG_NAMESPACE) {
+            return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
+          }
+          return Boolean(ALL_MATHML_TAGS[tagName]);
+        }
+        if (element.namespaceURI === HTML_NAMESPACE) {
+          if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) {
+            return false;
+          }
+          if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) {
+            return false;
+          }
+          return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+        }
+        return false;
+      };
+      var _forceRemove = function _forceRemove(node) {
+        arrayPush(DOMPurify.removed, { element: node });
+        try {
+          node.parentNode.removeChild(node);
+        } catch (_) {
+          try {
+            node.outerHTML = emptyHTML;
+          } catch (_) {
+            node.remove();
+          }
+        }
+      };
+      var _removeAttribute = function _removeAttribute(name, node) {
+        try {
+          arrayPush(DOMPurify.removed, {
+            attribute: node.getAttributeNode(name),
+            from: node
+          });
+        } catch (_) {
+          arrayPush(DOMPurify.removed, {
+            attribute: null,
+            from: node
+          });
+        }
+        node.removeAttribute(name);
+        if (name === 'is' && !ALLOWED_ATTR[name]) {
+          if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
+            try {
+              _forceRemove(node);
+            } catch (_) {
+            }
+          } else {
+            try {
+              node.setAttribute(name, '');
+            } catch (_) {
+            }
+          }
+        }
+      };
+      var _initDocument = function _initDocument(dirty) {
+        var doc;
+        var leadingWhitespace;
+        if (FORCE_BODY) {
+          dirty = '<remove></remove>' + dirty;
+        } else {
+          var matches = stringMatch(dirty, /^[\r\n\t ]+/);
+          leadingWhitespace = matches && matches[0];
+        }
+        if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+          dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
+        }
+        var dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+        if (NAMESPACE === HTML_NAMESPACE) {
+          try {
+            doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
+          } catch (_) {
+          }
+        }
+        if (!doc || !doc.documentElement) {
+          doc = implementation.createDocument(NAMESPACE, 'template', null);
+          try {
+            doc.documentElement.innerHTML = IS_EMPTY_INPUT ? '' : dirtyPayload;
+          } catch (_) {
+          }
+        }
+        var body = doc.body || doc.documentElement;
+        if (dirty && leadingWhitespace) {
+          body.insertBefore(document.createTextNode(leadingWhitespace), body.childNodes[0] || null);
+        }
+        if (NAMESPACE === HTML_NAMESPACE) {
+          return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
+        }
+        return WHOLE_DOCUMENT ? doc.documentElement : body;
+      };
+      var _createIterator = function _createIterator(root) {
+        return createNodeIterator.call(root.ownerDocument || root, root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null, false);
+      };
+      var _isClobbered = function _isClobbered(elm) {
+        return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function');
+      };
+      var _isNode = function _isNode(object) {
+        return _typeof(Node) === 'object' ? object instanceof Node : object && _typeof(object) === 'object' && typeof object.nodeType === 'number' && typeof object.nodeName === 'string';
+      };
+      var _executeHook = function _executeHook(entryPoint, currentNode, data) {
+        if (!hooks[entryPoint]) {
+          return;
+        }
+        arrayForEach(hooks[entryPoint], function (hook) {
+          hook.call(DOMPurify, currentNode, data, CONFIG);
+        });
+      };
+      var _sanitizeElements = function _sanitizeElements(currentNode) {
+        var content;
+        _executeHook('beforeSanitizeElements', currentNode, null);
+        if (_isClobbered(currentNode)) {
+          _forceRemove(currentNode);
+          return true;
+        }
+        if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
+          _forceRemove(currentNode);
+          return true;
+        }
+        var tagName = transformCaseFunc(currentNode.nodeName);
+        _executeHook('uponSanitizeElement', currentNode, {
+          tagName: tagName,
+          allowedTags: ALLOWED_TAGS
+        });
+        if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+          _forceRemove(currentNode);
+          return true;
+        }
+        if (tagName === 'select' && regExpTest(/<template/i, currentNode.innerHTML)) {
+          _forceRemove(currentNode);
+          return true;
+        }
+        if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
+            if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName))
+              return false;
+            if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName))
+              return false;
+          }
+          if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+            var parentNode = getParentNode(currentNode) || currentNode.parentNode;
+            var childNodes = getChildNodes(currentNode) || currentNode.childNodes;
+            if (childNodes && parentNode) {
+              var childCount = childNodes.length;
+              for (var i = childCount - 1; i >= 0; --i) {
+                parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
+              }
+            }
+          }
+          _forceRemove(currentNode);
+          return true;
+        }
+        if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
+          _forceRemove(currentNode);
+          return true;
+        }
+        if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
+          _forceRemove(currentNode);
+          return true;
+        }
+        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+          content = currentNode.textContent;
+          content = stringReplace(content, MUSTACHE_EXPR$1, ' ');
+          content = stringReplace(content, ERB_EXPR$1, ' ');
+          if (currentNode.textContent !== content) {
+            arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
+            currentNode.textContent = content;
+          }
+        }
+        _executeHook('afterSanitizeElements', currentNode, null);
+        return false;
+      };
+      var _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
+        if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
+          return false;
+        }
+        if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR$1, lcName));
+        else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$1, lcName));
+        else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
+          if (_basicCustomElementTest(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) || lcName === 'is' && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value)));
+          else {
+            return false;
+          }
+        } else if (URI_SAFE_ATTRIBUTES[lcName]);
+        else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE$1, '')));
+        else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]);
+        else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, stringReplace(value, ATTR_WHITESPACE$1, '')));
+        else if (!value);
+        else {
+          return false;
+        }
+        return true;
+      };
+      var _basicCustomElementTest = function _basicCustomElementTest(tagName) {
+        return tagName.indexOf('-') > 0;
+      };
+      var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
+        var attr;
+        var value;
+        var lcName;
+        var l;
+        _executeHook('beforeSanitizeAttributes', currentNode, null);
+        var attributes = currentNode.attributes;
+        if (!attributes) {
+          return;
+        }
+        var hookEvent = {
+          attrName: '',
+          attrValue: '',
+          keepAttr: true,
+          allowedAttributes: ALLOWED_ATTR
+        };
+        l = attributes.length;
+        while (l--) {
+          attr = attributes[l];
+          var _attr = attr, name = _attr.name, namespaceURI = _attr.namespaceURI;
+          value = name === 'value' ? attr.value : stringTrim(attr.value);
+          lcName = transformCaseFunc(name);
+          var initValue = value;
+          hookEvent.attrName = lcName;
+          hookEvent.attrValue = value;
+          hookEvent.keepAttr = true;
+          hookEvent.forceKeepAttr = undefined;
+          _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
+          value = hookEvent.attrValue;
+          if (hookEvent.forceKeepAttr) {
+            continue;
+          }
+          if (!hookEvent.keepAttr) {
+            _removeAttribute(name, currentNode);
+            continue;
+          }
+          if (regExpTest(/\/>/i, value)) {
+            _removeAttribute(name, currentNode);
+            continue;
+          }
+          if (SAFE_FOR_TEMPLATES) {
+            value = stringReplace(value, MUSTACHE_EXPR$1, ' ');
+            value = stringReplace(value, ERB_EXPR$1, ' ');
+          }
+          var lcTag = transformCaseFunc(currentNode.nodeName);
+          if (!_isValidAttribute(lcTag, lcName, value)) {
+            _removeAttribute(name, currentNode);
+            continue;
+          }
+          if (value !== initValue) {
+            try {
+              if (namespaceURI) {
+                currentNode.setAttributeNS(namespaceURI, name, value);
+              } else {
+                currentNode.setAttribute(name, value);
+              }
+            } catch (_) {
+              _removeAttribute(name, currentNode);
+            }
+          }
+        }
+        _executeHook('afterSanitizeAttributes', currentNode, null);
+      };
+      var _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
+        var shadowNode;
+        var shadowIterator = _createIterator(fragment);
+        _executeHook('beforeSanitizeShadowDOM', fragment, null);
+        while (shadowNode = shadowIterator.nextNode()) {
+          _executeHook('uponSanitizeShadowNode', shadowNode, null);
+          if (_sanitizeElements(shadowNode)) {
+            continue;
+          }
+          if (shadowNode.content instanceof DocumentFragment) {
+            _sanitizeShadowDOM(shadowNode.content);
+          }
+          _sanitizeAttributes(shadowNode);
+        }
+        _executeHook('afterSanitizeShadowDOM', fragment, null);
+      };
+      DOMPurify.sanitize = function (dirty, cfg) {
+        var body;
+        var importedNode;
+        var currentNode;
+        var oldNode;
+        var returnNode;
+        IS_EMPTY_INPUT = !dirty;
+        if (IS_EMPTY_INPUT) {
+          dirty = '<!-->';
+        }
+        if (typeof dirty !== 'string' && !_isNode(dirty)) {
+          if (typeof dirty.toString !== 'function') {
+            throw typeErrorCreate('toString is not a function');
+          } else {
+            dirty = dirty.toString();
+            if (typeof dirty !== 'string') {
+              throw typeErrorCreate('dirty is not a string, aborting');
+            }
+          }
+        }
+        if (!DOMPurify.isSupported) {
+          if (_typeof(window.toStaticHTML) === 'object' || typeof window.toStaticHTML === 'function') {
+            if (typeof dirty === 'string') {
+              return window.toStaticHTML(dirty);
+            }
+            if (_isNode(dirty)) {
+              return window.toStaticHTML(dirty.outerHTML);
+            }
+          }
+          return dirty;
+        }
+        if (!SET_CONFIG) {
+          _parseConfig(cfg);
+        }
+        DOMPurify.removed = [];
+        if (typeof dirty === 'string') {
+          IN_PLACE = false;
+        }
+        if (IN_PLACE) {
+          if (dirty.nodeName) {
+            var tagName = transformCaseFunc(dirty.nodeName);
+            if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+              throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
+            }
+          }
+        } else if (dirty instanceof Node) {
+          body = _initDocument('<!---->');
+          importedNode = body.ownerDocument.importNode(dirty, true);
+          if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+            body = importedNode;
+          } else if (importedNode.nodeName === 'HTML') {
+            body = importedNode;
+          } else {
+            body.appendChild(importedNode);
+          }
+        } else {
+          if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
+            return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(dirty) : dirty;
+          }
+          body = _initDocument(dirty);
+          if (!body) {
+            return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
+          }
+        }
+        if (body && FORCE_BODY) {
+          _forceRemove(body.firstChild);
+        }
+        var nodeIterator = _createIterator(IN_PLACE ? dirty : body);
+        while (currentNode = nodeIterator.nextNode()) {
+          if (currentNode.nodeType === 3 && currentNode === oldNode) {
+            continue;
+          }
+          if (_sanitizeElements(currentNode)) {
+            continue;
+          }
+          if (currentNode.content instanceof DocumentFragment) {
+            _sanitizeShadowDOM(currentNode.content);
+          }
+          _sanitizeAttributes(currentNode);
+          oldNode = currentNode;
+        }
+        oldNode = null;
+        if (IN_PLACE) {
+          return dirty;
+        }
+        if (RETURN_DOM) {
+          if (RETURN_DOM_FRAGMENT) {
+            returnNode = createDocumentFragment.call(body.ownerDocument);
+            while (body.firstChild) {
+              returnNode.appendChild(body.firstChild);
+            }
+          } else {
+            returnNode = body;
+          }
+          if (ALLOWED_ATTR.shadowroot) {
+            returnNode = importNode.call(originalDocument, returnNode, true);
+          }
+          return returnNode;
+        }
+        var serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+        if (WHOLE_DOCUMENT && ALLOWED_TAGS['!doctype'] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) {
+          serializedHTML = '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+        }
+        if (SAFE_FOR_TEMPLATES) {
+          serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR$1, ' ');
+          serializedHTML = stringReplace(serializedHTML, ERB_EXPR$1, ' ');
+        }
+        return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
+      };
+      DOMPurify.setConfig = function (cfg) {
+        _parseConfig(cfg);
+        SET_CONFIG = true;
+      };
+      DOMPurify.clearConfig = function () {
+        CONFIG = null;
+        SET_CONFIG = false;
+      };
+      DOMPurify.isValidAttribute = function (tag, attr, value) {
+        if (!CONFIG) {
+          _parseConfig({});
+        }
+        var lcTag = transformCaseFunc(tag);
+        var lcName = transformCaseFunc(attr);
+        return _isValidAttribute(lcTag, lcName, value);
+      };
+      DOMPurify.addHook = function (entryPoint, hookFunction) {
+        if (typeof hookFunction !== 'function') {
+          return;
+        }
+        hooks[entryPoint] = hooks[entryPoint] || [];
+        arrayPush(hooks[entryPoint], hookFunction);
+      };
+      DOMPurify.removeHook = function (entryPoint) {
+        if (hooks[entryPoint]) {
+          return arrayPop(hooks[entryPoint]);
+        }
+      };
+      DOMPurify.removeHooks = function (entryPoint) {
+        if (hooks[entryPoint]) {
+          hooks[entryPoint] = [];
+        }
+      };
+      DOMPurify.removeAllHooks = function () {
+        hooks = {};
+      };
+      return DOMPurify;
+    }
+    var purify = createDOMPurify();
+
+    const sanitizeHtmlString = html => purify().sanitize(html);
+
+    const isTouch = global$5.deviceType.isTouch();
     const hiddenHeader = (title, close) => ({
       dom: {
         tag: 'div',
@@ -31075,7 +29384,7 @@
               add$2(body(), scrollLockClass);
             }),
             runOnDetached(() => {
-              remove$3(body(), scrollLockClass);
+              remove$2(body(), scrollLockClass);
             })
           ]),
           ...spec.extraBehaviours
@@ -31108,14 +29417,11 @@
         attributes: {
           'type': 'button',
           'aria-label': providersBackstage.translate('Close'),
-          'data-mce-name': 'close'
+          'title': providersBackstage.translate('Close')
         }
       },
-      buttonBehaviours: derive$1([
-        Tabstopping.config({}),
-        Tooltipping.config(providersBackstage.tooltips.getConfig({ tooltipText: providersBackstage.translate('Close') }))
-      ]),
-      components: [render$4('close', {
+      buttonBehaviours: derive$1([Tabstopping.config({})]),
+      components: [render$3('close', {
           tag: 'span',
           classes: ['tox-icon']
         }, providersBackstage.icons)],
@@ -31127,7 +29433,7 @@
       const renderComponents = data => [text$2(providersBackstage.translate(data.title))];
       return {
         dom: {
-          tag: 'h1',
+          tag: 'div',
           classes: ['tox-dialog__title'],
           attributes: { ...titleId.map(x => ({ id: x })).getOr({}) }
         },
@@ -31151,15 +29457,12 @@
           mode: 'mouse',
           blockerClass: 'blocker',
           getTarget: handle => {
-            return closest$3(handle, '[role="dialog"]').getOrDie();
+            return closest$1(handle, '[role="dialog"]').getOrDie();
           },
           snaps: {
             getSnapPoints: () => [],
             leftAttr: 'data-drag-left',
             topAttr: 'data-drag-top'
-          },
-          onDrag: (comp, target) => {
-            comp.getSystem().broadcastOn([dismissPopups()], { target });
           }
         })])
     });
@@ -31197,82 +29500,58 @@
     const getEventExtras = (lazyDialog, providers, extra) => ({
       onClose: () => extra.closeWindow(),
       onBlock: blockEvent => {
-        const headerHeight = descendant(lazyDialog().element, '.tox-dialog__header').map(header => get$e(header));
+        const headerHeight = descendant(lazyDialog().element, '.tox-dialog__header').map(header => get$d(header));
         ModalDialog.setBusy(lazyDialog(), (_comp, bs) => getBusySpec(blockEvent.message, bs, providers, headerHeight));
       },
       onUnblock: () => {
         ModalDialog.setIdle(lazyDialog());
       }
     });
-    const fullscreenClass = 'tox-dialog--fullscreen';
-    const largeDialogClass = 'tox-dialog--width-lg';
-    const mediumDialogClass = 'tox-dialog--width-md';
-    const getDialogSizeClass = size => {
-      switch (size) {
-      case 'large':
-        return Optional.some(largeDialogClass);
-      case 'medium':
-        return Optional.some(mediumDialogClass);
-      default:
-        return Optional.none();
-      }
-    };
-    const updateDialogSizeClass = (size, component) => {
-      const dialogBody = SugarElement.fromDom(component.element.dom);
-      if (!has(dialogBody, fullscreenClass)) {
-        remove$2(dialogBody, [
-          largeDialogClass,
-          mediumDialogClass
-        ]);
-        getDialogSizeClass(size).each(dialogSizeClass => add$2(dialogBody, dialogSizeClass));
-      }
-    };
-    const toggleFullscreen = (comp, currentSize) => {
-      const dialogBody = SugarElement.fromDom(comp.element.dom);
-      const classes = get$9(dialogBody);
-      const currentSizeClass = find$5(classes, c => c === largeDialogClass || c === mediumDialogClass).or(getDialogSizeClass(currentSize));
-      toggle$3(dialogBody, [
-        fullscreenClass,
-        ...currentSizeClass.toArray()
-      ]);
-    };
-    const renderModalDialog = (spec, dialogEvents, backstage) => build$1(renderDialog$1({
-      ...spec,
-      firstTabstop: 1,
-      lazySink: backstage.shared.getSink,
-      extraBehaviours: [
-        memory({}),
-        ...spec.extraBehaviours
-      ],
-      onEscape: comp => {
-        emit(comp, formCancelEvent);
-      },
-      dialogEvents,
-      eventOrder: {
-        [receive()]: [
-          Reflecting.name(),
-          Receiving.name()
+    const renderModalDialog = (spec, initialData, dialogEvents, backstage) => {
+      const updateState = (_comp, incoming) => Optional.some(incoming);
+      return build$1(renderDialog$1({
+        ...spec,
+        firstTabstop: 1,
+        lazySink: backstage.shared.getSink,
+        extraBehaviours: [
+          Reflecting.config({
+            channel: `${ dialogChannel }-${ spec.id }`,
+            updateState,
+            initialData
+          }),
+          memory({}),
+          ...spec.extraBehaviours
         ],
-        [attachedToDom()]: [
-          'scroll-lock',
-          Reflecting.name(),
-          'messages',
-          'dialog-events',
-          'alloy.base.behaviour'
-        ],
-        [detachedFromDom()]: [
-          'alloy.base.behaviour',
-          'dialog-events',
-          'messages',
-          Reflecting.name(),
-          'scroll-lock'
-        ]
-      }
-    }));
+        onEscape: comp => {
+          emit(comp, formCancelEvent);
+        },
+        dialogEvents,
+        eventOrder: {
+          [receive()]: [
+            Reflecting.name(),
+            Receiving.name()
+          ],
+          [attachedToDom()]: [
+            'scroll-lock',
+            Reflecting.name(),
+            'messages',
+            'dialog-events',
+            'alloy.base.behaviour'
+          ],
+          [detachedFromDom()]: [
+            'alloy.base.behaviour',
+            'dialog-events',
+            'messages',
+            Reflecting.name(),
+            'scroll-lock'
+          ]
+        }
+      }));
+    };
     const mapMenuButtons = (buttons, menuItemStates = {}) => {
       const mapItems = button => {
         const items = map$2(button.items, item => {
-          const cell = get$h(menuItemStates, item.name).getOr(Cell(false));
+          const cell = get$g(menuItemStates, item.name).getOr(Cell(false));
           return {
             ...item,
             storage: cell
@@ -31301,9 +29580,7 @@
     const initCommonEvents = (fireApiEvent, extras) => [
       runWithTarget(focusin(), onFocus),
       fireApiEvent(formCloseEvent, (_api, spec, _event, self) => {
-        if (hasFocus(self.element)) {
-          active$1(getRootNode(self.element)).each(blur$1);
-        }
+        active$1(getRootNode(self.element)).fold(noop, blur$1);
         extras.onClose();
         spec.onClose();
       }),
@@ -31543,47 +29820,54 @@
       return instanceApi;
     };
 
+    const getDialogSizeClasses = size => {
+      switch (size) {
+      case 'large':
+        return ['tox-dialog--width-lg'];
+      case 'medium':
+        return ['tox-dialog--width-md'];
+      default:
+        return [];
+      }
+    };
     const renderDialog = (dialogInit, extra, backstage) => {
       const dialogId = generate$6('dialog');
       const internalDialog = dialogInit.internalDialog;
       const header = getHeader(internalDialog.title, dialogId, backstage);
-      const dialogSize = Cell(internalDialog.size);
-      const getCompByName$1 = name => getCompByName(modalAccess, name);
-      const dialogSizeClasses = getDialogSizeClass(dialogSize.get()).toArray();
-      const updateState = (comp, incoming) => {
-        dialogSize.set(incoming.internalDialog.size);
-        updateDialogSizeClass(incoming.internalDialog.size, comp);
-        return Optional.some(incoming);
-      };
       const body = renderModalBody({
         body: internalDialog.body,
         initialData: internalDialog.initialData
-      }, dialogId, backstage, getCompByName$1);
+      }, dialogId, backstage);
       const storedMenuButtons = mapMenuButtons(internalDialog.buttons);
       const objOfCells = extractCellsToObject(storedMenuButtons);
       const footer = someIf(storedMenuButtons.length !== 0, renderModalFooter({ buttons: storedMenuButtons }, dialogId, backstage));
       const dialogEvents = initDialog(() => instanceApi, getEventExtras(() => dialog, backstage.shared.providers, extra), backstage.shared.getSink);
+      const dialogSize = getDialogSizeClasses(internalDialog.size);
       const spec = {
         id: dialogId,
         header,
         body,
         footer,
-        extraClasses: dialogSizeClasses,
-        extraBehaviours: [Reflecting.config({
-            channel: `${ dialogChannel }-${ dialogId }`,
-            updateState,
-            initialData: dialogInit
-          })],
+        extraClasses: dialogSize,
+        extraBehaviours: [],
         extraStyles: {}
       };
-      const dialog = renderModalDialog(spec, dialogEvents, backstage);
+      const dialog = renderModalDialog(spec, dialogInit, dialogEvents, backstage);
       const modalAccess = (() => {
         const getForm = () => {
           const outerForm = ModalDialog.getBody(dialog);
           return Composing.getCurrent(outerForm).getOr(outerForm);
         };
-        const toggleFullscreen$1 = () => {
-          toggleFullscreen(dialog, dialogSize.get());
+        const toggleFullscreen = () => {
+          const fullscreenClass = 'tox-dialog--fullscreen';
+          const sugarBody = SugarElement.fromDom(dialog.element.dom);
+          if (!has(sugarBody, fullscreenClass)) {
+            remove$1(sugarBody, dialogSize);
+            add$2(sugarBody, fullscreenClass);
+          } else {
+            remove$2(sugarBody, fullscreenClass);
+            add$1(sugarBody, dialogSize);
+          }
         };
         return {
           getId: constant$1(dialogId),
@@ -31591,7 +29875,7 @@
           getBody: () => ModalDialog.getBody(dialog),
           getFooter: () => ModalDialog.getFooter(dialog),
           getFormWrapper: getForm,
-          toggleFullscreen: toggleFullscreen$1
+          toggleFullscreen
         };
       })();
       const instanceApi = getDialogApi(modalAccess, extra.redial, objOfCells);
@@ -31601,20 +29885,21 @@
       };
     };
 
-    const renderInlineDialog = (dialogInit, extra, backstage, ariaAttrs = false, refreshDocking) => {
+    const getInlineDialogSizeClass = size => {
+      switch (size) {
+      case 'medium':
+        return Optional.some('tox-dialog--width-md');
+      default:
+        return Optional.none();
+      }
+    };
+    const renderInlineDialog = (dialogInit, extra, backstage, ariaAttrs = false) => {
       const dialogId = generate$6('dialog');
       const dialogLabelId = generate$6('dialog-label');
       const dialogContentId = generate$6('dialog-content');
       const internalDialog = dialogInit.internalDialog;
-      const getCompByName$1 = name => getCompByName(modalAccess, name);
-      const dialogSize = Cell(internalDialog.size);
-      const dialogSizeClass = getDialogSizeClass(dialogSize.get()).toArray();
-      const updateState = (comp, incoming) => {
-        dialogSize.set(incoming.internalDialog.size);
-        updateDialogSizeClass(incoming.internalDialog.size, comp);
-        refreshDocking();
-        return Optional.some(incoming);
-      };
+      const dialogSize = getInlineDialogSizeClass(internalDialog.size);
+      const updateState = (_comp, incoming) => Optional.some(incoming);
       const memHeader = record(renderInlineHeader({
         title: internalDialog.title,
         draggable: true
@@ -31622,14 +29907,14 @@
       const memBody = record(renderInlineBody({
         body: internalDialog.body,
         initialData: internalDialog.initialData
-      }, dialogId, dialogContentId, backstage, ariaAttrs, getCompByName$1));
+      }, dialogId, dialogContentId, backstage, ariaAttrs));
       const storagedMenuButtons = mapMenuButtons(internalDialog.buttons);
       const objOfCells = extractCellsToObject(storagedMenuButtons);
       const optMemFooter = someIf(storagedMenuButtons.length !== 0, record(renderInlineFooter({ buttons: storagedMenuButtons }, dialogId, backstage)));
       const dialogEvents = initDialog(() => instanceApi, {
         onBlock: event => {
           Blocking.block(dialog, (_comp, bs) => {
-            const headerHeight = memHeader.getOpt(dialog).map(dialog => get$e(dialog.element));
+            const headerHeight = memHeader.getOpt(dialog).map(dialog => get$d(dialog.element));
             return getBusySpec(event.message, bs, backstage.shared.providers, headerHeight);
           });
         },
@@ -31639,18 +29924,17 @@
         onClose: () => extra.closeWindow()
       }, backstage.shared.getSink);
       const inlineClass = 'tox-dialog-inline';
-      const os = detect$1().os;
       const dialog = build$1({
         dom: {
           tag: 'div',
           classes: [
             'tox-dialog',
             inlineClass,
-            ...dialogSizeClass
+            ...dialogSize.toArray()
           ],
           attributes: {
             role: 'dialog',
-            ...os.isMacOS() ? { 'aria-label': internalDialog.title } : { 'aria-labelledby': dialogLabelId }
+            ['aria-labelledby']: dialogLabelId
           }
         },
         eventOrder: {
@@ -31671,7 +29955,7 @@
               emit(c, formCloseEvent);
               return Optional.some(true);
             },
-            useTabstopAt: elem => !isPseudoStop(elem) && (name$3(elem) !== 'button' || get$g(elem, 'disabled') !== 'disabled'),
+            useTabstopAt: elem => !isPseudoStop(elem) && (name$3(elem) !== 'button' || get$f(elem, 'disabled') !== 'disabled'),
             firstTabstop: 1
           }),
           Reflecting.config({
@@ -31698,10 +29982,18 @@
           ...optMemFooter.map(memFooter => memFooter.asSpec()).toArray()
         ]
       });
-      const toggleFullscreen$1 = () => {
-        toggleFullscreen(dialog, dialogSize.get());
+      const toggleFullscreen = () => {
+        const fullscreenClass = 'tox-dialog--fullscreen';
+        const sugarBody = SugarElement.fromDom(dialog.element.dom);
+        if (!hasAll(sugarBody, [fullscreenClass])) {
+          remove$1(sugarBody, [inlineClass]);
+          add$1(sugarBody, [fullscreenClass]);
+        } else {
+          remove$1(sugarBody, [fullscreenClass]);
+          add$1(sugarBody, [inlineClass]);
+        }
       };
-      const modalAccess = {
+      const instanceApi = getDialogApi({
         getId: constant$1(dialogId),
         getRoot: constant$1(dialog),
         getFooter: () => optMemFooter.map(memFooter => memFooter.get(dialog)),
@@ -31710,9 +30002,8 @@
           const body = memBody.get(dialog);
           return Composing.getCurrent(body).getOr(body);
         },
-        toggleFullscreen: toggleFullscreen$1
-      };
-      const instanceApi = getDialogApi(modalAccess, extra.redial, objOfCells);
+        toggleFullscreen
+      }, extra.redial, objOfCells);
       return {
         dialog,
         instanceApi
@@ -31817,13 +30108,7 @@
       const iframeUri = new global(internalDialog.url, { base_uri: new global(window.location.href) });
       const iframeDomain = `${ iframeUri.protocol }://${ iframeUri.host }${ iframeUri.port ? ':' + iframeUri.port : '' }`;
       const messageHandlerUnbinder = unbindable();
-      const updateState = (_comp, incoming) => Optional.some(incoming);
       const extraBehaviours = [
-        Reflecting.config({
-          channel: `${ dialogChannel }-${ dialogId }`,
-          updateState,
-          initialData: internalDialog
-        }),
         config('messages', [
           runOnAttached(() => {
             const unbind = bind(SugarElement.fromDom(window), 'message', e => {
@@ -31864,7 +30149,7 @@
         extraBehaviours,
         extraStyles: styles
       };
-      const dialog = renderModalDialog(spec, dialogEvents, backstage);
+      const dialog = renderModalDialog(spec, internalDialog, dialogEvents, backstage);
       const instanceApi = getUrlDialogApi(dialog);
       return {
         dialog,
@@ -31880,7 +30165,6 @@
           callback();
         };
         const memFooterClose = record(renderFooterButton({
-          context: 'any',
           name: 'close-alert',
           text: 'OK',
           primary: true,
@@ -31918,7 +30202,6 @@
           callback(state);
         };
         const memFooterYes = record(renderFooterButton({
-          context: 'any',
           name: 'yes',
           text: 'Yes',
           primary: true,
@@ -31928,7 +30211,6 @@
           icon: Optional.none()
         }, 'submit', backstage));
         const footerNo = renderFooterButton({
-          context: 'any',
           name: 'no',
           text: 'No',
           primary: false,
@@ -32052,7 +30334,7 @@
       const openInlineDialog = (config$1, anchor, closeWindow, windowParams) => {
         const factory = (contents, internalInitialData, dataValidator) => {
           const initialData = validateData(internalInitialData, dataValidator);
-          const inlineDialog = value$4();
+          const inlineDialog = value$2();
           const isToolbarLocationTop = extras.backstages.popup.shared.header.isPositionedAtTop();
           const dialogInit = {
             dataValidator,
@@ -32061,9 +30343,7 @@
           };
           const refreshDocking = () => inlineDialog.on(dialog => {
             InlineView.reposition(dialog);
-            if (!isStickyToolbar$1 || !isToolbarLocationTop) {
-              Docking.refresh(dialog);
-            }
+            Docking.refresh(dialog);
           });
           const dialogUi = renderInlineDialog(dialogInit, {
             redial: DialogManager.redial,
@@ -32073,7 +30353,7 @@
               inlineDialog.clear();
               closeWindow(dialogUi.instanceApi);
             }
-          }, extras.backstages.popup, windowParams.ariaAttrs, refreshDocking);
+          }, extras.backstages.popup, windowParams.ariaAttrs);
           const inlineDialogComp = build$1(InlineView.sketch({
             lazySink: extras.backstages.popup.shared.getSink,
             dom: {
@@ -32110,7 +30390,7 @@
       const openBottomInlineDialog = (config$1, anchor, closeWindow, windowParams) => {
         const factory = (contents, internalInitialData, dataValidator) => {
           const initialData = validateData(internalInitialData, dataValidator);
-          const inlineDialog = value$4();
+          const inlineDialog = value$2();
           const isToolbarLocationTop = extras.backstages.popup.shared.header.isPositionedAtTop();
           const dialogInit = {
             dataValidator,
@@ -32129,7 +30409,7 @@
               inlineDialog.clear();
               closeWindow(dialogUi.instanceApi);
             }
-          }, extras.backstages.popup, windowParams.ariaAttrs, refreshDocking);
+          }, extras.backstages.popup, windowParams.ariaAttrs);
           const inlineDialogComp = build$1(InlineView.sketch({
             lazySink: extras.backstages.popup.shared.getSink,
             dom: {
@@ -32186,7 +30466,7 @@
           };
           InlineView.showWithinBounds(inlineDialogComp, premade(dialogUi.dialog), { anchor }, getInlineDialogBounds);
           Docking.refresh(inlineDialogComp);
-          editor.on('ResizeEditor ScrollWindow ElementScroll ResizeWindow', refreshDocking);
+          editor.on('ResizeEditor ScrollWindow ElementScroll', refreshDocking);
           dialogUi.instanceApi.setData(initialData);
           Keying.focusIn(dialogUi.dialog);
           return dialogUi.instanceApi;
@@ -32212,12 +30492,12 @@
     };
 
     const registerOptions = editor => {
-      register$f(editor);
       register$e(editor);
+      register$d(editor);
       register(editor);
     };
     var Theme = () => {
-      global$b.add('silver', editor => {
+      global$a.add('silver', editor => {
         registerOptions(editor);
         let popupSinkBounds = () => win();
         const {
@@ -32225,8 +30505,8 @@
           popups,
           renderUI: renderModeUI
         } = setup$3(editor, { getPopupSinkBounds: () => popupSinkBounds() });
-        const renderUI = () => {
-          const renderResult = renderModeUI();
+        const renderUI = async () => {
+          const renderResult = await renderModeUI();
           const optScrollingContext = detectWhenSplitUiMode(editor, popups.getMothership().element);
           optScrollingContext.each(sc => {
             popupSinkBounds = () => {
@@ -32243,16 +30523,11 @@
             dialog: dialogs.backstage
           }
         });
-        const notificationRegion = value$4();
-        const getNotificationManagerImpl = () => NotificationManagerImpl(editor, { backstage: popups.backstage }, popups.getMothership(), notificationRegion);
-        const getPromotionElement = () => {
-          return descendant(SugarElement.fromDom(editor.getContainer()), '.tox-promotion').map(promotion => promotion.dom).getOrNull();
-        };
+        const getNotificationManagerImpl = () => NotificationManagerImpl(editor, { backstage: popups.backstage }, popups.getMothership());
         return {
           renderUI,
           getWindowManagerImpl: constant$1(windowMgr),
-          getNotificationManagerImpl,
-          getPromotionElement
+          getNotificationManagerImpl
         };
       });
     };

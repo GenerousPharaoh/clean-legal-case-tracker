@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Box, 
   Typography, 
@@ -29,7 +29,7 @@ import LockIcon from '@mui/icons-material/Lock';
  * 1. If user is not logged in, it shows a login/signup form
  * 2. If user is logged in, it processes the invitation token
  */
-const AcceptInvitePage: React.FC = () => {
+const AcceptInvitePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -140,7 +140,7 @@ const AcceptInvitePage: React.FC = () => {
   }, [user, inviteToken, inviteAccepted, navigate]);
   
   // Handle form submission for login/signup
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!email || !password) {

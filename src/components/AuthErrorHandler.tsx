@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import useSupabaseWithRetry from '../hooks/useSupabaseWithRetry';
 import { isSessionExpiredError, reportError, ErrorCategory } from '../utils/authErrorHandler';
@@ -8,48 +7,15 @@ import { isSessionExpiredError, reportError, ErrorCategory } from '../utils/auth
 /**
  * Component that listens for authentication errors and handles them globally
  * This includes: session expiration, token invalidation, permission errors, etc.
+ * Note: Auth state change listener is now centralized in supabaseClient.ts
  */
 const AuthErrorHandler: React.FC = () => {
   const navigate = useNavigate();
-  const { clearUser, setUser } = useAuth();
+  const { user } = useAuth(); // Only need user for validation
   const { refreshSession, forceSignOut } = useSupabaseWithRetry();
   const [refreshAttempted, setRefreshAttempted] = useState(false);
   
   useEffect(() => {
-    // Handler for auto-refresh of token
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            // Add other user properties as needed
-          });
-          // Reset the refresh attempted flag when signed in successfully
-          setRefreshAttempted(false);
-          
-        } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-          clearUser();
-          navigate('/login');
-          
-        } else if (event === 'TOKEN_REFRESHED') {
-          // Token refreshed successfully, reset the flag
-          setRefreshAttempted(false);
-          console.log('Token refreshed successfully via auth state change');
-          
-        } else if (event === 'USER_UPDATED') {
-          // Update user info if available
-          if (session) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              // Add other user properties as needed
-            });
-          }
-        }
-      }
-    );
-
     // Handler for auth errors from the custom fetch utility
     const handleFetchError = async (event: CustomEvent) => {
       const { status, url, error } = event.detail;
@@ -150,12 +116,11 @@ const AuthErrorHandler: React.FC = () => {
     
     // Cleanup
     return () => {
-      authListener.subscription.unsubscribe();
       window.removeEventListener('fetcherror', handleFetchError as EventListener);
       window.removeEventListener('autherror', handleAuthError as EventListener);
       window.removeEventListener('online', handleOnline);
     };
-  }, [navigate, clearUser, setUser, refreshSession, forceSignOut, refreshAttempted]);
+  }, [navigate, refreshSession, forceSignOut, refreshAttempted]);
 
   // This component doesn't render anything
   return null;

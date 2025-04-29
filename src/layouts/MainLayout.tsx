@@ -23,7 +23,7 @@ import DragHandleIcon from '@mui/icons-material/DragHandle';
 import KeyboardIcon from '@mui/icons-material/Keyboard';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import LeftPanel from './panels/LeftPanel';
 import CenterPanel from './panels/CenterPanel';
 import RightPanel from './panels/RightPanel';
@@ -36,6 +36,7 @@ import ThemeToggle from '../components/ThemeToggle';
 import { useThemeContext } from '../context/ThemeContext';
 import ErrorNotification from '../components/ErrorNotification';
 import { handleSupabaseError } from '../utils/authErrorHandler';
+import { useCase } from '../contexts/CaseContext';
 
 // Constants for panel sizing constraints
 const CENTER_MIN_WIDTH = 400; // Minimum width for center panel
@@ -54,6 +55,11 @@ const MainLayout: React.FC = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const theme = useTheme();
+    
+    // Get current case ID and redirect if none is selected
+    const { caseId } = useCase();
+    if (!caseId) return <Navigate to="/cases" replace />;
+    
     const { 
         leftPanelWidth, 
         rightPanelWidth, 
