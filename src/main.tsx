@@ -13,9 +13,9 @@ import GlobalErrorBoundary from './components/GlobalErrorBoundary'
 
 // These are the only utility imports we're keeping
 import './utils/safeAccess'
-import './utils/tinymce-init'
-// Import the TinyMCE read-only fix
-import './utils/tinymce-fix'
+// Import TinyMCE initialization and fixes (with .js extension explicitly for clarity)
+import './utils/tinymce-init.js'
+import './utils/tinymce-fix.js'
 
 // Import dark theme enhancements
 import './styles/darkThemeEnhancement.css'
