@@ -10,6 +10,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark mode support - applied by class added from ThemeProvider */
+body.dark-mode-content {
+  color: rgba(255, 255, 255, 0.95);
+  background-color: #1e1e1e;
+}
+
 /* Typography hierarchy to match MUI */
 h1 {
   font-size: 2.125rem;
@@ -65,6 +71,16 @@ h6 {
   color: rgba(0, 0, 0, 0.87);
 }
 
+/* Dark mode headings */
+body.dark-mode-content h1,
+body.dark-mode-content h2,
+body.dark-mode-content h3,
+body.dark-mode-content h4,
+body.dark-mode-content h5,
+body.dark-mode-content h6 {
+  color: rgba(255, 255, 255, 1);
+}
+
 p {
   margin-top: 0.5em;
   margin-bottom: 0.5em;
@@ -82,6 +98,18 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Dark mode links */
+body.dark-mode-content a {
+  color: #81d4fa; /* Brighter blue for dark mode */
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+body.dark-mode-content a:hover {
+  color: #4fc3f7;
+  text-decoration-thickness: 2px;
+}
+
 /* Blockquote styling */
 blockquote {
   border-left: 4px solid #1976d2; /* MUI primary.main */
@@ -91,6 +119,13 @@ blockquote {
   background-color: rgba(25, 118, 210, 0.05); /* MUI primary very light */
   color: rgba(0, 0, 0, 0.67); /* Slightly lighter than primary text */
   border-radius: 0 4px 4px 0;
+}
+
+/* Dark mode blockquote */
+body.dark-mode-content blockquote {
+  border-left: 4px solid #4dabf5;
+  background-color: rgba(77, 171, 245, 0.1);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* Code and pre styling */
@@ -112,6 +147,14 @@ code {
   border-radius: 4px;
   font-family: 'Roboto Mono', 'Courier New', monospace;
   font-size: 0.875em;
+}
+
+/* Dark mode code and pre */
+body.dark-mode-content pre,
+body.dark-mode-content code {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e6e6e6;
 }
 
 /* Evidence link styling - enhanced for accessibility and visibility */
@@ -144,6 +187,19 @@ code {
   outline-offset: 1px;
 }
 
+/* Dark mode evidence link */
+body.dark-mode-content .evidence-link-placeholder {
+  background-color: rgba(41, 98, 255, 0.2);
+  color: #90caf9;
+  border-color: #3f51b5;
+}
+
+body.dark-mode-content .evidence-link-placeholder:hover {
+  background-color: rgba(41, 98, 255, 0.3);
+  border-color: #5c6bc0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
 /* Table styling that matches MUI tables */
 table {
   border-collapse: collapse;
@@ -174,6 +230,30 @@ table tr:hover {
   background-color: rgba(0, 0, 0, 0.04);
 }
 
+/* Dark mode tables */
+body.dark-mode-content table {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode-content table th,
+body.dark-mode-content table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+body.dark-mode-content table th {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+body.dark-mode-content table tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode-content table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
 /* Lists styling */
 ul, ol {
   padding-left: 24px;
@@ -191,6 +271,11 @@ img {
   border-radius: 4px;
 }
 
+/* Dark mode images - add subtle border */
+body.dark-mode-content img {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Horizontal rule */
 hr {
   border: 0;
@@ -199,8 +284,24 @@ hr {
   margin: 16px 0;
 }
 
+/* Dark mode hr */
+body.dark-mode-content hr {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
 /* Focus visible - for accessibility */
 *:focus-visible {
   outline: 2px solid #1976d2;
   outline-offset: 2px;
+}
+
+/* Dark mode focus visible */
+body.dark-mode-content *:focus-visible {
+  outline-color: #4dabf5;
+}
+
+/* Selection styling */
+body.dark-mode-content ::selection {
+  background-color: rgba(77, 171, 245, 0.4);
+  color: #ffffff;
 } 

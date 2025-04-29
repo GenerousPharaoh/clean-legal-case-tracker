@@ -1,0 +1,152 @@
+/* Dark Theme Enhancements - Additional global styles for better readability */
+
+/* Apply these styles only in dark mode */
+body.dark-mode {
+  /* Improve text rendering for better readability */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Better scrollbar for dark mode */
+body.dark-mode ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Enhance contrast for selection */
+body.dark-mode ::selection {
+  background-color: rgba(77, 171, 245, 0.4);
+  color: #ffffff;
+}
+
+/* Improve text field focus states */
+body.dark-mode .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-width: 2px;
+}
+
+/* Better drop shadows for interactive elements */
+body.dark-mode .MuiMenu-paper,
+body.dark-mode .MuiPopover-paper {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Enhanced focus rings for accessibility */
+body.dark-mode *:focus-visible {
+  outline: 2px solid #4dabf5;
+  outline-offset: 2px;
+}
+
+/* Soften long content areas for better readability */
+body.dark-mode .MuiTypography-paragraph,
+body.dark-mode .MuiTypography-body1,
+body.dark-mode .MuiTypography-body2 {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+}
+
+/* Better contrast for links */
+body.dark-mode a:not(.MuiButtonBase-root),
+body.dark-mode .MuiLink-root {
+  color: #81d4fa;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+body.dark-mode a:not(.MuiButtonBase-root):hover,
+body.dark-mode .MuiLink-root:hover {
+  color: #4fc3f7;
+  text-decoration-thickness: 2px;
+}
+
+/* Improve code readability */
+body.dark-mode code,
+body.dark-mode pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+body.dark-mode pre {
+  padding: 12px 16px;
+}
+
+/* Better table styling */
+body.dark-mode .MuiTable-root {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+body.dark-mode .MuiTableRow-root:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Improve form elements */
+body.dark-mode .MuiFormHelperText-root {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Better card styling */
+body.dark-mode .MuiCard-root {
+  background-color: #1e1e1e;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Improve TinyMCE editor readability in dark mode */
+body.dark-mode .tox-tinymce {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.dark-mode .tox .tox-edit-area__iframe {
+  background-color: #1e1e1e !important;
+}
+
+/* Custom enhanced backgrounds for different components */
+body.dark-mode .MuiPaper-root.enhancedPaper {
+  background-color: #222639;
+}
+
+body.dark-mode .MuiAppBar-root.enhancedAppBar {
+  background-color: #1a1a2e;
+}
+
+/* Highlight active navigation items more clearly */
+body.dark-mode .navigationItem.active {
+  background-color: rgba(77, 171, 245, 0.2);
+  border-left: 3px solid #4dabf5;
+}
+
+/* Better buttons */
+body.dark-mode .MuiButton-containedPrimary {
+  background-color: #1976d2;
+}
+
+body.dark-mode .MuiButton-containedPrimary:hover {
+  background-color: #1565c0;
+}
+
+/* Improve dialog readability */
+body.dark-mode .MuiDialogTitle-root {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Improve tooltip visibility */
+body.dark-mode .MuiTooltip-tooltip {
+  background-color: rgba(97, 97, 97, 0.95);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+} 

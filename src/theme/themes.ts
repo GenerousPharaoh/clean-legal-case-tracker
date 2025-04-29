@@ -362,23 +362,23 @@ export const lightTheme: Theme = responsiveFontSizes(
   )
 );
 
-// Dark theme settings
+// Dark theme settings - Improved for better readability and aesthetics
 export const darkTheme: Theme = responsiveFontSizes(
   createTheme(
     deepmerge(baseTheme, {
       palette: {
         mode: 'dark',
         primary: {
-          main: '#90caf9',
-          light: '#b3e5fc',
-          dark: '#42a5f5',
-          contrastText: '#0d1117',
+          main: '#4dabf5', // Brighter and more visible blue
+          light: '#81d4fa',
+          dark: '#2196f3',
+          contrastText: '#121212',
         },
         secondary: {
           main: '#ce93d8',
           light: '#e1bee7',
           dark: '#ab47bc',
-          contrastText: '#0d1117',
+          contrastText: '#121212',
         },
         success: {
           main: '#66bb6a',
@@ -401,44 +401,45 @@ export const darkTheme: Theme = responsiveFontSizes(
           dark: '#d32f2f',
         },
         background: {
-          default: '#0d1117',
-          paper: '#161b22',
+          default: '#121212', // Slightly lighter than pure black for better contrast
+          paper: '#1e1e1e',   // Dark but not too dark for readability
         },
         text: {
-          primary: '#e6edf3',
-          secondary: '#8b949e',
-          disabled: '#636e7b',
+          primary: '#ffffff',  // Pure white for primary text - maximum readability
+          secondary: '#b0bec5', // Lighter secondary text for better visibility
+          disabled: '#78909c',
         },
-        divider: 'rgba(255, 255, 255, 0.12)',
+        divider: 'rgba(255, 255, 255, 0.15)', // Slightly more visible dividers
         action: {
-          active: 'rgba(255, 255, 255, 0.7)',
-          hover: 'rgba(255, 255, 255, 0.08)',
-          hoverOpacity: 0.08,
-          selected: 'rgba(255, 255, 255, 0.16)',
-          selectedOpacity: 0.16,
-          disabled: 'rgba(255, 255, 255, 0.3)',
-          disabledBackground: 'rgba(255, 255, 255, 0.12)',
-          focus: 'rgba(255, 255, 255, 0.12)',
-          focusOpacity: 0.12,
+          active: 'rgba(255, 255, 255, 0.8)', // More visible active elements
+          hover: 'rgba(255, 255, 255, 0.1)',  // Subtle but noticeable hover
+          hoverOpacity: 0.1,
+          selected: 'rgba(255, 255, 255, 0.2)', // More visible selections
+          selectedOpacity: 0.2,
+          disabled: 'rgba(255, 255, 255, 0.4)', // More visible disabled elements
+          disabledBackground: 'rgba(255, 255, 255, 0.15)',
+          focus: 'rgba(255, 255, 255, 0.15)',
+          focusOpacity: 0.15,
           activatedOpacity: 0.24,
         },
         customColors: {
-          activeBackground: 'rgba(144, 202, 249, 0.16)',
-          successLight: 'rgba(102, 187, 106, 0.16)',
-          errorLight: 'rgba(244, 67, 54, 0.16)',
-          warningLight: 'rgba(255, 167, 38, 0.16)',
-          infoLight: 'rgba(41, 182, 246, 0.16)',
-          highlightBackground: 'rgba(30, 34, 45, 1)',
-          buttonHover: 'rgba(255, 255, 255, 0.08)',
-          dividerStrong: 'rgba(255, 255, 255, 0.2)',
+          activeBackground: 'rgba(77, 171, 245, 0.2)', // More visible active background
+          successLight: 'rgba(102, 187, 106, 0.2)',
+          errorLight: 'rgba(244, 67, 54, 0.2)',
+          warningLight: 'rgba(255, 167, 38, 0.2)',
+          infoLight: 'rgba(41, 182, 246, 0.2)',
+          highlightBackground: 'rgba(41, 98, 155, 0.2)', // Clearer highlight
+          buttonHover: 'rgba(255, 255, 255, 0.1)',
+          dividerStrong: 'rgba(255, 255, 255, 0.25)', // More visible dividers
         },
       },
       components: {
         MuiAppBar: {
           styleOverrides: {
             root: {
-              backgroundColor: '#161b22',
-              color: '#e6edf3',
+              backgroundColor: '#1e1e1e',
+              color: '#ffffff',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.3)', // Stronger shadow for better visibility
             },
           },
         },
@@ -446,27 +447,132 @@ export const darkTheme: Theme = responsiveFontSizes(
           styleOverrides: {
             root: {
               backgroundImage: 'none',
+              boxShadow: '0 2px 8px 0 rgba(0, 0, 0, 0.3)', // Better shadows for depth
             },
-          },
-        },
-        MuiDialog: {
-          styleOverrides: {
-            paper: {
-              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5)',
+            elevation1: {
+              boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.4)',
+            },
+            elevation2: {
+              boxShadow: '0 3px 6px 0 rgba(0, 0, 0, 0.4)',
             },
           },
         },
         MuiTableCell: {
           styleOverrides: {
             root: {
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+              fontSize: '0.925rem', // Slightly larger text for better readability
+            },
+            head: {
+              fontWeight: 600, // Bolder headers
+              color: '#ffffff', // Ensure headers are clearly visible
+            },
+          },
+        },
+        MuiTypography: {
+          styleOverrides: {
+            root: {
+              letterSpacing: '0.015em', // Slightly increased letter spacing for better readability
+            },
+          },
+        },
+        MuiDialog: {
+          styleOverrides: {
+            paper: {
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6)', // Stronger shadow for dialogs
+              backgroundColor: '#1e1e1e', // Consistent with paper color
             },
           },
         },
         MuiOutlinedInput: {
           styleOverrides: {
             notchedOutline: {
-              borderColor: 'rgba(255, 255, 255, 0.23)',
+              borderColor: 'rgba(255, 255, 255, 0.3)', // More visible borders
+            },
+            root: {
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255, 255, 255, 0.5)', // Better hover effect
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#4dabf5', // Primary color for focused inputs
+              },
+              caretColor: '#4dabf5', // More visible text cursor
+            },
+            input: {
+              color: '#ffffff', // Ensure input text is clearly visible
+            },
+          },
+        },
+        MuiInputLabel: {
+          styleOverrides: {
+            root: {
+              color: '#b0bec5', // More visible labels
+              '&.Mui-focused': {
+                color: '#4dabf5', // Primary color for focused labels
+              },
+            },
+          },
+        },
+        MuiButton: {
+          styleOverrides: {
+            contained: {
+              boxShadow: '0 2px 5px 0 rgba(0, 0, 0, 0.3)', // Better shadow for buttons
+            },
+            outlined: {
+              borderColor: 'rgba(255, 255, 255, 0.3)', // More visible button borders
+              '&:hover': {
+                borderColor: 'rgba(255, 255, 255, 0.5)', // Better hover effect
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              },
+            },
+            text: {
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)', // Better hover effect
+              },
+            },
+          },
+        },
+        MuiMenuItem: {
+          styleOverrides: {
+            root: {
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)', // Better hover effect
+              },
+              '&.Mui-selected': {
+                backgroundColor: 'rgba(77, 171, 245, 0.16)', // More visible selected item
+                '&:hover': {
+                  backgroundColor: 'rgba(77, 171, 245, 0.24)',
+                },
+              },
+            },
+          },
+        },
+        MuiListItem: {
+          styleOverrides: {
+            root: {
+              '&.Mui-selected': {
+                backgroundColor: 'rgba(77, 171, 245, 0.16)', // More visible selected item
+                '&:hover': {
+                  backgroundColor: 'rgba(77, 171, 245, 0.24)',
+                },
+              },
+            },
+          },
+        },
+        MuiTabs: {
+          styleOverrides: {
+            indicator: {
+              backgroundColor: '#4dabf5', // Ensure indicator is visible
+            },
+          },
+        },
+        MuiTab: {
+          styleOverrides: {
+            root: {
+              color: '#b0bec5', // Better default tab color
+              '&.Mui-selected': {
+                color: '#ffffff', // Ensure selected tab is clearly visible
+              },
             },
           },
         },

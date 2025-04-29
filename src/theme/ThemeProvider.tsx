@@ -76,6 +76,47 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
         mode === 'light' ? theme.palette.primary.main : theme.palette.background.default
       );
     }
+    
+    // Apply dark mode to TinyMCE editor content
+    const updateTinyMCEContent = () => {
+      // Find all TinyMCE editor iframes
+      const editorFrames = document.querySelectorAll('.tox-edit-area__iframe');
+      
+      editorFrames.forEach(frame => {
+        try {
+          // Access the iframe's document
+          const frameDoc = (frame as HTMLIFrameElement).contentDocument;
+          if (frameDoc && frameDoc.body) {
+            // Apply or remove dark mode class based on current theme
+            if (mode === 'dark') {
+              frameDoc.body.classList.add('dark-mode-content');
+            } else {
+              frameDoc.body.classList.remove('dark-mode-content');
+            }
+          }
+        } catch (e) {
+          console.error('Error updating TinyMCE editor theme:', e);
+        }
+      });
+    };
+    
+    // Update editors immediately and set up a mutation observer to catch new editors
+    updateTinyMCEContent();
+    
+    // Set up a mutation observer to detect when new TinyMCE editors are added
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if (mutation.addedNodes.length) {
+          updateTinyMCEContent();
+        }
+      });
+    });
+    
+    // Start observing the document with the configured parameters
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    // Clean up the observer on component unmount
+    return () => observer.disconnect();
   }, [mode, localStorageKey, theme]);
   
   // Provide the theme context to all children
