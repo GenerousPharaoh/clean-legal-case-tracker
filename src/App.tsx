@@ -1,22 +1,16 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { CssBaseline } from '@mui/material';
 import { useThemeContext } from './context/ThemeContext';
 import { pdfjs } from 'react-pdf';
 import { CircularProgress, Box, Typography, Button } from '@mui/material';
 import { supabase } from './supabaseClient';
 import { useAuth } from './hooks/useAuth';
-import { ErrorBoundary } from 'react-error-boundary';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 import AuthErrorHandler from './components/AuthErrorHandler';
 import ErrorNotificationManager from './components/ErrorNotificationManager';
 import { reportError, ErrorCategory } from './utils/authErrorHandler';
 import AppRoutes from './AppRoutes';
-import TinyMCEScriptLoader from './components/TinyMCEScriptLoader';
-
-// We're using AppRoutes.tsx now which handles lazy loading
-// const LoginPage = lazy(() => import('./pages/LoginPage'));
-// const SignupPage = lazy(() => import('./pages/SignupPage'));
-// const PasswordResetPage = lazy(() => import('./pages/PasswordResetPage'));
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Set PDF.js worker path for document viewer
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -97,9 +91,7 @@ const AuthErrorMessage = ({ message, onRetry }: { message: string | null, onRetr
   </Box>
 );
 
-// Protected routes are now handled in AppRoutes.tsx
-
-const App: React.FC = () => {
+const App = () => {
   // Use our enhanced useAuth hook which manages the auth store internally
   const { loading } = useAuth();
   const [appInitialized, setAppInitialized] = useState(false);
@@ -133,8 +125,7 @@ const App: React.FC = () => {
   
   return (
     <>
-      {/* Load TinyMCE correctly - either CDN or self-hosted */}
-      <TinyMCEScriptLoader useCDN={false} />
+      {/* FIXED: Always use CDN for TinyMCE to prevent plugin loading issues */}
       
       <CssBaseline />
       
