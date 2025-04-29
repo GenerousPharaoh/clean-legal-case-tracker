@@ -73,10 +73,16 @@ export default defineConfig({
       'react-dom',
       'react-router-dom',
       '@mui/material',
+      '@mui/icons-material',
+      '@mui/icons-material/AudioTrack',
       '@emotion/react',
       '@emotion/styled',
       'framer-motion',
       'date-fns'
     ]
+  },
+  // Add external modules that Vite should not try to bundle
+  ssr: {
+    noExternal: ['@mui/icons-material']
   }
 })
