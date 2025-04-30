@@ -38,6 +38,7 @@ import ErrorBoundary from './ErrorBoundary';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
+import { ensureProfileExists, createCaseCompatible } from '../utils/ensureSchema';
 
 // Define Case interface that handles both field naming conventions
 interface Case {
@@ -474,19 +475,16 @@ const CaseLibrary: React.FC = () => {
         throw new Error('You must be logged in to create a case');
       }
       
-      const { data, error } = await supabase
-        .from('cases')
-        .insert([
-          {
-            name: caseData.name,
-            description: caseData.description,
-            status: caseData.status,
-            created_by: user.id,
-            owner_id: user.id,
-            is_archived: false
-          }
-        ])
-        .select();
+      // IMPORTANT: Ensure the user has a profile first
+      await ensureProfileExists(supabase, user.id);
+      
+      // Use the fail-safe case creation method
+      const { data, error } = await createCaseCompatible(supabase, {
+        name: caseData.name,
+        description: caseData.description,
+        status: caseData.status,
+        is_archived: false
+      }, user.id);
       
       if (error) throw error;
       

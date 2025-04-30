@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * DIRECT DATABASE CONNECTION FIX
- * Uses direct PostgreSQL connection to ensure schema changes are applied
+ * EMERGENCY DATABASE FIX
+ * Direct schema modification to resolve the 'created_by' column issue
  */
 
-const { Pool } = require('pg');
+const { createClient } = require('@supabase/supabase-js');
 const dotenv = require('dotenv');
 const fs = require('fs');
 const path = require('path');
@@ -15,33 +15,39 @@ dotenv.config({ path: '.env' });
 dotenv.config({ path: '.env.fix' });
 dotenv.config({ path: '.env.local' });
 
-// Get database connection string from various environment variables
-const dbUrl = process.env.DATABASE_URL || 
-              `postgresql://postgres:${process.env.SUPABASE_DB_PASSWORD}@db.${getProjectRef(process.env.VITE_SUPABASE_URL)}.supabase.co:5432/postgres`;
+// Get Supabase credentials - using all possible variations
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-console.log(`🔌 Connecting to database: ${dbUrl.split('@')[1]}`);
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Error: Missing Supabase credentials in environment variables');
-  console.error('Please make sure VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_ROLE_KEY are set');
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Missing Supabase credentials. Please check your .env files.');
   process.exit(1);
 }
 
-// Create PostgreSQL connection pool
-const pool = new Pool({
-  connectionString: dbUrl,
-  ssl: {
-    rejectUnauthorized: false // Required for Supabase and many cloud databases
+console.log('🔑 Using Supabase URL:', supabaseUrl);
+console.log('🔑 Using Supabase key:', supabaseKey.substring(0, 10) + '...');
+
+// Initialize Supabase client with service role
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
 });
 
 // Direct SQL commands to fix database schema
 const SQL_COMMANDS = [
+  // Reload configuration
+  `SELECT pg_catalog.pg_reload_conf();`,
+  
+  // Force reset schema cache
+  `NOTIFY pgrst, 'reload schema';`,
+  
   // Ensure profiles table exists
   `CREATE TABLE IF NOT EXISTS public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     first_name TEXT,
-    last_name TEXT, 
+    last_name TEXT,
     avatar_url TEXT,
     role TEXT,
     email TEXT,
@@ -50,45 +56,31 @@ const SQL_COMMANDS = [
   );`,
   
   // Ensure cases table exists with ALL necessary columns
-  `DO $$
-  BEGIN
-    IF NOT EXISTS (
-      SELECT FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      AND table_name = 'cases'
-    ) THEN
-      CREATE TABLE public.cases (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        name TEXT NOT NULL,
-        description TEXT,
-        created_by UUID REFERENCES auth.users(id),
-        owner_id UUID REFERENCES auth.users(id),
-        project_id UUID,
-        status TEXT DEFAULT 'active',
-        is_archived BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        tags TEXT[]
-      );
-      RAISE NOTICE 'Created cases table';
-    ELSE
-      RAISE NOTICE 'Cases table already exists';
-    END IF;
-  END $$;`,
+  `CREATE TABLE IF NOT EXISTS public.cases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    created_by UUID REFERENCES auth.users(id),
+    owner_id UUID REFERENCES auth.users(id),
+    project_id UUID,
+    status TEXT DEFAULT 'active',
+    is_archived BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    tags TEXT[]
+  );`,
   
   // Make sure both columns exist (if table already exists)
   `DO $$
   BEGIN
     BEGIN
       ALTER TABLE public.cases ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES auth.users(id);
-      RAISE NOTICE 'Added created_by column';
     EXCEPTION WHEN duplicate_column THEN
       RAISE NOTICE 'created_by column already exists';
     END;
     
     BEGIN
       ALTER TABLE public.cases ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES auth.users(id);
-      RAISE NOTICE 'Added owner_id column';
     EXCEPTION WHEN duplicate_column THEN
       RAISE NOTICE 'owner_id column already exists';
     END;
@@ -174,51 +166,43 @@ const SQL_COMMANDS = [
 ];
 
 async function executeSQL() {
-  console.log('🚀 Starting direct database fix...');
+  console.log('🚀 Starting emergency database fix...');
   
-  // Get a client from the pool
-  const client = await pool.connect();
-  
-  try {
-    // Start a transaction
-    await client.query('BEGIN');
+  for (let i = 0; i < SQL_COMMANDS.length; i++) {
+    const sql = SQL_COMMANDS[i];
+    const firstLine = sql.trim().split('\n')[0];
+    console.log(`\n[${i+1}/${SQL_COMMANDS.length}] Executing: ${firstLine}...`);
     
-    for (let i = 0; i < SQL_COMMANDS.length; i++) {
-      const sql = SQL_COMMANDS[i];
-      const firstLine = sql.trim().split('\n')[0];
-      console.log(`\n[${i+1}/${SQL_COMMANDS.length}] Executing: ${firstLine}...`);
-      
-      try {
-        // For the last command, we want to get the results
-        if (i === SQL_COMMANDS.length - 1) {
-          const result = await client.query(sql);
-          console.log('✅ Success! Column verification results:');
-          console.table(result.rows);
+    try {
+      // For the last command, we want to get the results
+      if (i === SQL_COMMANDS.length - 1) {
+        const { data, error } = await supabase.rpc('pgmeta', {
+          sql
+        });
+        
+        if (error) {
+          console.error(`❌ Error: ${error.message}`);
         } else {
-          await client.query(sql);
+          console.log('✅ Success! Column verification results:');
+          console.table(data);
+        }
+      } else {
+        const { error } = await supabase.rpc('pgmeta', {
+          sql
+        });
+        
+        if (error) {
+          console.error(`❌ Error: ${error.message}`);
+        } else {
           console.log('✅ Success!');
         }
-      } catch (err) {
-        // Log error but continue with other commands
-        console.error(`❌ Error with SQL: ${err.message}`);
       }
+    } catch (err) {
+      console.error(`❌ Unexpected error: ${err.message}`);
     }
-    
-    // Commit the transaction
-    await client.query('COMMIT');
-    console.log('\n🎉 Direct database fix complete!');
-    
-  } catch (err) {
-    // Rollback in case of error
-    await client.query('ROLLBACK');
-    console.error('❌ Fatal error, transaction rolled back:', err);
-  } finally {
-    // Release the client back to the pool
-    client.release();
   }
   
-  // Close the pool
-  await pool.end();
+  console.log('\n🎉 Emergency database fix complete!');
 }
 
 // Run the fix
@@ -226,3 +210,41 @@ executeSQL().catch(err => {
   console.error('❌ Fatal error:', err);
   process.exit(1);
 }); 
+-- Add the create_case function
+-- Function to create a case by explicitly specifying all columns
+CREATE OR REPLACE FUNCTION create_case(
+  p_name TEXT, 
+  p_description TEXT, 
+  p_status TEXT, 
+  p_user_id UUID,
+  p_is_archived BOOLEAN DEFAULT FALSE
+) RETURNS SETOF cases AS $$
+DECLARE
+  v_case_id UUID;
+BEGIN
+  -- Insert the case
+  INSERT INTO public.cases (
+    name,
+    description,
+    status,
+    created_by,
+    owner_id,
+    is_archived,
+    created_at,
+    updated_at
+  ) VALUES (
+    p_name,
+    p_description,
+    p_status,
+    p_user_id,
+    p_user_id,
+    p_is_archived,
+    NOW(),
+    NOW()
+  ) RETURNING id INTO v_case_id;
+  
+  -- Return the created case
+  RETURN QUERY SELECT * FROM public.cases WHERE id = v_case_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
