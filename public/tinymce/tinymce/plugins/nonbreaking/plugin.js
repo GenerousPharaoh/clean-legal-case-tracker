@@ -1,5 +1,5 @@
 /**
- * TinyMCE version 6.8.5 (TBD)
+ * TinyMCE version 7.8.0 (TBD)
  */
 
 (function () {

@@ -98,3 +98,192 @@ If you still encounter issues after deploying:
 2. Look at the Network tab to ensure all JavaScript files load correctly
 3. Try disabling any browser extensions that might interfere with React apps
 4. Contact me for further assistance with the specific error messages
+
+# Comprehensive Fix Documentation
+
+This document outlines the comprehensive fix implemented to resolve the database schema issues, foreign key constraints, and other application problems in the Legal Case Tracker application.
+
+## Overview of Changes
+
+1. **Database Schema Improvements**
+   - Fixed the relationship between users, profiles, and cases
+   - Added proper foreign key constraints
+   - Set up triggers to auto-create profiles for new users
+
+2. **Code Architecture Enhancements**
+   - Created a type-safe database service layer
+   - Improved error handling throughout the application
+   - Added robust validation for user inputs
+
+3. **Component Upgrades**
+   - Enhanced CaseLibrary and CaseCard components
+   - Improved form validation and error reporting
+   - Better loading states and user feedback
+
+## Database Setup
+
+If the automatic database setup failed due to API key permissions, please run the following SQL directly in your Supabase SQL Editor:
+
+```sql
+-- Create profiles table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  first_name TEXT,
+  last_name TEXT,
+  avatar_url TEXT,
+  role TEXT,
+  email TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Enable RLS on profiles
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Setup appropriate RLS policies
+DROP POLICY IF EXISTS "Users can read their profile" ON public.profiles;
+CREATE POLICY "Users can read their profile"
+ON public.profiles
+FOR SELECT
+USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Users can update their profile" ON public.profiles;
+CREATE POLICY "Users can update their profile"
+ON public.profiles
+FOR UPDATE
+USING (auth.uid() = id);
+
+-- Create missing profiles for existing users
+INSERT INTO public.profiles (id, first_name, last_name, email, created_at, updated_at)
+SELECT 
+  u.id,
+  SPLIT_PART(u.email, '@', 1),
+  '',
+  u.email,
+  u.created_at,
+  NOW()
+FROM 
+  auth.users u
+LEFT JOIN 
+  public.profiles p ON u.id = p.id
+WHERE 
+  p.id IS NULL;
+
+-- Check if cases table exists and create it if not
+CREATE TABLE IF NOT EXISTS public.cases (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'Active',
+  project_id UUID,
+  created_by UUID REFERENCES auth.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  is_archived BOOLEAN DEFAULT FALSE
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS cases_project_id_idx ON public.cases (project_id);
+CREATE INDEX IF NOT EXISTS cases_created_by_idx ON public.cases (created_by);
+CREATE INDEX IF NOT EXISTS cases_is_archived_idx ON public.cases (is_archived);
+
+-- Enable Row Level Security
+ALTER TABLE public.cases ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for cases
+-- 1. Users can do anything with their own cases
+CREATE POLICY IF NOT EXISTS "Users can manage their own cases"
+ON public.cases
+FOR ALL
+USING (created_by = auth.uid());
+
+-- 2. Service role can access all cases
+CREATE POLICY IF NOT EXISTS "Service role can access all cases"
+ON public.cases
+FOR ALL
+USING (auth.jwt() ->> 'role' = 'service_role');
+
+-- Create the database trigger for auto-populating profiles
+CREATE OR REPLACE FUNCTION public.handle_auth_user_created()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Create a profile for the new user
+  INSERT INTO public.profiles (id, first_name, email, created_at, updated_at)
+  VALUES (
+    NEW.id,
+    split_part(NEW.email, '@', 1), -- Use part before @ as first name
+    NEW.email,
+    NOW(),
+    NOW()
+  )
+  ON CONFLICT (id) DO NOTHING; -- Skip if profile already exists
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop the trigger if it exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Create trigger to handle new users
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_auth_user_created();
+```
+
+## How This Fix Works
+
+The comprehensive fix addresses several key issues:
+
+1. **Foreign Key Constraint Fix**: 
+   - The error "insert or update on table 'cases' violates foreign key constraint 'cases_owner_id_fkey'" occurred because the database expected case records to reference a user profile, but no profile existed for the authenticated user.
+   - This fix ensures that each user in auth.users automatically gets a corresponding entry in the profiles table via triggers.
+   - We've also updated the application code to use 'created_by' consistently instead of 'owner_id'.
+
+2. **Improved Data Model**:
+   - Clear separation between authentication (auth.users) and user profiles (profiles table)
+   - Type-safe database operations via service layer
+   - Defensive coding practices to handle edge cases
+
+3. **Enhanced Error Handling**:
+   - Better error boundaries
+   - More informative error messages 
+   - Graceful degradation when operations fail
+
+## Project Structure
+
+The fix introduces a cleaner code structure:
+
+- **src/types/database.ts**: Type definitions matching database schema
+- **src/services/database.ts**: Service layer for all database operations
+- **src/hooks/useAuthImproved.ts**: Enhanced authentication hook with profile management
+- **src/components/**: Improved React components with better error handling
+
+## Troubleshooting
+
+If you still encounter issues:
+
+1. **Database Connection Issues**:
+   - Verify your Supabase URL and API keys are correct in the .env file
+   - Make sure your IP address is allowed to access the Supabase database
+
+2. **"cases_owner_id_fkey" Error Persists**:
+   - Check if there are any older migrations that are recreating the constraint
+   - Verify the database schema matches the application expectations
+
+3. **Authentication Issues**:
+   - Clear browser local storage and cookies
+   - Try signing out and back in
+
+4. **Component Rendering Issues**:
+   - Check the browser console for React errors
+   - Verify that the data being loaded matches the component expectations
+
+## Next Steps
+
+This fix provides a solid foundation, but additional improvements could include:
+
+1. Implementing more robust data validation
+2. Adding comprehensive logging
+3. Enhancing the UI with better user feedback
+4. Adding unit and integration tests to prevent regression
