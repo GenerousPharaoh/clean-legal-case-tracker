@@ -62,3 +62,35 @@ After deploying, check the following:
 3. Login should complete and dashboard should render properly
 
 See [FIXED_ISSUES.md](./FIXED_ISSUES.md) for more detailed documentation of the fixes. 
+
+## Database Schema Updates
+
+If you encounter foreign key constraint errors like `insert or update on table 'cases' violates foreign key constraint 'cases_owner_id_fkey'`, you'll need to run the database setup script:
+
+1. Make sure your `.env` file contains:
+   ```
+   VITE_SUPABASE_URL=your-project-url
+   VITE_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install @supabase/supabase-js dotenv
+   ```
+
+3. Run the database setup script:
+   ```bash
+   node db_setup.js
+   ```
+
+This script will:
+- Create the profiles table if it doesn't exist
+- Set up proper Row Level Security
+- Create missing profiles for existing users
+- Fix the cases table to match the application code
+- Set up database triggers to automatically create profiles for new users
+
+After running the script, restart the application:
+```bash
+npm run dev
+``` 

@@ -1,8 +1,13 @@
-// Ensure React is globally available (must be first import)
+// React initialization - must be first
+import { ensureReactAvailable } from './react-init';
+ensureReactAvailable();
+
+// Ensure React is globally available 
 import './utils/ensureReact';
 
 // Clean main.tsx without polyfill imports
 import React from 'react'
+
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'

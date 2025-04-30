@@ -8,9 +8,12 @@ export interface BaseDBRecord {
 export interface Case extends BaseDBRecord {
   name: string;
   description?: string;
-  owner_id: string;
+  created_by: string;
+  owner_id?: string;
+  project_id?: string;
   tags?: string[];
   is_archived?: boolean;
+  status?: string;
 }
 
 // Note record

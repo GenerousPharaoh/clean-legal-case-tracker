@@ -1,13 +1,7 @@
 // Script to fix the profile-case relationship issue
-import fs from 'fs';
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-// Get current file path for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const fs = require('fs');
+const { createClient } = require('@supabase/supabase-js');
+const dotenv = require('dotenv');
 
 // Load environment variables
 dotenv.config();

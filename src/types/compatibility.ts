@@ -21,7 +21,7 @@ export function isCaseOrProject(obj: any): obj is Case | Project {
     obj &&
     typeof obj === 'object' &&
     'id' in obj &&
-    'owner_id' in obj &&
+    ('owner_id' in obj || 'created_by' in obj) &&
     'name' in obj &&
     'created_at' in obj
   );

@@ -44,7 +44,8 @@ interface Case {
   id: string;
   name: string;
   description?: string;
-  owner_id: string;
+  owner_id?: string; // Keep for backward compatibility
+  created_by: string; // Add this to match the DB schema
   created_at: string;
   updated_at?: string;
   status?: string;
@@ -356,7 +357,7 @@ const CaseLibrary: React.FC = () => {
             name: caseData.name,
             description: caseData.description,
             status: caseData.status,
-            owner_id: user.id,
+            created_by: user.id,
             is_archived: false
           }
         ])

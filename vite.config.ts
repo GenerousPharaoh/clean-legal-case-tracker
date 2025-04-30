@@ -5,6 +5,11 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   root: process.cwd(), // Explicitly set root to current working directory
+  define: {
+    // Ensure React is globally available
+    'window.React': 'React',
+    'global.React': 'React' 
+  },
   plugins: [
     react({
       // Recommended: Remove React DevTools in production builds
