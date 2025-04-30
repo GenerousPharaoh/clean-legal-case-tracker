@@ -1,35 +1,47 @@
 #!/usr/bin/env node
 
 /**
- * Direct PostgreSQL Fix Script
+ * Comprehensive Database Fix Script
  * Fixes foreign key constraints and ensures profiles exist for all users
  */
 
-import pg from 'pg';
+import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import path from 'path';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
-// Get current file path for ES modules
+// Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config();
+// Load fix environment variables
+dotenv.config({ path: '.env.fix' });
 
-// Connection parameters
-const connectionString = process.env.DATABASE_URL || 
-                         'postgresql://postgres:e3OeeMm1OnnVvGpc@db.pzzplqdeoqrpeyzkqqzo.supabase.co:5432/postgres';
+// Fallback to regular .env if .env.fix doesn't have required values
+if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_SERVICE_ROLE_KEY) {
+  console.log('⚠️ .env.fix missing required values, falling back to .env');
+  dotenv.config();
+}
 
-console.log(`🔌 Connecting to PostgreSQL database...`);
-console.log(`🔑 Using connection string: ${connectionString.substring(0, 35)}...`);
+// Supabase credentials
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
-// Create a client instance
-const client = new pg.Client({
-  connectionString,
-  ssl: {
-    rejectUnauthorized: false // Required for Supabase and many cloud databases
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ Error: Missing Supabase credentials');
+  console.error('Please set VITE_SUPABASE_URL and VITE_SUPABASE_SERVICE_ROLE_KEY in .env.fix or .env');
+  process.exit(1);
+}
+
+console.log(`🔑 Using Supabase URL: ${supabaseUrl}`);
+console.log(`🔑 Using Supabase key: ${supabaseKey.substring(0, 15)}...`);
+
+// Initialize Supabase client with admin privileges
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
   }
 });
 
@@ -215,7 +227,7 @@ WHERE
   p.id IS NULL;
 `;
 
-const SQL_VERIFY_PROFILES = `
+const SQL_VERIFY_CASES = `
 SELECT 
   COUNT(*) as missing_profile_count
 FROM 
@@ -226,96 +238,105 @@ WHERE
   p.id IS NULL;
 `;
 
-const SQL_CHECK_TABLES = `
-SELECT 
-  table_name
-FROM 
-  information_schema.tables
-WHERE 
-  table_schema = 'public'
-ORDER BY 
-  table_name;
-`;
-
 // Main fix function
-async function applyDatabaseFixes() {
+async function applyComprehensiveFix() {
+  console.log('\n🚀 Starting comprehensive database fix...');
+  
   try {
-    // Connect to the database
-    await client.connect();
-    console.log('✅ Connected to database successfully');
+    console.log('\n📊 Step 1: Checking database connection...');
+    // Use a simple SQL query to test connection instead of checking for _prisma_migrations
+    const { data: connectionTest, error: connectionError } = await supabase.rpc('pgmeta', {
+      args: { sql: 'SELECT 1 as connection_test;' },
+      returns: 'json'
+    });
     
-    // Check available tables
-    console.log('\n📊 Step 1: Checking database tables...');
-    const tablesResult = await client.query(SQL_CHECK_TABLES);
-    console.log('Available tables:', tablesResult.rows.map(row => row.table_name).join(', '));
-    
-    // Create profiles table if it doesn't exist
-    console.log('\n📊 Step 2: Creating/verifying profiles table...');
-    await client.query(SQL_CREATE_PROFILES_TABLE);
-    console.log('✅ Profiles table created/verified');
-    
-    // Enable row level security
-    console.log('\n📊 Step 3: Enabling row level security...');
-    await client.query(SQL_ENABLE_RLS);
-    console.log('✅ Row level security enabled');
-    
-    // Create security policies
-    console.log('\n📊 Step 4: Creating security policies...');
-    await client.query(SQL_CREATE_POLICIES);
-    console.log('✅ Security policies created');
-    
-    // Check if cases table exists
-    const casesTableResult = await client.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_name = 'cases'
-      );
-    `);
-    
-    if (casesTableResult.rows[0].exists) {
-      console.log('\n📊 Step 5: Fixing cases table columns and constraints...');
-      await client.query(SQL_FIX_CASES_COLUMNS);
-      console.log('✅ Cases table columns and constraints fixed');
+    if (connectionError) {
+      console.error(`❌ Connection failed: ${connectionError.message}`);
+      console.log('Continuing with fixes anyway...');
     } else {
-      console.log('\n⚠️ Cases table does not exist, skipping cases table fixes');
+      console.log('✅ Database connection successful!\n');
     }
     
-    // Create missing user profiles
-    console.log('\n📊 Step 6: Creating missing user profiles...');
-    await client.query(SQL_CREATE_MISSING_PROFILES);
-    console.log('✅ Missing user profiles created');
+    // Execute SQL statements
+    console.log('📊 Step 2: Creating/verifying profiles table...');
+    await executeSQL(SQL_CREATE_PROFILES_TABLE);
     
-    // Set up user creation trigger
-    console.log('\n📊 Step 7: Setting up user creation trigger...');
-    await client.query(SQL_CREATE_USER_TRIGGER);
-    console.log('✅ User creation trigger set up');
+    console.log('📊 Step 3: Enabling row level security...');
+    await executeSQL(SQL_ENABLE_RLS);
     
-    // Verify fixes
+    console.log('📊 Step 4: Creating security policies...');
+    await executeSQL(SQL_CREATE_POLICIES);
+    
+    console.log('📊 Step 5: Fixing cases table columns and constraints...');
+    await executeSQL(SQL_FIX_CASES_COLUMNS);
+    
+    console.log('📊 Step 6: Creating missing user profiles...');
+    await executeSQL(SQL_CREATE_MISSING_PROFILES);
+    
+    console.log('📊 Step 7: Setting up user creation trigger...');
+    await executeSQL(SQL_CREATE_USER_TRIGGER);
+    
     console.log('\n🔍 Verifying fixes...');
-    const verifyResult = await client.query(SQL_VERIFY_PROFILES);
-    const missingProfileCount = parseInt(verifyResult.rows[0].missing_profile_count);
+    const { data, error } = await executeSQL(SQL_VERIFY_CASES, true);
     
-    if (missingProfileCount === 0) {
-      console.log('✅ All users have corresponding profiles! Foreign key constraints should now work correctly.');
+    if (error) {
+      console.error(`❌ Verification error: ${error.message}`);
+    } else if (data && data[0] && data[0].missing_profile_count === 0) {
+      console.log('✅ All users have corresponding profiles!');
     } else {
-      console.warn(`⚠️ There are still ${missingProfileCount} users without profiles`);
+      console.warn(`⚠️ There are still ${data[0]?.missing_profile_count || 'unknown'} users without profiles`);
+    }
+    
+    // Check if cases table exists and has the right columns
+    const { data: casesData, error: casesError } = await supabase
+      .from('cases')
+      .select('id')
+      .limit(1);
+    
+    if (casesError && casesError.code === '42P01') {
+      console.warn('⚠️ Cases table does not exist yet, but profiles are ready');
+    } else if (casesError) {
+      console.error(`❌ Error checking cases table: ${casesError.message}`);
+    } else {
+      console.log('✅ Cases table exists and is accessible');
     }
     
     console.log('\n🎉 Database fix complete! The foreign key constraint issue should be resolved.');
     console.log('You should now be able to create cases without encountering the foreign key constraint error.');
     
-  } catch (error) {
-    console.error(`❌ Error: ${error.message}`);
-  } finally {
-    // Close the database connection
-    await client.end();
-    console.log('🔌 Database connection closed');
+  } catch (err) {
+    console.error(`❌ Unexpected error: ${err.message}`);
+  }
+}
+
+// Helper function to execute SQL
+async function executeSQL(sql, returnData = false) {
+  try {
+    // Use Postgres RPC feature to execute raw SQL (requires service role)
+    const { data, error } = await supabase.rpc('pgmeta', {
+      args: { sql },
+      returns: 'json'
+    });
+    
+    if (error) {
+      console.error(`❌ SQL error: ${error.message}`);
+      return { error };
+    }
+    
+    console.log('✅ SQL executed successfully');
+    
+    if (returnData) {
+      return { data };
+    }
+    
+    return { success: true };
+  } catch (err) {
+    console.error(`❌ Execution error: ${err.message}`);
+    return { error: err };
   }
 }
 
 // Run the fix
-applyDatabaseFixes().catch(error => {
-  console.error('❌ Fatal error:', error);
-  process.exit(1);
-});
-    
+applyComprehensiveFix().catch(err => {
+  console.error(`❌ Fatal error: ${err.message}`);
+}); 

@@ -25,6 +25,7 @@ export interface Case extends BaseDBRecord {
   name: string;
   description?: string;
   created_by: string; // References auth.users.id
+  owner_id?: string; // Legacy field, same as created_by for backward compatibility
   status?: string;
   project_id?: string;
   is_archived?: boolean;

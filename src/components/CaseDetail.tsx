@@ -38,8 +38,8 @@ interface Case {
   id: string;
   name: string;
   description?: string;
-  created_by: string; // Primary field matching DB schema
-  owner_id?: string; // Keep for backward compatibility 
+  owner_id?: string; // For backward compatibility  
+  created_by?: string; // New field name
   project_id?: string;
   created_at: string;
   updated_at?: string;

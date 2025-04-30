@@ -91,9 +91,23 @@ export const caseService = {
   },
   
   async create(caseData: Omit<Case, 'id' | 'created_at'>): Promise<Case | null> {
+    // Make sure we include both owner_id and created_by for backward compatibility
+    // This handles the foreign key constraint issue by ensuring both fields reference the same user
+    const { created_by, owner_id, ...otherData } = caseData;
+    const userId = created_by || owner_id;
+    
+    if (!userId) {
+      console.error('[caseService] Error creating case: No user ID provided');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('cases')
-      .insert([caseData])
+      .insert([{
+        ...otherData,
+        created_by: userId,
+        owner_id: userId // Include both fields for backward compatibility
+      }])
       .select()
       .single();
     
@@ -106,10 +120,19 @@ export const caseService = {
   },
   
   async update(caseId: string, updates: Partial<Case>): Promise<Case | null> {
+    // For updates that include created_by or owner_id, make sure both are set
+    // to maintain backward compatibility
+    const updatesWithBothIds = { ...updates };
+    if (updates.created_by && !updates.owner_id) {
+      updatesWithBothIds.owner_id = updates.created_by;
+    } else if (updates.owner_id && !updates.created_by) {
+      updatesWithBothIds.created_by = updates.owner_id;
+    }
+    
     const { data, error } = await supabase
       .from('cases')
       .update({
-        ...updates,
+        ...updatesWithBothIds,
         updated_at: new Date().toISOString()
       })
       .eq('id', caseId)

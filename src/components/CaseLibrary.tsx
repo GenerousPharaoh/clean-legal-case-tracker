@@ -39,16 +39,17 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 
-// Define Case interface
+// Define Case interface that handles both field naming conventions
 interface Case {
   id: string;
   name: string;
   description?: string;
-  owner_id?: string; // Keep for backward compatibility
-  created_by: string; // Add this to match the DB schema
+  owner_id?: string; // For backward compatibility
+  created_by?: string; // New field name
   created_at: string;
   updated_at?: string;
   status?: string;
+  project_id?: string;
   is_archived?: boolean;
   tags?: string[];
 }
@@ -164,6 +165,129 @@ const CaseForm: React.FC<{
   );
 };
 
+// Card component for displaying a case
+const CaseCard = ({
+  caseItem,
+  onEdit,
+  onArchive,
+  onOpen
+}: {
+  caseItem: Case;
+  onEdit: (caseItem: Case) => void;
+  onArchive: (caseId: string, isArchived: boolean) => Promise<void>;
+  onOpen: (caseId: string) => void;
+}) => {
+  // Format date
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (err) {
+      console.error('[CaseCard] Error formatting date:', err);
+      return 'Unknown date';
+    }
+  };
+
+  // Get status color
+  const getStatusColor = (status?: string): "success" | "warning" | "error" | "default" => {
+    switch (status) {
+      case 'active': return 'success';
+      case 'pending': return 'warning';
+      case 'closed': return 'error';
+      default: return 'default';
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2,
+        p: 2,
+        mb: 2,
+        opacity: caseItem.is_archived ? 0.7 : 1,
+        '&:hover': {
+          boxShadow: 2,
+          transform: 'translateY(-2px)',
+          transition: 'all 0.2s ease-in-out',
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="h6">
+          {caseItem.name}
+        </Typography>
+        <Box>
+          <Button 
+            size="small" 
+            onClick={() => onEdit(caseItem)}
+            sx={{ mr: 1 }}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="small" 
+            color="warning" 
+            onClick={() => onArchive(caseItem.id, !!caseItem.is_archived)}
+          >
+            {caseItem.is_archived ? 'Unarchive' : 'Archive'}
+          </Button>
+        </Box>
+      </Box>
+      <Typography 
+        variant="body2" 
+        color="text.secondary" 
+        sx={{ 
+          mb: 2,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          height: '2.5em'
+        }}
+      >
+        {caseItem.description || 'No description provided'}
+      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Button 
+            size="small" 
+            variant="contained" 
+            onClick={() => onOpen(caseItem.id)}
+          >
+            Open
+          </Button>
+        </Box>
+        <Box>
+          <Box 
+            component="span" 
+            sx={{ 
+              px: 1, 
+              py: 0.5, 
+              borderRadius: 1, 
+              backgroundColor: `${getStatusColor(caseItem.status)}.light`,
+              color: `${getStatusColor(caseItem.status)}.dark`,
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              mr: 1
+            }}
+          >
+            {caseItem.status || 'Active'}
+          </Box>
+          <Typography variant="caption" color="text.secondary">
+            Created: {formatDate(caseItem.created_at)}
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
 // Main CaseLibrary component
 const CaseLibrary: React.FC = () => {
   const navigate = useNavigate();
@@ -181,7 +305,7 @@ const CaseLibrary: React.FC = () => {
   
   // States for CRUD operations
   const [formOpen, setFormOpen] = useState(false);
-  const [editingCase, setEditingCase] = useState<Case | undefined>(undefined);
+  const [editingCase, setEditingCase] = useState<Case | null>(null);
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;
@@ -358,6 +482,7 @@ const CaseLibrary: React.FC = () => {
             description: caseData.description,
             status: caseData.status,
             created_by: user.id,
+            owner_id: user.id,
             is_archived: false
           }
         ])
@@ -477,7 +602,7 @@ const CaseLibrary: React.FC = () => {
     } else {
       await createCase(caseData);
     }
-    setEditingCase(undefined);
+    setEditingCase(null);
   };
   
   // Get status chip color
@@ -522,7 +647,7 @@ const CaseLibrary: React.FC = () => {
           color="primary"
           startIcon={<AddIcon />}
           onClick={() => {
-            setEditingCase(undefined);
+            setEditingCase(null);
             setFormOpen(true);
           }}
         >
@@ -610,89 +735,15 @@ const CaseLibrary: React.FC = () => {
         <Grid container spacing={3}>
           {filteredCases.map((caseItem) => (
             <Grid item xs={12} sm={6} md={4} key={caseItem.id}>
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  opacity: caseItem.is_archived ? 0.7 : 1
+              <CaseCard
+                caseItem={caseItem}
+                onEdit={(c) => {
+                  setEditingCase(c);
+                  setFormOpen(true);
                 }}
-              >
-                <CardHeader
-                  avatar={
-                    <Avatar sx={{ bgcolor: getStatusColor(caseItem.status) }}>
-                      <PersonIcon />
-                    </Avatar>
-                  }
-                  title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {caseItem.name}
-                      {caseItem.is_archived && (
-                        <Chip size="small" label="Archived" color="default" />
-                      )}
-                    </Box>
-                  }
-                  subheader={`Created: ${formatDate(caseItem.created_at)}`}
-                />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ mb: 2 }}>
-                    <Chip 
-                      label={caseItem.status || 'Active'} 
-                      size="small" 
-                      color={getStatusColor(caseItem.status) as any}
-                    />
-                  </Box>
-                  
-                  <Typography variant="body2" color="text.secondary" sx={{ 
-                    mb: 2,
-                    minHeight: '3em',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical'
-                  }}>
-                    {caseItem.description || 'No description provided'}
-                  </Typography>
-                </CardContent>
-                
-                <Divider />
-                
-                <CardActions sx={{ justifyContent: 'space-between' }}>
-                  <Button 
-                    size="small" 
-                    onClick={() => openCase(caseItem.id)}
-                  >
-                    Open
-                  </Button>
-                  
-                  <Box>
-                    <Tooltip title="Edit">
-                      <IconButton 
-                        size="small"
-                        onClick={() => {
-                          setEditingCase(caseItem);
-                          setFormOpen(true);
-                        }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    
-                    <Tooltip title={caseItem.is_archived ? 'Unarchive' : 'Archive'}>
-                      <IconButton 
-                        size="small"
-                        onClick={() => toggleArchiveCase(caseItem.id, !!caseItem.is_archived)}
-                      >
-                        {caseItem.is_archived ? 
-                          <UnarchiveIcon fontSize="small" /> : 
-                          <ArchiveIcon fontSize="small" />
-                        }
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </CardActions>
-              </Card>
+                onArchive={toggleArchiveCase}
+                onOpen={openCase}
+              />
             </Grid>
           ))}
         </Grid>

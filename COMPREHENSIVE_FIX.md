@@ -287,3 +287,130 @@ This fix provides a solid foundation, but additional improvements could include:
 2. Adding comprehensive logging
 3. Enhancing the UI with better user feedback
 4. Adding unit and integration tests to prevent regression
+
+# Comprehensive Database Constraint Fix
+
+This document outlines the comprehensive solution implemented to fix the foreign key constraint issue in the Legal Case Tracker application.
+
+## Problem Description
+
+The application was encountering a foreign key constraint error when creating cases:
+
+```
+insert or update on table 'cases' violates foreign key constraint 'cases_owner_id_fkey'
+```
+
+This was happening because:
+
+1. The `cases` table expected each case to have an `owner_id` field that references a valid user ID in the `auth.users` table.
+2. Some users didn't have corresponding entries in the `profiles` table, which caused the constraint violation.
+3. The code was inconsistent, sometimes using `created_by` and other times using `owner_id` to reference the user.
+
+## Implemented Solutions
+
+### 1. Database Schema Fixes
+
+We've implemented several fixes to the database schema:
+
+- Created a `profiles` table (if it didn't exist) that links to the `auth.users` table
+- Set up a database trigger to automatically create a profile for each new user
+- Added missing profiles for existing users
+- Modified the `cases` table to handle both `owner_id` and `created_by` fields properly
+
+### 2. Application Code Fixes
+
+We've updated the application code to handle the database constraints properly:
+
+- Added a database fix utility that runs at application startup (`src/utils/dbFix.js`)
+- Created helper functions to safely access user data (`src/utils/caseUtils.ts`)
+- Updated database services to maintain both `owner_id` and `created_by` fields for compatibility
+- Added defensive programming throughout the codebase to handle potential database inconsistencies
+
+### 3. Startup Database Fixes
+
+On application startup, the system now automatically:
+
+1. Checks if the `profiles` table exists and creates it if needed
+2. Ensures all users have corresponding profile entries
+3. Sets up correct security policies for row-level security
+4. Verifies that the `cases` table has the correct columns and constraints
+5. Creates a database trigger for new user registrations
+
+## Fix Implementation Files
+
+The fix is implemented across several files:
+
+- `src/utils/dbFix.js` - Applies database fixes at startup
+- `src/utils/caseUtils.ts` - Provides utilities for handling case data
+- `src/services/database.ts` - Updated to handle both user ID fields
+- `src/main.tsx` - Modified to run the database fixes at startup
+- Various type definitions updated for consistency
+
+## Manual Fix Execution
+
+If you need to manually apply the fixes, you can run one of the provided scripts:
+
+```bash
+# Run the comprehensive database fix directly
+./fix-db-constraints.sh
+
+# Or connect directly to PostgreSQL (requires database credentials)
+./fix-db-direct.sh
+```
+
+## Troubleshooting
+
+If you still encounter issues:
+
+1. Check the browser console for any errors during application startup
+2. Verify that the database connection is working properly
+3. Ensure the Supabase service role key has the necessary permissions
+4. Try manually creating a profile for your user in the Supabase dashboard
+
+## Technical Details
+
+### Foreign Key Relationship
+
+The main issue was with the foreign key constraint between `cases.owner_id` and `auth.users.id`. Our solution:
+
+1. Ensures both `owner_id` and `created_by` fields exist and point to valid users
+2. Creates missing profiles automatically
+3. Handles both field names in the codebase for backward compatibility
+
+### Database Trigger
+
+We created a trigger that runs whenever a new user is created:
+
+```sql
+CREATE OR REPLACE FUNCTION public.handle_auth_user_created()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, first_name, email)
+  VALUES (NEW.id, split_part(NEW.email, '@', 1), NEW.email)
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_auth_user_created();
+```
+
+This ensures that every new user automatically gets a profile record.
+
+## Environment Variables
+
+Make sure your `.env` file contains the following variables with correct values:
+
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+The service role key is particularly important as it's needed to modify the database schema.
+
+## Conclusion
+
+This comprehensive fix ensures that the foreign key constraint issue is resolved both at the database level and in the application code. By implementing defensive programming techniques and automated fixes, we've made the application more robust against similar issues in the future.

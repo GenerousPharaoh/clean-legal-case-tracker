@@ -25,6 +25,9 @@ import './utils/safeAccess'
 import './utils/tinymce-init.js'
 import './utils/tinymce-fix.js'
 
+// Import database fixes
+import { applyDatabaseFixes } from './utils/dbFix'
+
 // Import dark theme enhancements
 import './styles/darkThemeEnhancement.css'
 
@@ -33,6 +36,11 @@ initializeErrorHandlers()
 
 // Simple log for debugging
 console.log('[main] Starting application')
+
+// Apply database fixes on startup
+applyDatabaseFixes()
+  .then(() => console.log('[main] Database fixes applied'))
+  .catch(error => console.error('[main] Error applying database fixes:', error))
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

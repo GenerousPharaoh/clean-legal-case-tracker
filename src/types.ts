@@ -8,8 +8,8 @@ export interface BaseDBRecord {
 export interface Case extends BaseDBRecord {
   name: string;
   description?: string;
-  created_by: string;
-  owner_id?: string;
+  created_by: string;  // References auth.users.id
+  owner_id?: string;   // Legacy field, same as created_by for compatibility
   project_id?: string;
   tags?: string[];
   is_archived?: boolean;
