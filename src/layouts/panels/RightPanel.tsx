@@ -228,16 +228,16 @@ const RightPanel = () => {
       
       // First check if we already have entities in the database
       try {
-        const { data: entitiesData, error: entitiesError } = await supabaseClient
-          .from('entities')
-          .select('entity_text, entity_type')
-          .eq('source_file_id', selectedFile.id);
-        
-        if (entitiesError) {
-          throw entitiesError;
-        }
-        
-        if (entitiesData && entitiesData.length > 0) {
+      const { data: entitiesData, error: entitiesError } = await supabaseClient
+        .from('entities')
+        .select('entity_text, entity_type')
+        .eq('source_file_id', selectedFile.id);
+      
+      if (entitiesError) {
+        throw entitiesError;
+      }
+      
+      if (entitiesData && entitiesData.length > 0) {
           // Cast the data to the correct type
           const entities = entitiesData.map(entity => ({
             entity_text: entity.entity_text as string,
@@ -245,7 +245,7 @@ const RightPanel = () => {
           }));
           
           setExtractedEntities(entities);
-          return;
+        return;
         }
       } catch (error) {
         console.error('Error fetching entities:', error);
@@ -500,10 +500,10 @@ const RightPanel = () => {
       );
     }
 
-    return (
+          return (
       <FileViewer
         ref={pdfViewerRef as React.RefObject<HTMLDivElement>}
-        url={selectedFile.url}
+              url={selectedFile.url} 
         fileName={selectedFile.name}
         fileType={selectedFile.file_type}
         mimeType={selectedFile.content_type}

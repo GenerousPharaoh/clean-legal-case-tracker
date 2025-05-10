@@ -24,8 +24,8 @@ const ResizeHandle = ({ id, disabled = false }: {
 }) => {
   return (
     <PanelResizeHandle id={id} disabled={disabled}>
-      <Box 
-        sx={{
+          <Box
+            sx={{
           width: '8px',
           height: '100%',
           display: 'flex',
@@ -33,7 +33,7 @@ const ResizeHandle = ({ id, disabled = false }: {
           justifyContent: 'center',
           transition: `all ${TRANSITION_DURATION} ease`,
           opacity: disabled ? 0 : 0.5,
-          cursor: disabled ? 'default' : 'col-resize',
+              cursor: disabled ? 'default' : 'col-resize',
           '&:hover': {
             opacity: disabled ? 0 : 0.8,
             backgroundColor: (theme) => disabled ? 'transparent' : alpha(theme.palette.primary.main, 0.05),
@@ -53,7 +53,7 @@ const ResizeHandle = ({ id, disabled = false }: {
             transition: 'all 0.2s ease',
           },
           zIndex: 10,
-        }}
+      }}
       />
     </PanelResizeHandle>
   );
@@ -107,39 +107,39 @@ const PanelHeader = ({ children, isLeft = false, isCollapsed, onToggle }: PanelH
           children
         )}
         <Tooltip title={isCollapsed ? 'Expand panel' : 'Collapse panel'}>
-          <IconButton
-            data-test={isCollapsed ? "unfold-left-tab" : "fold-left-button"}
-            size="small"
-            onClick={onToggle}
-            aria-expanded={!isCollapsed}
-            aria-label={isCollapsed ? 'Expand left panel' : 'Collapse left panel'}
+            <IconButton
+              data-test={isCollapsed ? "unfold-left-tab" : "fold-left-button"}
+              size="small"
+              onClick={onToggle}
+              aria-expanded={!isCollapsed}
+              aria-label={isCollapsed ? 'Expand left panel' : 'Collapse left panel'}
             sx={{ 
               minWidth: '28px', 
               minHeight: '28px',
               color: 'text.secondary',
             }}
-          >
+            >
             <ChevronLeft fontSize="small" />
-          </IconButton>
+            </IconButton>
         </Tooltip>
       </>
     ) : (
       <>
         <Tooltip title={isCollapsed ? 'Expand panel' : 'Collapse panel'}>
-          <IconButton
-            data-test={isCollapsed ? "unfold-right-tab" : "fold-right-button"}
-            size="small"
-            onClick={onToggle}
-            aria-expanded={!isCollapsed}
-            aria-label={isCollapsed ? 'Expand right panel' : 'Collapse right panel'}
+            <IconButton
+              data-test={isCollapsed ? "unfold-right-tab" : "fold-right-button"}
+              size="small"
+              onClick={onToggle}
+              aria-expanded={!isCollapsed}
+              aria-label={isCollapsed ? 'Expand right panel' : 'Collapse right panel'}
             sx={{ 
               minWidth: '28px', 
               minHeight: '28px',
               color: 'text.secondary',
             }}
-          >
+            >
             <ChevronRight fontSize="small" />
-          </IconButton>
+            </IconButton>
         </Tooltip>
         {isCollapsed ? (
           <Typography
@@ -342,7 +342,7 @@ export const ResizablePanels = ({
               transition: `all ${TRANSITION_DURATION} ease`,
               bgcolor: 'background.paper',
               borderRight: 1,
-              borderColor: 'divider',
+                borderColor: 'divider',
               boxShadow: (theme) => `inset -2px 0 5px ${alpha(theme.palette.common.black, 0.02)}`,
             }}
           >
@@ -415,7 +415,7 @@ export const ResizablePanels = ({
               transition: `all ${TRANSITION_DURATION} ease`,
               bgcolor: 'background.paper',
               borderLeft: 1,
-              borderColor: 'divider',
+                borderColor: 'divider',
               boxShadow: (theme) => `inset 2px 0 5px ${alpha(theme.palette.common.black, 0.02)}`,
             }}
           >

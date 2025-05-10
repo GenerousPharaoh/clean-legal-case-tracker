@@ -55,16 +55,16 @@ const EnhancedPdfViewerInner = (
   const [retries, setRetries] = useState(0);
   const documentRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
+  
   // Log when URL changes
   useEffect(() => {
     if (url) {
       console.log('[EnhancedPdfViewer] Received URL:', url);
-      setLoading(true);
-      setError(null);
-    } else {
-      setLoading(false);
-    }
+    setLoading(true);
+    setError(null);
+        } else {
+        setLoading(false);
+      }
   }, [url]);
 
   // Document load success handler
@@ -220,7 +220,7 @@ const EnhancedPdfViewerInner = (
             const searchInput = document.querySelector('[data-testid="pdf-search-input"]') as HTMLInputElement;
             if (searchInput) {
               searchInput.focus();
-            }
+      }
           }
           break;
         default:
@@ -253,8 +253,8 @@ const EnhancedPdfViewerInner = (
   const renderToolbar = () => (
     <Paper
       elevation={2}
-      sx={{
-        display: 'flex',
+      sx={{ 
+        display: 'flex', 
         alignItems: 'center',
         justifyContent: 'center',
         gap: 1,
@@ -265,7 +265,7 @@ const EnhancedPdfViewerInner = (
     >
       <IconButton onClick={goToPrevPage} disabled={pageNumber <= 1 || loading} size="small">
         <PrevIcon />
-      </IconButton>
+              </IconButton>
 
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
         <TextField
@@ -279,9 +279,9 @@ const EnhancedPdfViewerInner = (
         />
         <Typography variant="body2">
           / {numPages || '-'}
-        </Typography>
-      </Box>
-
+          </Typography>
+        </Box>
+        
       <IconButton onClick={goToNextPage} disabled={loading || !numPages || pageNumber >= numPages} size="small">
         <NextIcon />
       </IconButton>
@@ -289,51 +289,51 @@ const EnhancedPdfViewerInner = (
       <Box sx={{ height: '24px', width: '1px', bgcolor: 'divider', mx: 1 }} />
 
       <Tooltip title="Zoom out (Ctrl+-)">
-        <span>
+            <span>
           <IconButton onClick={zoomOut} size="small" disabled={loading}>
             <ZoomOutIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
-
+              </IconButton>
+            </span>
+          </Tooltip>
+          
       <Typography variant="body2" sx={{ minWidth: '40px', textAlign: 'center' }}>
         {Math.round(scale * 100)}%
-      </Typography>
-
+          </Typography>
+          
       <Tooltip title="Zoom in (Ctrl++)">
-        <span>
+            <span>
           <IconButton onClick={zoomIn} size="small" disabled={loading}>
             <ZoomInIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
+              </IconButton>
+            </span>
+          </Tooltip>
 
       <Box sx={{ height: '24px', width: '1px', bgcolor: 'divider', mx: 1 }} />
-
+        
       <Tooltip title="Rotate left (Ctrl+r)">
-        <span>
+            <span>
           <IconButton onClick={rotateLeft} size="small" disabled={loading}>
             <RotateLeftIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
-
+              </IconButton>
+            </span>
+          </Tooltip>
+          
       <Tooltip title="Rotate right (Ctrl+Shift+r)">
-        <span>
+            <span>
           <IconButton onClick={rotateRight} size="small" disabled={loading}>
             <RotateRightIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
+              </IconButton>
+            </span>
+          </Tooltip>
 
       <Box sx={{ height: '24px', width: '1px', bgcolor: 'divider', mx: 1 }} />
-
-      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        <TextField
-          size="small"
+        
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <TextField
+            size="small"
           placeholder="Search... (Ctrl+f)"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           sx={{ width: '120px' }}
           disabled={loading}
@@ -345,15 +345,15 @@ const EnhancedPdfViewerInner = (
       </Box>
 
       <Box sx={{ height: '24px', width: '1px', bgcolor: 'divider', mx: 1 }} />
-
+          
       <Tooltip title="Download PDF">
-        <span>
+            <span>
           <IconButton onClick={handleDownload} size="small" disabled={!url || loading}>
             <DownloadIcon />
-          </IconButton>
-        </span>
-      </Tooltip>
-    </Paper>
+              </IconButton>
+            </span>
+          </Tooltip>
+      </Paper>
   );
 
   return (

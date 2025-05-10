@@ -27,25 +27,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const setStoreUser = useAppStore((state) => state.setUser);
 
-  // Simplified sign in function with better error handling
-  const signIn = async (email: string, password: string) => {
-    try {
-      // Simple sign in with retry on failure
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) throw error;
-      
-      // If successful, update the user state
-      setUser(data.user);
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      return { data: null, error };
-    }
-  };
+  // Memoize functions to prevent unnecessary re-renders
+  const signIn = useCallback((email: string, password: string) => {
+    return supabaseClient.auth.signInWithPassword({ email, password });
+  }, []);
 
   const signUp = useCallback((email: string, password: string) => {
     return supabaseClient.auth.signUp({ email, password });

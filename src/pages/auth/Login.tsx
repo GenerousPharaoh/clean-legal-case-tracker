@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useEffect } from 'react';
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
@@ -45,7 +45,7 @@ const Login = memo(() => {
   const [loading, setLoading] = useState(false);
   const [isTestMode, setIsTestMode] = useState(false);
   
-  // Simple input handlers
+  // Handle direct demo login without requiring Supabase
   const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   }, []);
@@ -66,10 +66,13 @@ const Login = memo(() => {
     // Set the demo user directly in the store
     setStoreUser(DEMO_USER);
     
-    // Navigate to appropriate page
-    const state = location.state as LocationState;
-    const from = state?.from || '/';
-    navigate(from);
+    // Short timeout to ensure the store is updated before navigation
+    setTimeout(() => {
+      // Redirect to appropriate page
+      const state = location.state as LocationState;
+      const from = state?.from || '/';
+      navigate(from);
+    }, 100);
   }, [navigate, location.state, setStoreUser]);
   
   const handleLogin = useCallback(async (e: React.FormEvent) => {
@@ -91,7 +94,9 @@ const Login = memo(() => {
     }
     
     try {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email, password, {
+        redirectTo: location.state?.from || '/'
+      });
       
       if (error) throw error;
       
@@ -99,11 +104,10 @@ const Login = memo(() => {
       const state = location.state as LocationState;
       const from = state?.from || '/';
       navigate(from);
-      
     } catch (error: any) {
       console.error('Login error:', error);
       
-      // If demo credentials, try to bypass
+      // If demo credentials, still try to bypass on error
       if (isTestMode && email === TEST_EMAIL && password === TEST_PASSWORD) {
         console.log('Authentication failed but using demo bypass anyway');
         handleForceDemoLogin();

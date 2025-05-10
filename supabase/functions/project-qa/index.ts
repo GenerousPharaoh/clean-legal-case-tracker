@@ -46,10 +46,10 @@ serve(async (req) => {
 
     // Get relevant document chunks using vector search
     const matchingChunks = await getMatchingDocumentChunks(projectId, questionEmbedding, limit);
-
+    
     if (!matchingChunks || matchingChunks.length === 0) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "No relevant documents found to answer the question",
           answer: "I don't have enough information about this project to answer your question."
         }),
@@ -62,18 +62,18 @@ serve(async (req) => {
 
     // Combine matching chunks as context
     const context = matchingChunks.map(chunk => chunk.chunk_text).join("\n\n");
-
+    
     // Build prompt for Gemini
     const prompt = `
     You are an AI legal assistant helping with a legal case analysis. Answer the question based ONLY on the provided context from case documents.
-
+    
     CONTEXT:
     """
     ${context}
     """
 
     QUESTION: ${question}
-
+    
     Provide a clear, direct answer that is supported by the context. If the context doesn't contain relevant information to answer, indicate that you don't have enough information. Include citations from specific documents when appropriate.
 
     If the question is related to legal advice or strategy, emphasize that your answer should be reviewed by a qualified legal professional and is not a substitute for professional legal advice.
@@ -112,10 +112,10 @@ serve(async (req) => {
         }
       );
     }
-
+    
     // Return the processed response
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         ...response,
         matchingChunks: matchingChunks.map(chunk => ({
           id: chunk.id,

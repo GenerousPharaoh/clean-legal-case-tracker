@@ -37,17 +37,17 @@ let generativeModel;
 
 try {
   vertexAI = new VertexAI({
-    project: GOOGLE_CLOUD_PROJECT_ID,
-    location: GOOGLE_CLOUD_LOCATION,
-    googleAuthOptions: {
-      credentials,
-    },
-  });
+  project: GOOGLE_CLOUD_PROJECT_ID,
+  location: GOOGLE_CLOUD_LOCATION,
+  googleAuthOptions: {
+    credentials,
+  },
+});
 
-  // Initialize the Gemini model
+// Initialize the Gemini model
   generativeModel = vertexAI.getGenerativeModel({
-    model: GOOGLE_GEMINI_MODEL,
-  });
+  model: GOOGLE_GEMINI_MODEL,
+});
   
   console.log("[GoogleAI] Successfully initialized Vertex AI and Gemini model");
 } catch (e) {

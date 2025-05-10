@@ -29,37 +29,37 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
         <NotificationProvider>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <AuthProvider>
-              <Router>
-                <Routes>
-                  {/* Auth routes */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  
-                  {/* Protected routes */}
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              {/* Auth routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              
+              {/* Protected routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
                         <ErrorBoundary>
-                          <ProjectListPage />
+                    <ProjectListPage />
                         </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  {/* Project route */}
-                  <Route
-                    path="/projects/:projectId"
-                    element={
-                      <ProtectedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Project route */}
+              <Route
+                path="/projects/:projectId"
+                element={
+                  <ProtectedRoute>
                         <ErrorBoundary>
-                          <MainLayout />
+                    <MainLayout />
                         </ErrorBoundary>
                       </ProtectedRoute>
                     }
@@ -73,21 +73,21 @@ function App() {
                         <ErrorBoundary>
                           <AITestPage />
                         </ErrorBoundary>
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  {/* Redirect to home */}
-                  <Route path="/home" element={<Navigate to="/" replace />} />
-                  
-                  {/* 404 Not Found */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Router>
-            </AuthProvider>
-          </LocalizationProvider>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Redirect to home */}
+              <Route path="/home" element={<Navigate to="/" replace />} />
+              
+              {/* 404 Not Found */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+        </AuthProvider>
+      </LocalizationProvider>
         </NotificationProvider>
-      </ThemeProvider>
+    </ThemeProvider>
     </ErrorBoundary>
   );
 }

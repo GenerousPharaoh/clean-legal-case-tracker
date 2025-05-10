@@ -43,8 +43,8 @@ async function extractTextContent(fileId: string, fileType: string, storagePath:
   return text;
 }
 
-// Split text into chunks for embedding with optimized sizing
-function chunkText(text: string, chunkSize = 1500, overlapSize = 100) {
+// Split text into chunks for embedding
+function chunkText(text: string, chunkSize = 1000, overlapSize = 200) {
   if (!text) return [];
   
   const chunks = [];
@@ -125,26 +125,6 @@ serve(async (req) => {
       }
       `;
 
-      // Process text for embeddings in parallel with analysis
-      const chunksPromise = Promise.all(
-        chunkText(fileText).map(async (chunkText) => {
-          try {
-            const embedding = await generateEmbeddings(chunkText);
-            
-            return {
-              file_id: fileId,
-              project_id: file.project_id,
-              owner_id: file.owner_id,
-              chunk_text: chunkText,
-              embedding: embedding
-            };
-          } catch (error) {
-            console.error("Error generating embeddings:", error);
-            return null;
-          }
-        })
-      );
-
       // Generate analysis using Gemini
       const analysisText = await generateText(prompt);
       
@@ -165,9 +145,26 @@ serve(async (req) => {
         );
       }
 
-      // Get the processed chunks
-      const chunkResults = await chunksPromise;
-      const chunkRecords = chunkResults.filter(chunk => chunk !== null);
+      // Process text for embeddings
+      const chunks = chunkText(fileText);
+      const chunkRecords = [];
+      
+      // Generate embeddings for each chunk
+      for (const chunkText of chunks) {
+        try {
+          const embedding = await generateEmbeddings(chunkText);
+          
+          chunkRecords.push({
+            file_id: fileId,
+            project_id: file.project_id,
+            owner_id: file.owner_id,
+            chunk_text: chunkText,
+            embedding: embedding
+          });
+        } catch (error) {
+          console.error("Error generating embeddings:", error);
+        }
+      }
       
       // Save chunks and embeddings to database
       if (chunkRecords.length > 0) {

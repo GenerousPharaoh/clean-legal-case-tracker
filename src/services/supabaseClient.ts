@@ -12,6 +12,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase credentials');
 }
 
+// Log the Supabase URL being used (for debugging)
+console.log('Using Supabase URL:', supabaseUrl);
+
 // Create Supabase client with type safety
 const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -22,25 +25,47 @@ const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     storageKey: allowLocalStorageFallback ? 'supabase.auth.token' : undefined,
     storage: allowLocalStorageFallback ? localStorage : undefined
   },
+  realtime: {
+    params: {
+      eventsPerSecond: 5
+    },
+    encode: (payload) => JSON.stringify(payload),
+    decode: (payload) => JSON.parse(payload),
+    reconnectAfterMs: (retryCount) => Math.min(1000 * (retryCount + 1), 10000),
+    heartbeatIntervalMs: 15000
+  },
+  // Add global error handler
   global: {
     headers: {
+      // Add required headers for CORS
       'X-Client-Info': 'supabase-js/2.x',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     },
-    // Simplified fetch handler - removed complex CORS handling that could cause overhead
-    fetch: (url, options = {}) => {
-      // Prevent fetch during unload events
-      if (document.readyState === 'unloading') {
-        return Promise.reject(new Error('Page is unloading'));
-      }
-      
+    fetch: (...args) => {
       // Log authentication attempts in development
       if (import.meta.env.DEV) {
-        if (typeof url === 'string' && url.includes('/auth/')) {
-          console.log('Auth request:', url);
+        const [resource, config] = args;
+        if (typeof resource === 'string' && resource.includes('/auth/')) {
+          console.log('Auth request:', resource);
         }
       }
       
-      return fetch(url, options);
+      // Enhanced fetch with CORS settings
+      const [resource, options = {}] = args;
+      const fetchOptions = {
+        ...options,
+        credentials: 'include',
+        mode: 'cors',
+        headers: {
+          ...options.headers,
+        }
+      };
+      
+      return fetch(resource, fetchOptions).catch(err => {
+        console.error('Network error:', err);
+        throw err;
+      });
     }
   }
 });

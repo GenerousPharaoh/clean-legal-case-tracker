@@ -135,8 +135,8 @@ const MainLayout = () => {
       <Box component="section" sx={{ 
         flexGrow: 1, 
         overflow: 'hidden', 
-        position: 'relative', 
-        transition: 'all 0.3s ease', 
+        position: 'relative',
+        transition: 'all 0.3s ease',
         p: { xs: 1, sm: 2 } 
       }}>
         <Container 
@@ -154,10 +154,10 @@ const MainLayout = () => {
           }}
         >
           <ResizablePanels initialSizes={[20, 60, 20]} minSizes={[10, 30, 10]}>
-            <LeftPanel />
-            <CenterPanelWrapper />
-            <RightPanelWrapper />
-          </ResizablePanels>
+          <LeftPanel />
+          <CenterPanelWrapper />
+          <RightPanelWrapper />
+        </ResizablePanels>
         </Container>
       </Box>
 

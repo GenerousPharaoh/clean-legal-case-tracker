@@ -10,23 +10,21 @@ export default function CenterPanelWrapper() {
   
   // If no project is selected, show the main welcome screen
   if (!selectedProjectId) {
-    return <WelcomePlaceholder />;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', p: 3 }}>
+        <Typography variant="h6" color="text.secondary">
+          Select a project to get started.
+        </Typography>
+      </Box>
+    );
   }
   
   // If a project is selected but no note is loaded, show a simpler message
   if (!selectedNoteId) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100%', 
-        p: 3,
-        bgcolor: 'background.paper',
-        borderRadius: 2,
-      }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', p: 3 }}>
         <Typography variant="h6" color="text.secondary">
-          Select a note or create a new one to start editing.
+          Loading project note...
         </Typography>
       </Box>
     );
